@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .login-bg-split {
   display: flex;
   min-height: 100vh; /* Full viewport height */
@@ -255,4 +256,91 @@
 
 .login-split-footer {
   display: none; /* Hide the split footer to avoid duplication */
+=======
+.profile-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 80vh;
+  padding-top: 32px;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(40,48,70,0.04);
+  padding: 36px 48px 36px 48px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+.profile-avatar {
+  margin-bottom: 12px;
+}
+
+.profile-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #222;
+}
+
+.profile-updated {
+  font-size: 0.98rem;
+  color: #888;
+  margin-bottom: 18px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-bottom: 26px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+  font-size: 1rem;
+}
+
+.profile-icon {
+  display: flex;
+  align-items: center;
+  width: 22px;
+}
+
+.profile-label {
+  color: #8a8a8a;
+  font-size: 0.97em;
+  min-width: 96px;
+}
+
+.profile-value {
+  font-weight: 500;
+  color: #222;
+  margin-left: 6px;
+  font-size: 1.04em;
+}
+
+.profile-change-btn {
+  background: #f4cd4d;
+  color: #222;
+  border: none;
+  border-radius: 22px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  padding: 10px 0;
+  width: 220px;
+  cursor: pointer;
+  transition: background 0.18s;
+  margin-top: 10px;
+}
+.profile-change-btn:hover {
+  background: #e3b800;
+>>>>>>> 1b39092 (complete Soldier User Interface)
 }

@@ -1,7 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+<<<<<<< HEAD
 import App from "./App.jsx";
+=======
+import App from "./App";
+>>>>>>> 1b39092 (complete Soldier User Interface)
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import './index.css';

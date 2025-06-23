@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Toast from '../components/Toast';
@@ -10,10 +11,26 @@ function getFormattedDate() {
   const dateObj = new Date();
   const day = String(dateObj.getDate()).padStart(2, '0');
   const month = dateObj.toLocaleString('default', { month: 'long' });
+=======
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+import Toast from "../components/Toast";
+import { useAuth } from "../context/AuthContext";
+import "./Dashboard.css";
+
+// Utility for formatted date (e.g. 21-June-2025)
+function getFormattedDate() {
+  const dateObj = new Date();
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const month = dateObj.toLocaleString("default", { month: "long" });
+>>>>>>> 1b39092 (complete Soldier User Interface)
   const year = dateObj.getFullYear();
   return `${day}-${month}-${year}`;
 }
 
+<<<<<<< HEAD
 const allVisitors = [
   { name: 'John Doe', id: '20215234', host: 'Angela Moss', in: '08:15 AM', out: '', status: 'Checked In' },
   { name: 'Lucy Smith', id: '20215125', host: 'Emma White', in: '08:50 AM', out: '10:33 AM', status: 'Checked Out' },
@@ -33,10 +50,15 @@ const allVisitors = [
 ];
 
 export default function Dashboard() {
+=======
+export default function Dashboard() {
+  // Show toast if we navigated here after login (see Login.jsx)
+>>>>>>> 1b39092 (complete Soldier User Interface)
   const location = useLocation();
   const navigate = useNavigate();
   const [toast, setToast] = useState({
     show: !!location.state?.toast,
+<<<<<<< HEAD
     type: 'success',
     message: location.state?.toast || '',
   });
@@ -52,10 +74,20 @@ export default function Dashboard() {
   useEffect(() => {
     if (toast.show) {
       const t = setTimeout(() => setToast((t) => ({ ...t, show: false })), 3000);
+=======
+    type: "success",
+    message: location.state?.toast || ""
+  });
+
+  useEffect(() => {
+    if (toast.show) {
+      const t = setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+>>>>>>> 1b39092 (complete Soldier User Interface)
       return () => clearTimeout(t);
     }
   }, [toast.show]);
 
+<<<<<<< HEAD
   const todayStats = useMemo(() => {
     let total = allVisitors.length;
     let active = allVisitors.filter((v) => v.status === 'Checked In').length;
@@ -168,6 +200,114 @@ export default function Dashboard() {
             <button disabled={page === pageCount} onClick={() => setPage(page + 1)}>
               {'>'}
             </button>
+=======
+  // For greeting (optional)
+  const { user } = useAuth();
+
+  // Replace with real data logic
+  const todayStats = { total: 157, active: 120, checkedOut: 37 };
+  const todayVisitors = [
+    { name: "John Doe", id: "20215234", host: "Angela Moss", in: "08:15 AM", out: "", status: "Checked In" },
+    { name: "Lucy Smith", id: "20215125", host: "Emma White", in: "08:50 AM", out: "10:33 AM", status: "Checked Out" },
+    { name: "Tom Baker", id: "20215219", host: "John Doe", in: "10:45 AM", out: "", status: "Checked In" },
+    { name: "Rita Patel", id: "20215327", host: "Angela Moss", in: "11:05 AM", out: "", status: "Checked In" }
+  ];
+
+  return (
+    <div className="main-app">
+      <Toast type={toast.type} message={toast.message} show={toast.show} />
+      <Sidebar active="dashboard" />
+      <div className="main-content">
+        <Topbar user={user} />
+
+        {/* Welcome Card */}
+        <div className="dashboard-welcome-card">
+          <h2>Welcome to your Dashboard</h2>
+          <p>Here's an overview of today's activities</p>
+        </div>
+
+        <div className="dashboard-header">
+          <div>
+            <span className="dashboard-date">{getFormattedDate()}</span>
+          </div>
+        </div>
+
+        <div className="dashboard-stats">
+          <div className="stat-card">
+            <span className="stat-label">Today's Total Visitors</span>
+            <span className="stat-value">{todayStats.total}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Active Visitors</span>
+            <span className="stat-value">{todayStats.active}</span>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Checked-Out Visitors</span>
+            <span className="stat-value">{todayStats.checkedOut}</span>
+          </div>
+        </div>
+        <div className="dashboard-table-section">
+          <div className="dashboard-table-header">
+            <h3>Today's Visitors</h3>
+            <div>
+              <button
+                className="dashboard-btn"
+                onClick={() => navigate("/visitors-log")}
+              >
+                View Full Log
+              </button>
+              <button
+                className="dashboard-btn"
+                onClick={() => navigate("/check-in")}
+              >
+                Check In
+              </button>
+              <button
+                className="dashboard-btn"
+                onClick={() => navigate("/check-out")}
+              >
+                Check Out
+              </button>
+            </div>
+          </div>
+          <table className="dashboard-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>ID Number</th>
+                <th>Host</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todayVisitors.map((v, i) => (
+                <tr key={i}>
+                  <td>{v.name}</td>
+                  <td>{v.id}</td>
+                  <td>{v.host}</td>
+                  <td>{v.in}</td>
+                  <td>{v.out || "-"}</td>
+                  <td>
+                    <span
+                      className={`status-label ${
+                        v.status === "Checked Out" ? "checked-out" : "checked-in"
+                      }`}
+                    >
+                      {v.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="dashboard-pagination">
+            Showing 1-5 of 20
+            <button className="dashboard-page-btn">1</button>
+            <button className="dashboard-page-btn">2</button>
+            <button className="dashboard-page-btn">3</button>
+>>>>>>> 1b39092 (complete Soldier User Interface)
           </div>
         </div>
       </div>

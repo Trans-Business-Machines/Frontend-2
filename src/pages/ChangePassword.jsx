@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import { AuthProvider } from "../context/AuthContext"; // <-- import useAuth
+=======
+>>>>>>> 1b39092 (complete Soldier User Interface)
 import "./ChangePassword.css";
 
 export default function ChangePassword() {
@@ -9,7 +12,10 @@ export default function ChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+<<<<<<< HEAD
   const { user } = AuthProvider(); // <-- get user from Auth
+=======
+>>>>>>> 1b39092 (complete Soldier User Interface)
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -25,11 +31,15 @@ export default function ChangePassword() {
   };
 
   const goToDashboard = () => {
+<<<<<<< HEAD
     if (user?.role === "host") {
       navigate("/host/dashboard");
     } else {
       navigate("/");
     }
+=======
+    navigate("/");
+>>>>>>> 1b39092 (complete Soldier User Interface)
   };
 
   return (

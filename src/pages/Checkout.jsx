@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+<<<<<<< HEAD
+=======
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+>>>>>>> 1b39092 (complete Soldier User Interface)
 import "./Checkout.css";
 
 // Example static visitor records
@@ -31,6 +36,7 @@ export default function Checkout() {
   };
 
   return (
+<<<<<<< HEAD
     <div className="checkout-content">
       {/* Centered header section */}
       <div className="checkout-header-center">
@@ -82,6 +88,63 @@ export default function Checkout() {
             </tbody>
           </table>
         )}
+=======
+    <div className="main-app">
+      <Sidebar active="checkout" />
+      <div className="main-content">
+        <Topbar />
+        {/* Centered header section */}
+        <div className="checkout-header-center">
+          <h2>Check Out Visitor</h2>
+          <p>Search a visitor to check them out of the premises.</p>
+        </div>
+        <form className="checkout-form" autoComplete="off" onSubmit={e => e.preventDefault()}>
+          <input
+            type="text"
+            className="checkout-search-input"
+            placeholder="Search by Name or ID..."
+            value={search}
+            onChange={handleChange}
+          />
+        </form>
+        <div className="checkout-records-section">
+          {filtered.length === 0 ? (
+            <div className="checkout-no-records">
+              <p>No records found.</p>
+            </div>
+          ) : (
+            <table className="checkout-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>ID Number</th>
+                  <th>Host</th>
+                  <th>Time In</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((v, i) => (
+                  <tr key={i}>
+                    <td>{v.name}</td>
+                    <td>{v.id}</td>
+                    <td>{v.host}</td>
+                    <td>{v.checkedIn}</td>
+                    <td>
+                      <button
+                        className="checkout-btn-small"
+                        onClick={() => alert(`Checked out ${v.name} (mock)`)}
+                      >
+                        Check Out
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+>>>>>>> 1b39092 (complete Soldier User Interface)
       </div>
     </div>
   );

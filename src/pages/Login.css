@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .login-bg-split {
   display: flex;
   min-height: 100vh; /* Ensure full viewport height */
@@ -153,10 +154,138 @@
 .login-password-icon svg {
   width: 18px;
   height: 18px;
+=======
+.login-bg-full {
+  background: #e7e3e1;
+  min-height: 100vh;
+  min-width: 100vw;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.login-card-flex-full {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.login-card-side {
+  background: #285e61;
+  color: #fff;
+  flex: 1.2;
+  padding: 44px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 280px;
+}
+
+.login-card-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff2;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card-side h1 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 2vw;
+  text-align: center;
+}
+
+.login-card-quote {
+  font-size: 1.2vw;
+  margin-top: 18px;
+  text-align: center;
+  font-style: italic;
+}
+
+.login-card-form {
+  flex: 1.8;
+  padding: 48px 8vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-card-form form {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.login-card-form h2 {
+  margin-bottom: 5px;
+  font-size: 2rem;
+}
+
+.login-card-subtitle {
+  color: #888;
+  margin-bottom: 22px;
+  font-size: 1.1rem;
+}
+
+.login-field {
+  margin-bottom: 18px;
+}
+
+.login-field label {
+  font-size: 1rem;
+  color: #555;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.login-field input {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-top: 2px;
+  margin-bottom: 0;
+  outline: none;
+  transition: border 0.13s;
+  background: #fafbfb;
+}
+
+.login-field input:focus {
+  border-color: #285e61;
+}
+
+.login-show-password-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+>>>>>>> 1b39092 (complete Soldier User Interface)
 }
 
 .login-card-forgot {
   text-align: right;
+<<<<<<< HEAD
   margin-bottom: 20px;
 }
 
@@ -235,4 +364,67 @@
   width: 100%; /* Ensure footer spans the right section */
   position: absolute;
   bottom: 0;
+=======
+  margin-bottom: 16px;
+}
+
+.login-card-forgot a {
+  color: #3498db;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.login-card-submit-btn {
+  width: 100%;
+  background: #285e61;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: background 0.17s;
+}
+
+.login-card-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-card-submit-btn:hover:not(:disabled) {
+  background: #2176b6;
+}
+
+.login-card-footer {
+  font-size: 0.98rem;
+  color: #444;
+  text-align: center;
+}
+
+.login-card-footer a {
+  color: #285e61;
+  text-decoration: none;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 900px) {
+  .login-card-flex-full {
+    flex-direction: column;
+    min-width: 340px;
+    max-width: 100vw;
+    height: 100vh;
+  }
+  .login-card-side,
+  .login-card-form {
+    padding: 32px 6vw;
+  }
+  .login-card-form form {
+    max-width: 100vw;
+  }
+  .login-card-side h1, .login-card-quote {
+    font-size: 1.25rem;
+  }
+>>>>>>> 1b39092 (complete Soldier User Interface)
 }
