@@ -1,9 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-import { AuthProvider } from "../context/AuthContext"; // <-- import useAuth
-=======
->>>>>>> 1b39092 (complete Soldier User Interface)
 import "./ChangePassword.css";
 
 export default function ChangePassword() {
@@ -12,18 +8,38 @@ export default function ChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const { user } = AuthProvider(); // <-- get user from Auth
-=======
->>>>>>> 1b39092 (complete Soldier User Interface)
 
   const handleSubmit = async e => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
     setLoading(true);
-    // Add your password change logic here
-    setTimeout(() => {
+
+    // Check if new password and confirmation match
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
       setLoading(false);
-      alert("Password changed successfully!");
+      return;
+    }
+
+    // Verify current password
+    try {
+      const isCurrentCorrect = await verifyPassword(oldPassword);
+      if (!isCurrentCorrect) {
+        setError("Current Password is Incorrect");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      setError("Current Password is Incorrect");
+      setLoading(false);
+      return;
+    }
+
+    // Change password
+    try {
+      await changePassword(newPassword);
+      setSuccess("Password changed successfully!");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -31,23 +47,12 @@ export default function ChangePassword() {
   };
 
   const goToDashboard = () => {
-<<<<<<< HEAD
-    if (user?.role === "host") {
-      navigate("/host/dashboard");
-    } else {
-      navigate("/");
-    }
-=======
     navigate("/");
->>>>>>> 1b39092 (complete Soldier User Interface)
   };
 
   return (
     <div className="change-password-bg">
       <div className="change-password-container">
-        <button className="back-to-dashboard-btn" onClick={goToDashboard}>
-          ← Back to Dashboard
-        </button>
         <h2>Change Password</h2>
         <form className="change-password-form" onSubmit={handleSubmit}>
           <div className="change-password-field">
@@ -58,6 +63,7 @@ export default function ChangePassword() {
               value={oldPassword}
               onChange={e => setOldPassword(e.target.value)}
               required
+              autoComplete="current-password"
             />
           </div>
           <div className="change-password-field">
@@ -68,6 +74,7 @@ export default function ChangePassword() {
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
               required
+              autoComplete="new-password"
             />
           </div>
           <div className="change-password-field">
@@ -78,8 +85,19 @@ export default function ChangePassword() {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               required
+              autoComplete="new-password"
             />
           </div>
+          {error && (
+            <div className="change-password-error" style={{ color: "red", marginBottom: "10px" }}>
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="change-password-success" style={{ color: "green", marginBottom: "10px" }}>
+              {success}
+            </div>
+          )}
           <button
             type="submit"
             className="change-password-submit-btn"

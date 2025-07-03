@@ -16,7 +16,11 @@ export default function HostLayout({ hostName = "Host User" }) {
   const { logout } = useAuth();
 
   const menu = [
-    { label: "Dashboard", icon: <span style={{ fontSize: 18 }}><AiOutlineDashboard /></span>, path: "/host/dashboard" },
+    {
+      label: "Dashboard",
+      icon: <span style={{ fontSize: 18 }}><AiOutlineDashboard /></span>,
+      path: "/host/dashboard"
+    },
     {
       label: (
         <span style={{ display: "flex", alignItems: "center" }}>
@@ -39,8 +43,16 @@ export default function HostLayout({ hostName = "Host User" }) {
       icon: null,
       path: "/host/notifications"
     },
-    { label: "Availability", icon: <span style={{ fontSize: 18 }}><SlCalender /></span>, path: "/host/availability" },
-    { label: "History", icon: <span style={{ fontSize: 18 }}><FaHistory /></span>, path: "/host/history" },
+    {
+      label: "Availability",
+      icon: <span style={{ fontSize: 18 }}><SlCalender /></span>,
+      path: "/host/availability"
+    },
+    {
+      label: "History",
+      icon: <span style={{ fontSize: 18 }}><FaHistory /></span>,
+      path: "/host/history"
+    }
   ];
 
   return (
@@ -77,8 +89,7 @@ export default function HostLayout({ hostName = "Host User" }) {
           <div></div>
           <div className="host-header-title">
             {menu.find(item => location.pathname === item.path)?.label ??
-              menu.find(item => location.pathname.startsWith(item.path))?.label
-            }
+              menu.find(item => location.pathname.startsWith(item.path))?.label}
           </div>
           <div
             className="host-header-profile"

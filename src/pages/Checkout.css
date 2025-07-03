@@ -58,7 +58,7 @@
   width: 95%;
   max-width: 600px;
   border-collapse: collapse;
-  background: #fff;
+  background: #285E61;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(40,48,70,0.04);
@@ -70,8 +70,8 @@
 }
 
 .checkout-table th {
-  background: #f5f7f7;
-  color: #257c5a;
+  background: #285E61;
+  color: white;
   font-size: 1.01rem;
   font-weight: 700;
 }
@@ -81,7 +81,7 @@
 }
 
 .checkout-btn-small {
-  background: #257c5a;
+  background: #2F855A;
   color: #fff;
   border: none;
   border-radius: 18px;
@@ -132,8 +132,8 @@
 }
 
 .checkout-table th {
-  background: #f5f7f7;
-  color: #257c5a;
+  background: #285E61;
+  color: white;
   font-size: 1.12rem;
   font-weight: 700;
 }

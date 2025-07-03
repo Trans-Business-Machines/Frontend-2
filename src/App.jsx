@@ -6,7 +6,6 @@ import Profile from "./pages/Profile";
 import Checkin from "./pages/Checkin";
 import Checkout from "./pages/Checkout";
 import VisitorsLog from "./pages/VisitorsLog";
-<<<<<<< HEAD
 import ChangePassword from "./pages/ChangePassword";
 import { useAuth } from "./context/AuthContext";
 import HostDashboard from "./host/HostDashboard";
@@ -15,21 +14,13 @@ import HostAvailability from "./host/HostAvailability";
 import HostHistory from "./host/HostHistory";
 import HostProfile from "./host/HostProfile";
 import HostLayout from "./host/HostLayout";
-
-// Admin imports
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/AdminDashboard";
 import AdminUsers from "./admin/AdminUsers";
 import AdminAddUser from "./admin/AdminAddUser";
 import AdminVisitorLog from "./admin/AdminVisitorLog";
 import AdminProfile from "./admin/AdminProfile";
-
-// Soldier Layout import
 import SoldierLayout from "./pages/SoldierLayout";
-=======
-import ChangePassword from "./pages/ChangePassword"; // <-- Import ChangePassword
-import { useAuth } from "./context/AuthContext";
->>>>>>> 1b39092 (complete Soldier User Interface)
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -40,16 +31,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-<<<<<<< HEAD
-
-      {/* Soldier (default) routes - now wrapped in SoldierLayout */}
-=======
->>>>>>> 1b39092 (complete Soldier User Interface)
       <Route
         path="/"
         element={
           <PrivateRoute>
-<<<<<<< HEAD
             <SoldierLayout />
           </PrivateRoute>
         }
@@ -61,8 +46,6 @@ export default function App() {
         <Route path="check-out" element={<Checkout />} />
         <Route path="visitors-log" element={<VisitorsLog />} />
       </Route>
-
-      {/* Host routes */}
       <Route
         path="/host"
         element={
@@ -78,8 +61,6 @@ export default function App() {
         <Route path="profile" element={<HostProfile />} />
         <Route path="profile/change-password" element={<ChangePassword />} />
       </Route>
-
-      {/* Admin routes */}
       <Route
         path="/admin"
         element={
@@ -95,54 +76,6 @@ export default function App() {
         <Route path="profile" element={<AdminProfile />} />
         <Route path="profile/change-password" element={<ChangePassword />} />
       </Route>
-
-      {/* Redirect any unknown path to the default landing (/) */}
-=======
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <PrivateRoute>
-            <Profile />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/profile/change-password"
-        element={
-          <PrivateRoute>
-            <ChangePassword />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/check-in"
-        element={
-          <PrivateRoute>
-            <Checkin />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/check-out"
-        element={
-          <PrivateRoute>
-            <Checkout />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/visitors-log"
-        element={
-          <PrivateRoute>
-            <VisitorsLog />
-          </PrivateRoute>
-        }
-      />
->>>>>>> 1b39092 (complete Soldier User Interface)
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

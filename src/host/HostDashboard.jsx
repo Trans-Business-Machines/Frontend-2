@@ -20,7 +20,6 @@ function chunkArray(arr, size) {
 
 function getFormattedDate() {
   const date = new Date();
-  // e.g. 02-July-2025
   return date
     .toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -36,20 +35,18 @@ export default function HostDashboard() {
   const visitChunks = chunkArray(visits, 4);
   const [currentChunk, setCurrentChunk] = useState(0);
 
-  // Optionally, get host name dynamically. For now, hardcode.
   const hostName = "Samuel";
 
   return (
     <div className="host-scrollable-content">
       <div className="host-dashboard-wrapper">
-        {/* Welcome Banner - exactly matches Admin */}
         <div className="admin-dashboard-welcome-card">
           <div>
             <div className="admin-dashboard-welcome-title">
               Welcome to your dashboard {hostName}
             </div>
             <div className="admin-dashboard-welcome-sub">
-              Here’s an overview of today&apos;s activities
+              Here’s an overview of today's activities
             </div>
           </div>
           <div className="admin-dashboard-date-pill">{today}</div>
@@ -64,6 +61,7 @@ export default function HostDashboard() {
             View more...
           </button>
         </div>
+
         <div className="host-dashboard-visits-grid">
           {visitChunks[currentChunk].map((v) => (
             <div className="visit-card" key={v.id}>
@@ -76,6 +74,7 @@ export default function HostDashboard() {
             </div>
           ))}
         </div>
+
         <div className="host-dashboard-pagination">
           <button
             className="host-dashboard-pagination-btn"

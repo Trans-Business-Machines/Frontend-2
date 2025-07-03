@@ -1,48 +1,52 @@
-<<<<<<< HEAD
+.main-app {
+  display: flex;
+  min-height: 100vh;
+  padding-bottom: 32px;
+}
+.dashboard-content {
+  padding: 0;
+}
+
+/* Welcome Banner - same as .admin-dashboard-welcome-card */
 .soldier-welcome-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(90deg, #386773 0%, #32ae6c 100%);
+  background: linear-gradient(90deg, #285E61 0%, #2F855A 100%);
   border-radius: 16px;
   padding: 32px 24px;
   color: #fff;
   margin-bottom: 32px;
-  min-height: 130px;
-  width: 100%;
+  min-height: 100px;
+  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
-  box-sizing: border-box;
 }
-
-/* Center the welcome banner text */
-.soldier-welcome-banner-centered {
-  justify-content: center;
-  gap: 30px;
-}
-
-.soldier-banner-center {
+.soldier-banner-left {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  flex: 1;
+  gap: 18px;
 }
-
+.soldier-banner-shield {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  background: #2E8E6D;
+  border-radius: 100%;
+}
 .soldier-banner-title {
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 8px;
-  text-align: center;
 }
-
 .soldier-banner-desc {
   font-size: 1rem;
-  font-weight: 400;
   color: #e0e0e0;
-  text-align: center;
+  font-weight: 400;
 }
-
 .soldier-banner-date {
   background: #fff;
   color: #219150;
@@ -53,184 +57,159 @@
   min-width: 120px;
   text-align: center;
   box-shadow: 0 1px 4px rgba(50, 174, 108, 0.07);
-  margin-left: 32px;
 }
 
-/* Remove old left-alignment and shield */
-.soldier-banner-left,
-.soldier-banner-shield {
-  display: none !important;
-}
-=======
-.main-app {
-  display: flex;
-  min-height: 100vh;
-  background: #f3ecec;
-}
-
-.main-content {
-  flex: 1;
-  padding: 0 30px 30px 30px;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 26px 0 16px 0;
-}
-
-.dashboard-header h2 {
-  font-size: 1.4em;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.dashboard-header p {
-  color: #226959;
-}
-
-.dashboard-date {
-  background: #e9f4ef;
-  padding: 6px 18px;
-  border-radius: 22px;
-  color: #226959;
-  font-weight: 600;
-  font-size: 1.03em;
-}
-
-.dashboard-stats {
+/* Stat Card Row - match admin-dashboard-cards-row */
+.soldier-stat-card-row {
   display: flex;
   gap: 24px;
-  margin-bottom: 28px;
+  margin: 0 0 36px 0;
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.stat-card {
+/* Each Stat Card - match .admin-dashboard-card */
+.soldier-stat-card {
   background: #fff;
-  border-radius: 9px;
-  padding: 19px 32px;
-  box-shadow: 0 1px 6px rgba(30,80,80,0.09);
-  min-width: 170px;
-  text-align: center;
+  border-radius: 10px;
+  flex: 1;
+  min-width: 190px;
+  padding: 20px 24px 17px 24px;
+  box-shadow: 0 2px 12px 0 #2a3c3420;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
 }
-
-.stat-label {
-  color: #888;
-  font-size: 0.95em;
-  margin-bottom: 10px;
-  display: block;
+.soldier-stat-card-label {
+  font-size: 0.98rem;
+  color: #2a3c34;
+  margin-bottom: 8px;
+  font-weight: 500;
+  opacity: 0.85;
 }
-
-.stat-value {
-  font-size: 2em;
+.soldier-stat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.soldier-stat-card-value {
+  font-size: 2rem;
   font-weight: 700;
-  color: #226959;
+  color: #1e715c;
+  letter-spacing: 1px;
+}
+.soldier-stat-card-icon {
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 1.3rem;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #219150;
+  color: white ;
+  /* You can override background for yellow/clock or group icons as needed in your JSX */
 }
 
+/* Table Section - keep as before, or match admin if you wish */
 .dashboard-table-section {
   background: #fff;
-  border-radius: 11px;
-  box-shadow: 0 1px 7px rgba(30,80,80,0.07);
-  padding: 28px;
-  margin-top: 18px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px #00000009;
+  padding: 26px 24px 12px 24px;
+  margin: 0 auto 0 auto;
+  max-width: 950px;
 }
-
 .dashboard-table-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 15px;
+  gap: 12px;
 }
-
 .dashboard-table-header h3 {
-  font-weight: 600;
-  font-size: 1.13em;
+  color: #285E61;
+  font-size: 1.18rem;
+  font-weight: 700;
+  margin-bottom: 0;
 }
-
 .dashboard-btn {
-  background: #226959;
+  background: #2F855A;
   color: #fff;
   border: none;
-  border-radius: 7px;
-  padding: 8px 17px;
-  margin-left: 10px;
-  font-weight: 500;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 7px;
   cursor: pointer;
-  font-size: 1em;
+  transition: background 0.17s;
 }
-
+.dashboard-btn:hover {
+  background: #2E8E6D;
+}
 .dashboard-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-bottom: 9px;
+  margin-top: 7px;
 }
-
 .dashboard-table th, .dashboard-table td {
-  padding: 11px 9px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #e2e8f0;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  font-size: 1rem;
 }
-
+.dashboard-table th {
+  background: #285E61;
+  color: #fff;
+  font-weight: 600;
+}
+.dashboard-table tr:last-child td {
+  border-bottom: none;
+}
 .status-label {
   display: inline-block;
-  padding: 4px 11px;
-  border-radius: 12px;
-  font-size: 0.98em;
-  font-weight: 500;
-}
-
-.checked-in {
-  background: #e6f3ea;
-  color: #217346;
-}
-
-.checked-out {
-  background: #fbeaea;
-  color: #ba3939;
-}
-
-.dashboard-pagination {
-  margin-top: 12px;
-  font-size: 0.98em;
-  color: #888;
-  display: flex;
-  gap: 7px;
-  align-items: center;
-}
-
-.dashboard-page-btn {
-  background: #f3ecec;
-  color: #285E61;
-  border: none;
-  padding: 4px 13px;
-  border-radius: 6px;
+  border-radius: 8px;
+  padding: 4px 15px;
+  font-size: 0.96rem;
   font-weight: 600;
-  font-size: 1em;
-  margin-left: 3px;
+  color: #fff;
+}
+.status-label.checked-in {
+  background: #38a169;
+}
+.status-label.checked-out {
+  background: #e53e3e;
+}
+.dashboard-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-size: 1.07rem;
+}
+.dashboard-pagination-controls button {
+  background: none;
+  border: 1px solid #cfd8dc;
+  color: #235c56;
+  border-radius: 5px;
+  margin: 0 2px;
+  padding: 2px 10px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
-
-.dashboard-page-btn:hover {
-  background: #e6f3ea;
+.dashboard-pagination-controls button.active,
+.dashboard-pagination-controls button:hover {
+  background: #30B87B;
+  color: #fff;
+  border-color: #30B87B;
 }
-.dashboard-welcome-card {
-  background: #285E61;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(40,48,70,0.05);
-  padding: 30px 36px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-.dashboard-welcome-card h2 {
-  margin: 0 0 6px 0;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: whitesmoke;
-}
-.dashboard-welcome-card p {
-  margin: 0;
-  color: whitesmoke;
-  font-size: 1.04rem;
+.dashboard-pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 >>>>>>> 1b39092 (complete Soldier User Interface)

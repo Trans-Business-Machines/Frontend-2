@@ -16,15 +16,23 @@
 }
 
 .host-logo {
-  font-size: 2rem;
-  font-weight: 700;
-  padding-left: 32px;
-  margin-bottom: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 4px;
+  margin: 32px 0 28px 0;
+}
+
+.host-logo-img {
+  width: 220px;
+  height: auto;
+  object-fit: contain;
 }
 
 .host-sidebar-link {
   display: flex;
   align-items: center;
+  gap: 11px;
   padding: 14px 32px;
   width: 100%;
   cursor: pointer;
@@ -33,14 +41,16 @@
   border-left: 4px solid transparent;
 }
 
-.host-sidebar-link.active, .host-sidebar-link:hover {
+.host-sidebar-link.active,
+.host-sidebar-link:hover {
   background: #2F855A;
   border-left: 4px solid #fff;
 }
 
 .host-sidebar-icon {
-  margin-right: 16px;
   font-size: 1.2rem;
+  display: flex;
+  align-items: center;
 }
 
 .host-logout-btn {
@@ -77,7 +87,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 36px 0 16px;
-  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
+  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
   font-size: 1.14rem;
 }
 
@@ -93,10 +103,16 @@
   font-weight: 500;
   color: #235c56;
   font-size: 1rem;
+  cursor: pointer;
 }
 
 .host-content-panel {
   flex: 1;
   padding: 36px;
   overflow-y: auto;
+}
+
+.host-notification-badge {
+  vertical-align: middle;
+  margin-left: 5px;
 }

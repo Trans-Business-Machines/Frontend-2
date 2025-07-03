@@ -10,8 +10,8 @@
 .profile-card {
   background: #fff;
   border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(40,48,70,0.04);
-  padding: 36px 48px 36px 48px;
+  box-shadow: 0 4px 20px rgba(40, 48, 70, 0.04);
+  padding: 36px 48px;
   max-width: 420px;
   width: 100%;
   text-align: center;
@@ -81,6 +81,14 @@
   transition: background 0.18s;
   margin-top: 10px;
 }
+
 .profile-change-btn:hover {
   background: #e3b800;
+}
+
+.host-scrollable-content {
+  height: 100vh;
+  overflow-y: auto;
+  /* Optional: adjust if you have a fixed sidebar */
+  /* margin-left: 220px; */
 }

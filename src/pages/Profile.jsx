@@ -1,9 +1,12 @@
 import React from "react";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 >>>>>>> 1b39092 (complete Soldier User Interface)
+=======
+>>>>>>> e1cabf6 (Initial commit on MaryAnn branch)
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
@@ -22,6 +25,9 @@ export default function Profile() {
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e1cabf6 (Initial commit on MaryAnn branch)
     <div className="profile-container">
       <div className="profile-card">
         <div className="profile-avatar">
@@ -69,6 +75,7 @@ export default function Profile() {
             </span>
             <span className="profile-label">Role</span>
             <span className="profile-value">{profile.role}</span>
+<<<<<<< HEAD
           </div>
         </div>
         <button
@@ -140,6 +147,16 @@ export default function Profile() {
           </div>
         </div>
 >>>>>>> 1b39092 (complete Soldier User Interface)
+=======
+          </div>
+        </div>
+        <button
+          className="profile-change-btn"
+          onClick={() => navigate("/profile/change-password")}
+        >
+          Change Password
+        </button>
+>>>>>>> e1cabf6 (Initial commit on MaryAnn branch)
       </div>
     </div>
   );
