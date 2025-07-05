@@ -1,0 +1,102 @@
+.host-root-layout {
+  display: flex;
+  height: 100vh;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.host-sidebar {
+  background: #285E61;
+  color: #fff;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 28px;
+  min-width: 200px;
+}
+
+.host-logo {
+  font-size: 2rem;
+  font-weight: 700;
+  padding-left: 32px;
+  margin-bottom: 38px;
+}
+
+.host-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 14px 32px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.host-sidebar-link.active, .host-sidebar-link:hover {
+  background: #2F855A;
+  border-left: 4px solid #fff;
+}
+
+.host-sidebar-icon {
+  margin-right: 16px;
+  font-size: 1.2rem;
+}
+
+.host-logout-btn {
+  margin: auto 0 30px 32px;
+  padding: 9px 30px;
+  border: none;
+  background: #2F855A;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.host-logout-btn:hover {
+  background: #308d67;
+}
+
+.host-main-panel {
+  flex: 1;
+  background: #f7f7f8;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.host-header {
+  height: 64px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px 0 16px;
+  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
+  font-size: 1.14rem;
+}
+
+.host-header-title {
+  font-weight: 600;
+  color: #235c56;
+  font-size: 1.15rem;
+}
+
+.host-header-profile {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: #235c56;
+  font-size: 1rem;
+}
+
+.host-content-panel {
+  flex: 1;
+  padding: 36px;
+  overflow-y: auto;
+}

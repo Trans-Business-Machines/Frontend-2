@@ -1,0 +1,173 @@
+.host-dashboard-wrapper {
+  padding: 0 32px 0 0;
+  background: #f7f7f7;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Make the welcome card EXACTLY as wide and tall as the admin welcome card */
+.admin-dashboard-welcome-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #386773 0%, #32ae6c 100%);
+  border-radius: 16px;
+  padding: 32px 24px;
+  color: #fff;
+  margin-bottom: 32px;
+  min-height: 130px;         /* Ensures the card is tall enough */
+  width: 100%;
+  max-width: 1100px;         /* Matches admin card's max width */
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.admin-dashboard-welcome-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.admin-dashboard-welcome-sub {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #e0e0e0;
+}
+
+.admin-dashboard-date-pill {
+  background: #fff;
+  color: #219150;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  min-width: 120px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(50, 174, 108, 0.07);
+}
+
+.host-dashboard-section-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 38px 0 16px 0;
+  width: 100%;
+  gap: 16px;
+}
+
+.host-dashboard-section-title {
+  font-size: 1.33rem;
+  font-weight: 700;
+  color: #222;
+  text-align: center;
+}
+
+.host-dashboard-view-more {
+  background: none;
+  border: none;
+  color: #28859B;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 1rem;
+  margin-left: 8px;
+}
+
+.host-dashboard-visits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 26px 32px;
+  margin: 0 0 18px 0;
+  justify-items: center;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+}
+
+.visit-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 24px 22px 16px 22px;
+  min-width: 240px;
+  max-width: 340px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.visit-type {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.visit-name {
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.visit-status {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 5px 18px;
+  border-radius: 14px;
+  display: inline-block;
+  margin-bottom: 8px;
+  margin-top: 4px;
+  text-align: center;
+}
+.visit-status.checked-in {
+  background: #e2faed;
+  color: #1ca770;
+}
+.visit-status.checked-out {
+  background: #ffe8e8;
+  color: #ef2c2c;
+}
+
+.visit-time {
+  font-size: 13px;
+  color: #555;
+  text-align: center;
+}
+
+.host-dashboard-pagination {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.host-dashboard-pagination-btn {
+  background: #e5f6f7;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  margin: 0 7px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #28859B;
+  transition: background 0.2s;
+  vertical-align: middle;
+}
+.host-dashboard-pagination-btn:disabled {
+  background: #f0f0f0;
+  color: #bbb;
+  cursor: default;
+}
+
+.host-scrollable-content {
+  height: 100vh;
+  overflow-y: auto;
+}
