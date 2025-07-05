@@ -1,0 +1,104 @@
+.checkout-header-center {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 32px 0 24px 0;
+}
+
+.checkout-header-center h2 {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.32rem;
+  color: #257c5a;
+  margin-bottom: 5px;
+}
+
+.checkout-header-center p {
+  text-align: center;
+  color: #888;
+  font-size: 1.04rem;
+  margin: 0;
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.checkout-search-input {
+  background: #f7f7f7;
+  border: 1.4px solid #eaeaea;
+  border-radius: 23px;
+  padding: 10px 22px;
+  font-size: 1.05rem;
+  outline: none;
+  min-width: 270px;
+  margin-bottom: 0;
+  transition: border 0.15s;
+}
+
+.checkout-search-input:focus {
+  border-color: #257c5a;
+}
+
+.checkout-records-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.checkout-table {
+  width: 95%;
+  max-width: 600px;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(40,48,70,0.04);
+}
+
+.checkout-table th, .checkout-table td {
+  padding: 11px 14px;
+  text-align: left;
+}
+
+.checkout-table th {
+  background: #f5f7f7;
+  color: #257c5a;
+  font-size: 1.01rem;
+  font-weight: 700;
+}
+
+.checkout-table tr:nth-child(even) {
+  background: #fafbfb;
+}
+
+.checkout-btn-small {
+  background: #257c5a;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 0.98rem;
+  padding: 6px 18px;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.checkout-btn-small:hover {
+  background: #176c3a;
+}
+
+.checkout-no-records {
+  text-align: center;
+  color: #888;
+  font-size: 1.09rem;
+  font-weight: 500;
+  padding: 28px 0;
+}

@@ -1,0 +1,258 @@
+.login-bg-split {
+  display: flex;
+  min-height: 100vh; /* Full viewport height */
+  height: 100vh; /* Fixed height to prevent scrolling */
+  width: 100vw; /* Full viewport width */
+  margin: 0; /* Remove margins */
+  padding: 0; /* Remove padding */
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  font-family: 'Arial', sans-serif;
+  position: fixed; /* Fix the entire page */
+  top: 0;
+  left: 0;
+  overflow: hidden; /* Prevent scrolling */
+  z-index: 1000; /* Ensure it stays on top */
+}
+
+.login-split-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+  text-align: center;
+  height: 100%; /* Match parent height */
+  overflow: hidden; /* Prevent internal scrolling */
+}
+
+.login-logo-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.login-logo-circle svg {
+  width: 48px;
+  height: 48px;
+}
+
+.login-title-main {
+  font-size: 2.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  line-height: 1.2;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-quote-main {
+  font-size: 1.1em;
+  opacity: 0.9;
+  line-height: 1.5;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-split-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  height: 100%; /* Match parent height */
+  overflow: hidden; /* Prevent internal scrolling */
+  position: relative; /* Context for footer */
+}
+
+.login-form-box {
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%; /* Use available space */
+  height: auto; /* Allow content to fit */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0; /* Prevent stretching */
+}
+
+.login-welcome {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1e3c72;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-card-subtitle {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 20px;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflow */
+}
+
+.login-tab-toggle {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-tab-toggle button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
+  transition: all 0.3s ease;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-tab-toggle button.active {
+  color: #1e3c72;
+  border-bottom: 2px solid #1e3c72;
+}
+
+.login-field {
+  margin-bottom: 20px;
+  min-height: 0; /* Prevent stretching */
+}
+
+.login-field label {
+  display: block;
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 5px;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-input-icon-wrap {
+  position: relative;
+}
+
+.login-input-icon-wrap input {
+  width: 100%;
+  padding: 10px 40px 10px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box; /* Ensure padding doesn’t increase size */
+}
+
+.login-input-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+
+.login-password-icon {
+  cursor: pointer;
+}
+
+.login-password-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.login-card-forgot {
+  text-align: right;
+  margin-bottom: 20px;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+.login-card-forgot a {
+  color: #1e3c72;
+  font-size: 0.9em;
+  text-decoration: none;
+}
+
+.login-card-forgot a:hover {
+  text-decoration: underline;
+}
+
+.login-card-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1e3c72;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  box-sizing: border-box; /* Ensure padding doesn’t increase size */
+}
+
+.login-card-submit-btn:hover:not(:disabled) {
+  background: #2a5298;
+}
+
+.login-card-submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.login-btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-card-footer {
+  text-align: center;
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 20px;
+  white-space: nowrap; /* Prevent text wrapping */
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+}
+
+.login-card-footer a {
+  color: #1e3c72;
+  text-decoration: none;
+}
+
+.login-card-footer a:hover {
+  text-decoration: underline;
+}
+
+.login-split-footer {
+  display: none; /* Hide the split footer to avoid duplication */
+}

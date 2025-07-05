@@ -1,0 +1,28 @@
+.visitorslog-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 1rem;
+}
+.visitorslog-pagination-controls button {
+  background: none;
+  border: 1px solid #cfd8dc;
+  color: #235c56;
+  border-radius: 5px;
+  margin: 0 2px;
+  padding: 2px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.visitorslog-pagination-controls button.active,
+.visitorslog-pagination-controls button:hover {
+  background: #30B87B;
+  color: #fff;
+  border-color: #30B87B;
+}
+.visitorslog-pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
