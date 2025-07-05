@@ -1,0 +1,188 @@
+.admin-users {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.admin-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.admin-users-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #235c56;
+}
+
+.admin-add-user-btn {
+  background: #40b17b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.admin-add-user-btn:hover {
+  background: #308d67;
+}
+
+.admin-users-search {
+  margin-bottom: 18px;
+}
+
+.admin-users-search input {
+  width: 300px;
+  padding: 11px 16px;
+  border-radius: 20px;
+  border: 1px solid #d0d6d9;
+  font-size: 1rem;
+  outline: none;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(34,34,34,0.02);
+}
+
+.admin-users-table th, .admin-users-table td {
+  text-align: left;
+  padding: 12px 18px;
+  font-size: 1rem;
+}
+
+.admin-users-table th {
+  background: #235c56;
+  color: #fff;
+  font-weight: 500;
+}
+
+.admin-users-table td {
+  border-bottom: 1px solid #e6eaea;
+  color: #222;
+  background: #fff;
+}
+
+.status-active {
+  background: #d4f5e7;
+  color: #219150;
+  padding: 2px 13px;
+  border-radius: 13px;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.status-inactive {
+  background: #f5dada;
+  color: #ad2323;
+  padding: 2px 13px;
+  border-radius: 13px;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.action-icon {
+  cursor: pointer;
+  margin-right: 13px;
+  font-size: 1.11rem;
+}
+
+.action-icon:last-child {
+  margin-right: 0;
+}
+
+.admin-users-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.admin-users-pagination button {
+  background: #e9ecef;
+  border: none;
+  color: #235c56;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.admin-users-pagination .active {
+  background: #40b17b;
+  color: #fff;
+}
+
+/* Modal styles */
+.admin-modal-backdrop {
+  position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.25);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.admin-modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 32px 28px 22px 28px;
+  min-width: 350px;
+  box-shadow: 0 2px 28px rgba(34,34,34,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.admin-modal h3 {
+  font-size: 1.2rem;
+  color: #235c56;
+  margin-bottom: 8px;
+}
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+.modal-field label {
+  font-size: 0.98rem;
+  margin-bottom: 3px;
+  color: #235c56;
+  font-weight: 500;
+}
+.modal-field input,
+.modal-field select {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d0d6d9;
+  font-size: 1rem;
+}
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+.modal-save-btn {
+  background: #40b17b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 8px 22px;
+  cursor: pointer;
+}
+.modal-cancel-btn {
+  background: #fff;
+  color: #235c56;
+  border: 2px solid #235c56;
+  border-radius: 6px;
+  padding: 8px 22px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+}

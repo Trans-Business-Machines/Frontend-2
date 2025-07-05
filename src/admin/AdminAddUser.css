@@ -1,0 +1,90 @@
+.admin-add-user {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 38px 40px;
+  box-shadow: 0 2px 8px rgba(34,34,34,0.02);
+}
+
+.admin-add-user-title {
+  font-size: 1.3rem;
+  color: #235c56;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.admin-add-user-desc {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.admin-add-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row {
+  display: flex;
+  gap: 18px;
+}
+
+.form-row input, .form-row select {
+  flex: 1;
+  padding: 13px 16px;
+  font-size: 1.03rem;
+  border: 1px solid #d0d6d9;
+  border-radius: 7px;
+  outline: none;
+  background: #fafbfc;
+}
+
+.form-error {
+  color: #e32e2e;
+  font-size: 1rem;
+  margin-bottom: 6px;
+  margin-left: 2px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.submit-btn {
+  background: #40b17b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 30px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.submit-btn:hover {
+  background: #308d67;
+}
+
+.cancel-btn {
+  background: #fff;
+  color: #235c56;
+  border: 2px solid #235c56;
+  border-radius: 6px;
+  padding: 10px 30px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.cancel-btn:hover {
+  background: #235c56;
+  color: #fff;
+}
