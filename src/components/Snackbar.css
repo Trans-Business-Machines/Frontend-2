@@ -19,8 +19,9 @@
 
 .snackbar.error {
     border-color: #EB2D2D;
-    background-color: #eb2d2d2c;
-    color: #EB2D2D;
+    background-color: #eb2d2d33;
+    color: #f80000;
+    font-weight: 500;
 }
 
 .snackbar.warning {
@@ -43,7 +44,7 @@
 }
 
 .snackbar-icon.error {
-    background-color: #EB2D2D;
+    background-color: #e21414;
 }
 
 .snackbar-icon.warning {
