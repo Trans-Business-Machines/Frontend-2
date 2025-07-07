@@ -12,6 +12,22 @@ export const swrConfig = (navigate) => ({
   },
 });
 
+export function capitalize(string) {
+  let strArr = string.split(" ");
+
+  strArr = strArr.map((item) => {
+    let newItem = "";
+    if (item.length === 2 && item !== "up") {
+      newItem = item.toUpperCase();
+    } else {
+      newItem = item[0].substring(0).toUpperCase() + item.substring(1);
+    }
+    return newItem;
+  });
+
+  return strArr.join(" ");
+}
+
 export default function navigate(to) {
   return window.history.pushState({}, "", to);
 }
