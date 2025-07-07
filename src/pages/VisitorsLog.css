@@ -94,7 +94,6 @@
   cursor: pointer;
 }
 
-.visitorslog-pagination .active {
-  background: #40b17b;
-  color: #fff;
+.visitorslog-pagination button:hover {
+  background: #dfe2e6;
 }

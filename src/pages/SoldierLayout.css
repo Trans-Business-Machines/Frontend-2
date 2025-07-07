@@ -10,7 +10,6 @@
   width: 220px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   padding-top: 28px;
   min-width: 180px;
 }
@@ -18,22 +17,17 @@
 .soldier-logo {
   font-size: 2rem;
   font-weight: 700;
-  padding-left: 24px;
-  margin-bottom: 38px;
 }
+
 .soldier-logo-img {
   width: 120px;
   height: auto;
 }
 
 .soldier-sidebar-link {
-  display: flex;
-  align-items: center;
   padding: 13px 24px;
-  width: 100%;
   cursor: pointer;
   font-size: 1rem;
-  transition: background 0.2s;
   border-left: 4px solid transparent;
   gap: 11px;
 }
@@ -49,33 +43,39 @@
   display: flex;
   align-items: center;
 }
+
 .soldier-logo {
   font-size: 2rem;
   font-weight: 700;
   padding-left: 4px;
   margin-bottom: 38px;
 }
+
 .soldier-logo-img {
   width: 220px;
   height: auto;
 }
+
 .soldier-logout-btn {
-  margin: auto 0 30px 24px;
-  padding: 9px 28px;
-  border: none;
-  background: #38a169;
-  color: #fff;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
+  width: 90%;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  transition: background 0.2s;
+  justify-content: center;
+  padding: 12px 0;
+  background: #308d66;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  margin-top: auto;
+  margin-bottom: 2.5rem;
 }
 
 .soldier-logout-btn:hover {
-  background: #308d67;
+  background: #38a378;
+  transition: background 0.3s ease-in-out;
 }
 
 .soldier-main-panel {
@@ -93,7 +93,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 36px 0 16px;
-  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
+  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
   font-size: 1.14rem;
 }
 

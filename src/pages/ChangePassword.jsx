@@ -1,19 +1,20 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./ChangePassword.css";
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
+import { IoIosWarning } from "react-icons/io";
+import { FaXmark, FaCheck } from "react-icons/fa6";
+import useSWRMutation from "swr/mutation";
+import axiosInstance from "../api/axiosInstance";
+import Snackbar from "../components/Snackbar";
 
-// Dummy implementations for demonstration. Replace with your actual logic.
-async function verifyPassword(password) {
-  // Simulate backend check (replace with real API call)
-  // For demo, accept "oldpassword" as valid password
-  await new Promise(res => setTimeout(res, 500));
-  return password === "oldpassword";
-}
-async function changePassword(newPassword) {
-  // Simulate backend update (replace with real API call)
-  await new Promise(res => setTimeout(res, 500));
-  return true;
-}
+const updatePassword = async (url, { arg }) => {
+  const { id, body } = arg;
+  url = url.replace(":id", id);
+
+  const res = await axiosInstance.patch(url, body);
+  return res.data;
+};
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
@@ -22,75 +23,80 @@ export default function ChangePassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  const { trigger: changePassword } = useSWRMutation(
+    "/users/:id",
+    updatePassword
+  );
+
+  const clearForm = () => {
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const validate = () => {
+    if (newPassword !== confirmPassword) {
+      setLoading(false);
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (id) => {
     setLoading(true);
 
-    // Validation
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      setError("Please fill in all fields.");
-      setLoading(false);
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters.");
-      setLoading(false);
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
-      return;
+    if (!validate()) {
+      return toast.custom(
+        <Snackbar
+          icon={IoIosWarning}
+          message="Passwords don't match"
+          type="warning"
+        />
+      );
     }
 
-    // Verify current password
     try {
-      const isCurrentCorrect = await verifyPassword(oldPassword);
-      if (!isCurrentCorrect) {
-        setError("Current password is incorrect.");
-        setLoading(false);
-        return;
+      const body = { currentPassword: oldPassword, newPassword };
+      const result = await changePassword({ id, body });
+
+      if (result.success) {
+        clearForm();
+        toast.custom(
+          <Snackbar
+            icon={FaCheck}
+            message="Password changed successfully"
+            type="success"
+          />
+        );
       }
     } catch (err) {
-      setError("Error verifying current password.");
-      setLoading(false);
-      return;
-    }
-
-    // Change password
-    try {
-      await changePassword(newPassword);
-      setSuccess("Password changed successfully!");
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      setError("Failed to change password. Please try again.");
+      const message = err.response.data?.message || "Password change failed";
+      toast.custom(<Snackbar icon={FaXmark} message={message} type="error" />);
     } finally {
       setLoading(false);
     }
   };
 
-  const goToDashboard = () => {
-    navigate("/");
-  };
-
   return (
     <div className="change-password-bg">
       <div className="change-password-container">
-        <h2>Change Password</h2>
-        <form className="change-password-form" onSubmit={handleSubmit}>
+        <h2 style={{ marginBottom: "0.8rem" }}>Change Password</h2>
+        <form
+          className="change-password-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(user.userId);
+          }}
+        >
           <div className="change-password-field">
             <label htmlFor="oldPassword">Current Password</label>
             <input
               id="oldPassword"
               type="password"
               value={oldPassword}
-              onChange={e => setOldPassword(e.target.value)}
+              onChange={(e) => setOldPassword(e.target.value)}
               required
               autoComplete="current-password"
             />
@@ -101,7 +107,7 @@ export default function ChangePassword() {
               id="newPassword"
               type="password"
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              onChange={(e) => setNewPassword(e.target.value)}
               required
               autoComplete="new-password"
             />
@@ -112,21 +118,13 @@ export default function ChangePassword() {
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
               autoComplete="new-password"
             />
           </div>
-          {error && (
-            <div className="change-password-error">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="change-password-success">
-              {success}
-            </div>
-          )}
+          {error && <div className="change-password-error">{error}</div>}
+          {success && <div className="change-password-success">{success}</div>}
           <button
             type="submit"
             className="change-password-submit-btn"
@@ -135,9 +133,6 @@ export default function ChangePassword() {
             {loading ? "Changing..." : "Change Password"}
           </button>
         </form>
-        <button className="change-password-back-btn" onClick={goToDashboard}>
-          Back to Dashboard
-        </button>
       </div>
     </div>
   );

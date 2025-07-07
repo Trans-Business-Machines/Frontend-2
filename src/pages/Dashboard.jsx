@@ -1,130 +1,115 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import Toast from "../components/Toast";
-import { useAuth } from "../context/AuthContext";
 import "./Dashboard.css";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { HiDocumentSearch } from "react-icons/hi";
+import { IoIosAddCircle, IoMdLogOut } from "react-icons/io";
+import Table from "../components/Table";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 
-function getFormattedDate() {
-  const dateObj = new Date();
-  const day = String(dateObj.getDate()).padStart(2, "0");
-  const month = dateObj.toLocaleString("default", { month: "long" });
-  const year = dateObj.getFullYear();
-  return `${day}-${month}-${year}`;
-}
+const getTodaysVisitors = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
-const allVisitors = [
-  { name: "John Doe", id: "20215234", host: "Angela Moss", in: "08:15 AM", out: "", status: "Checked In" },
-  { name: "Lucy Smith", id: "20215125", host: "Emma White", in: "08:50 AM", out: "10:33 AM", status: "Checked Out" },
-  { name: "Tom Baker", id: "20215219", host: "John Doe", in: "10:45 AM", out: "", status: "Checked In" },
-  { name: "Rita Patel", id: "20215327", host: "Angela Moss", in: "11:05 AM", out: "", status: "Checked In" },
-  { name: "Sam Johnson", id: "20225341", host: "Emma White", in: "09:25 AM", out: "11:12 AM", status: "Checked Out" },
-  { name: "Priya Kumar", id: "20215789", host: "John Doe", in: "09:45 AM", out: "", status: "Checked In" },
-  { name: "Victor Chen", id: "20216661", host: "Angela Moss", in: "12:15 PM", out: "", status: "Checked In" },
-  { name: "Emily Brown", id: "20218999", host: "Emma White", in: "01:00 PM", out: "", status: "Checked In" },
-  { name: "Ahmed Hassan", id: "20213222", host: "John Doe", in: "01:45 PM", out: "02:30 PM", status: "Checked Out" },
-  { name: "Anna Müller", id: "20219900", host: "Angela Moss", in: "02:15 PM", out: "", status: "Checked In" },
-  { name: "James Lee", id: "20218881", host: "Emma White", in: "03:00 PM", out: "", status: "Checked In" },
-  { name: "Elena Petrova", id: "20211234", host: "John Doe", in: "03:30 PM", out: "", status: "Checked In" },
-  { name: "David Smith", id: "20214321", host: "Angela Moss", in: "04:00 PM", out: "", status: "Checked In" },
-  { name: "Yusuf Adeyemi", id: "20215555", host: "Emma White", in: "04:25 PM", out: "", status: "Checked In" },
-  { name: "Sofia Gonzalez", id: "20216666", host: "John Doe", in: "04:55 PM", out: "05:30 PM", status: "Checked Out" },
-];
+const getStats = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
 export default function Dashboard() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [toast, setToast] = useState({
-    show: !!location.state?.toast,
-    type: "success",
-    message: location.state?.toast || ""
-  });
-
-  // Pagination
   const [page, setPage] = useState(1);
-  const perPage = 10;
-  const pageCount = Math.ceil(allVisitors.length / perPage);
-  const pagedVisitors = useMemo(
-    () => allVisitors.slice((page - 1) * perPage, page * perPage),
-    [page]
+
+  const { data, isLoading } = useSWR(
+    `/visits/today?page=${page}`,
+    getTodaysVisitors
   );
 
-  useEffect(() => {
-    if (toast.show) {
-      const t = setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
-      return () => clearTimeout(t);
-    }
-  }, [toast.show]);
+  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
 
-  const { user } = useAuth();
+  if (isLoading || statsLoading) {
+    return <div>Loading visitors and stats...</div>;
+  }
 
-  const todayStats = useMemo(() => {
-    let total = allVisitors.length;
-    let active = allVisitors.filter(v => v.status === "Checked In").length;
-    let checkedOut = allVisitors.filter(v => v.status === "Checked Out").length;
-    return { total, active, checkedOut };
-  }, []);
+  function nextPage() {
+    setPage((prevPage) => prevPage + 1);
+  }
+
+  function prevPage() {
+    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
+  }
 
   return (
-    <div className="dashboard-content soldier-dashboard-bg">
-      <Toast type={toast.type} message={toast.message} show={toast.show} />
-
-      {/* Welcome Banner */}
-      <div className="soldier-welcome-banner">
-        <div className="soldier-banner-left">
-          <span className="soldier-banner-shield">
-            <svg width="38" height="38" fill="none">
-              <circle cx="19" cy="19" r="19" fill="#fff" opacity="0.16"/>
-              <path d="M19 8.5L27 11.5V18.5C27 23.5 22.5 26.5 19 28.5C15.5 26.5 11 23.5 11 18.5V11.5L19 8.5Z" stroke="#fff" strokeWidth="2" fill="#2E8E6D"/>
-              <circle cx="19" cy="17" r="3" fill="#fff"/>
-            </svg>
-          </span>
-          <div>
-            <div className="soldier-banner-title">Welcome to your profile</div>
-            <div className="soldier-banner-desc">Here's an overview of today's activities</div>
-          </div>
+    <section className="dashboard-content soldier-dashboard-bg">
+      <article className="soldier-welcome-banner">
+        <div className="soldier-banner-center">
+          <h2 className="soldier-banner-title">Welcome to your profile</h2>
+          <p className="soldier-banner-desc">
+            Here's an overview of today's activities
+          </p>
         </div>
-        <div className="soldier-banner-date">{getFormattedDate()}</div>
-      </div>
-
-      {/* Stat Cards - exact layout */}
+        <div className="soldier-banner-date">{format(new Date(), "PPP")}</div>
+      </article>
       <div className="soldier-stat-card-row">
         <div className="soldier-stat-card">
           <div className="soldier-stat-card-content">
-            <div className="soldier-stat-card-label">Today's Total Visitors</div>
-            <div className="soldier-stat-card-value">{todayStats.total}</div>
+            <div className="soldier-stat-card-label">
+              Today's Total Visitors
+            </div>
+            <div className="soldier-stat-card-value">{stats.visitCount}</div>
           </div>
           <div className="soldier-stat-card-icon soldier-stat-groupicon">
             <svg width="32" height="32" fill="none">
-              <rect width="32" height="32" rx="7" fill="#E2F5EA"/>
-              <path d="M10 24v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1" stroke="#2E8E6D" strokeWidth="2"/>
-              <circle cx="12" cy="14" r="2" stroke="#2E8E6D" strokeWidth="2"/>
-              <circle cx="20" cy="14" r="2" stroke="#2E8E6D" strokeWidth="2"/>
+              <rect width="32" height="32" rx="7" fill="#E2F5EA" />
+              <path
+                d="M10 24v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1"
+                stroke="#2E8E6D"
+                strokeWidth="2"
+              />
+              <circle cx="12" cy="14" r="2" stroke="#2E8E6D" strokeWidth="2" />
+              <circle cx="20" cy="14" r="2" stroke="#2E8E6D" strokeWidth="2" />
             </svg>
           </div>
         </div>
         <div className="soldier-stat-card">
           <div className="soldier-stat-card-content">
             <div className="soldier-stat-card-label">Active Visitors</div>
-            <div className="soldier-stat-card-value">{todayStats.active}</div>
+            <div className="soldier-stat-card-value">
+              {stats.activeVisitors}
+            </div>
           </div>
           <div className="soldier-stat-card-icon soldier-stat-personicon">
             <svg width="32" height="32" fill="none">
-              <rect width="32" height="32" rx="7" fill="#E2F5EA"/>
-              <circle cx="16" cy="13" r="4" stroke="#2E8E6D" strokeWidth="2"/>
-              <path d="M10 24v-1a6 6 0 0 1 12 0v1" stroke="#2E8E6D" strokeWidth="2"/>
+              <rect width="32" height="32" rx="7" fill="#E2F5EA" />
+              <circle cx="16" cy="13" r="4" stroke="#2E8E6D" strokeWidth="2" />
+              <path
+                d="M10 24v-1a6 6 0 0 1 12 0v1"
+                stroke="#2E8E6D"
+                strokeWidth="2"
+              />
             </svg>
           </div>
         </div>
         <div className="soldier-stat-card">
           <div className="soldier-stat-card-content">
             <div className="soldier-stat-card-label">Checked-Out Visitors</div>
-            <div className="soldier-stat-card-value">{todayStats.checkedOut}</div>
+            <div className="soldier-stat-card-value">
+              {stats.checkedOutVisitors}
+            </div>
           </div>
           <div className="soldier-stat-card-icon soldier-stat-clockicon">
             <svg width="32" height="32" fill="none">
-              <rect width="32" height="32" rx="7" fill="#FFF6E2"/>
-              <circle cx="16" cy="16" r="10" stroke="#F6C768" strokeWidth="2"/>
-              <path d="M16 11v5l3 3" stroke="#F6C768" strokeWidth="2" strokeLinecap="round"/>
+              <rect width="32" height="32" rx="7" fill="#FFF6E2" />
+              <circle cx="16" cy="16" r="10" stroke="#F6C768" strokeWidth="2" />
+              <path
+                d="M16 11v5l3 3"
+                stroke="#F6C768"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </div>
         </div>
@@ -134,53 +119,87 @@ export default function Dashboard() {
       <div className="dashboard-table-section">
         <div className="dashboard-table-header">
           <h3>Today's Visitors</h3>
-          <div>
-            <button className="dashboard-btn" onClick={() => navigate("/visitors-log")}>View Full Log</button>
-            <button className="dashboard-btn" onClick={() => navigate("/check-in")}>Check In</button>
-            <button className="dashboard-btn" onClick={() => navigate("/check-out")}>Check Out</button>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <button
+              className="shorcut-btn"
+              onClick={() => navigate("/visitors-log")}
+            >
+              <HiDocumentSearch size={24} />
+              <span>View full log</span>
+            </button>
+            <button
+              className="shorcut-btn"
+              onClick={() => navigate("/check-in")}
+            >
+              <IoIosAddCircle size={24} />
+              <span>check in</span>
+            </button>
+            <button
+              className="shorcut-btn"
+              onClick={() => navigate("/check-out")}
+            >
+              <IoMdLogOut size={24} />
+              <span>Check Out</span>
+            </button>
           </div>
         </div>
-        <table className="dashboard-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>ID Number</th>
-              <th>Host</th>
-              <th>Time In</th>
-              <th>Time Out</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagedVisitors.map((v, i) => (
-              <tr key={i}>
-                <td>{v.name}</td>
-                <td>{v.id}</td>
-                <td>{v.host}</td>
-                <td>{v.in}</td>
-                <td>{v.out || "-"}</td>
-                <td>
-                  <span className={`status-label ${v.status === "Checked Out" ? "checked-out" : "checked-in"}`}>
-                    {v.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="dashboard-pagination">
-          <span>
-            Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, allVisitors.length)} of {allVisitors.length}
-          </span>
-          <div className="dashboard-pagination-controls">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)}>{"<"}</button>
-            {Array.from({ length: pageCount }).map((_, i) => (
-              <button key={i + 1} className={page === i + 1 ? "active" : ""} onClick={() => setPage(i + 1)}>{i + 1}</button>
-            ))}
-            <button disabled={page === pageCount} onClick={() => setPage(page + 1)}>{">"}</button>
+
+        {data?.visits?.length === 0 ? (
+          <div
+            style={{
+              paddingBlock: "1rem",
+              textAlign: "center",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: "bold",
+                fontSize: "1.45rem",
+                color: "#285e61",
+              }}
+            >
+              No Visitors today.
+            </p>
           </div>
-        </div>
+        ) : (
+          <div
+            style={{
+              marginTop: "1rem",
+            }}
+          >
+            <Table visitors={data.visits} />
+
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                marginTop: "20px",
+                marginLeft: "auto",
+                justifyContent: "right",
+                alignItems: "center",
+                width: "40%",
+                maxWidth: "400px",
+              }}
+            >
+              <button
+                className="pagination-button"
+                onClick={prevPage}
+                disabled={!data.hasPrev}
+              >
+                <FaChevronLeft size={14} />
+              </button>
+              <button className="current-page-btn">{page}</button>
+              <button
+                className="pagination-button"
+                onClick={nextPage}
+                disabled={!data.hasNext}
+              >
+                <FaChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
