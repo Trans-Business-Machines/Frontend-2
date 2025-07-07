@@ -81,6 +81,7 @@ export default function SoldierLayout() {
             </div>
           ))}
         </nav>
+
         <button
           className="soldier-logout-btn"
           onClick={async () => {
