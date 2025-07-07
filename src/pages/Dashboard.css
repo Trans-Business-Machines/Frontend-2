@@ -35,6 +35,45 @@
   margin-left: 32px;
 }
 
+.dashboard-table-section {
+  background: #fff;
+  border-radius: 11px;
+  box-shadow: 0 1px 7px rgba(30, 80, 80, 0.07);
+  padding: 28px;
+  margin-top: 18px;
+}
+
+.dashboard-btn {
+  cursor: pointer;
+  font-family: 0.875rem;
+  padding: 10px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  color: #404040;
+}
+
+.dashboard-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dashboard-btn:hover:not(:disabled) {
+  background: #e6f3ea;
+  border-color: #018E42;
+  color: #018E42;
+}
+
+.current-page-btn {
+  font-family: 1.25rem;
+  cursor: none;
+  font-weight: bold;
+  border-radius: 6px;
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #018E42;
+  background-color: #018E42;
+}
+
 /* Remove old left-alignment and shield */
 .soldier-banner-left,
 .soldier-banner-shield {
