@@ -6,7 +6,7 @@ const users = [
   { role: "admin", email: "admin2@vms.com", password: "Admin2@123" },
   { role: "soldier", email: "soldier@vms.com", password: "Soldier@123" },
   { role: "soldier", email: "soldier2@vms.com", password: "Soldier2@123" },
-  { role: "host", email: "host@vms.com", password: "Host@123" },
+  { role: "host", email: "host@vms.com", password: "host@vms.com" },
   { role: "host", email: "host2@vms.com", password: "Host2@123" },
 ];
 

@@ -2,10 +2,25 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ChangePassword.css";
 
+// Dummy implementations for demonstration. Replace with your actual logic.
+async function verifyPassword(password) {
+  // Simulate backend check (replace with real API call)
+  // For demo, accept "oldpassword" as valid password
+  await new Promise(res => setTimeout(res, 500));
+  return password === "oldpassword";
+}
+async function changePassword(newPassword) {
+  // Simulate backend update (replace with real API call)
+  await new Promise(res => setTimeout(res, 500));
+  return true;
+}
+
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -15,9 +30,19 @@ export default function ChangePassword() {
     setSuccess("");
     setLoading(true);
 
-    // Check if new password and confirmation match
+    // Validation
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setError("Please fill in all fields.");
+      setLoading(false);
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("New password must be at least 6 characters.");
+      setLoading(false);
+      return;
+    }
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords do not match.");
       setLoading(false);
       return;
     }
@@ -26,12 +51,12 @@ export default function ChangePassword() {
     try {
       const isCurrentCorrect = await verifyPassword(oldPassword);
       if (!isCurrentCorrect) {
-        setError("Current Password is Incorrect");
+        setError("Current password is incorrect.");
         setLoading(false);
         return;
       }
     } catch (err) {
-      setError("Current Password is Incorrect");
+      setError("Error verifying current password.");
       setLoading(false);
       return;
     }
@@ -43,7 +68,11 @@ export default function ChangePassword() {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    }, 1200);
+    } catch (err) {
+      setError("Failed to change password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const goToDashboard = () => {
@@ -89,12 +118,12 @@ export default function ChangePassword() {
             />
           </div>
           {error && (
-            <div className="change-password-error" style={{ color: "red", marginBottom: "10px" }}>
+            <div className="change-password-error">
               {error}
             </div>
           )}
           {success && (
-            <div className="change-password-success" style={{ color: "green", marginBottom: "10px" }}>
+            <div className="change-password-success">
               {success}
             </div>
           )}
@@ -106,6 +135,9 @@ export default function ChangePassword() {
             {loading ? "Changing..." : "Change Password"}
           </button>
         </form>
+        <button className="change-password-back-btn" onClick={goToDashboard}>
+          Back to Dashboard
+        </button>
       </div>
     </div>
   );

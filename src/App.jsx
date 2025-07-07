@@ -14,12 +14,16 @@ import HostAvailability from "./host/HostAvailability";
 import HostHistory from "./host/HostHistory";
 import HostProfile from "./host/HostProfile";
 import HostLayout from "./host/HostLayout";
+
+// Admin imports
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/AdminDashboard";
 import AdminUsers from "./admin/AdminUsers";
 import AdminAddUser from "./admin/AdminAddUser";
 import AdminVisitorLog from "./admin/AdminVisitorLog";
 import AdminProfile from "./admin/AdminProfile";
+
+// Soldier Layout import
 import SoldierLayout from "./pages/SoldierLayout";
 
 function PrivateRoute({ children }) {
@@ -31,6 +35,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+
+      {/* Soldier (default) routes - now wrapped in SoldierLayout */}
       <Route
         path="/"
         element={
@@ -46,6 +52,8 @@ export default function App() {
         <Route path="check-out" element={<Checkout />} />
         <Route path="visitors-log" element={<VisitorsLog />} />
       </Route>
+
+      {/* Host routes */}
       <Route
         path="/host"
         element={
@@ -61,6 +69,8 @@ export default function App() {
         <Route path="profile" element={<HostProfile />} />
         <Route path="profile/change-password" element={<ChangePassword />} />
       </Route>
+
+      {/* Admin routes */}
       <Route
         path="/admin"
         element={
@@ -76,6 +86,8 @@ export default function App() {
         <Route path="profile" element={<AdminProfile />} />
         <Route path="profile/change-password" element={<ChangePassword />} />
       </Route>
+
+      {/* Redirect any unknown path to the default landing (/) */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

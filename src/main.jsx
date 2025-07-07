@@ -1,23 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-<<<<<<< HEAD
-import App from "./App.jsx";
-=======
 import App from "./App";
->>>>>>> 1b39092 (complete Soldier User Interface)
-import { AuthProvider } from "./context/AuthContext";
-import { ToastProvider } from "./context/ToastContext";
-import './index.css';
+import { AuthProvider } from "./context/AuthContext"; // Import your provider
+import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </ToastProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

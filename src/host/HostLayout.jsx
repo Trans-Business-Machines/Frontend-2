@@ -1,107 +1,69 @@
 import React from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { useAuth } from "../context/AuthContext";
 import "./HostLayout.css";
-import { AiOutlineDashboard } from "react-icons/ai";
-import { HiOutlineLogout } from "react-icons/hi";
-import { IoNotificationsSharp } from "react-icons/io5";
-import { SlCalender } from "react-icons/sl";
-import { FaHistory } from "react-icons/fa";
-import { CgProfile } from "react-icons/cg";
 
-export default function HostLayout({ hostName = "Host User" }) {
+export default function SoldierLayout({ soldierName = "Soldier User" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
 
+  // Remove "Profile" from the menu array
   const menu = [
-    {
-      label: "Dashboard",
-      icon: <span style={{ fontSize: 18 }}><AiOutlineDashboard /></span>,
-      path: "/host/dashboard"
-    },
-    {
-      label: (
-        <span style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ fontSize: 18, marginRight: 5 }}><IoNotificationsSharp /></span>
-          Notifications
-          <span className="host-notification-badge"
-            style={{
-              background: "#e53e3e",
-              color: "#fff",
-              borderRadius: "50%",
-              fontSize: 12,
-              marginLeft: 8,
-              padding: "2px 7px",
-              fontWeight: 700,
-              display: "inline-block"
-            }}
-          >2</span>
-        </span>
-      ),
-      icon: null,
-      path: "/host/notifications"
-    },
-    {
-      label: "Availability",
-      icon: <span style={{ fontSize: 18 }}><SlCalender /></span>,
-      path: "/host/availability"
-    },
-    {
-      label: "History",
-      icon: <span style={{ fontSize: 18 }}><FaHistory /></span>,
-      path: "/host/history"
-    }
+    { label: "Dashboard", icon: <span role="img" aria-label="dashboard">🏠</span>, path: "/" },
+    { label: "Check In", icon: <span role="img" aria-label="check-in">🟢</span>, path: "/check-in" },
+    { label: "Check Out", icon: <span role="img" aria-label="check-out">🔴</span>, path: "/check-out" },
+    { label: "Visitors Log", icon: <span role="img" aria-label="visitors-log">📋</span>, path: "/visitors-log" },
   ];
 
   return (
-    <div className="host-root-layout">
-      <aside className="host-sidebar">
-        <div className="host-logo">
-          <img src={logo} alt="VMS Logo" className="host-logo-img" />
+    <div className="soldier-root-layout">
+      <aside className="soldier-sidebar">
+        <div className="soldier-logo">
+          <img src={logo} alt="VMS Logo" className="soldier-logo-img" />
         </div>
         <nav>
           {menu.map(item => (
             <div
-              key={typeof item.label === "string" ? item.label : item.path}
-              className={`host-sidebar-link${location.pathname === item.path ? " active" : ""}`}
+              key={item.label}
+              className={`soldier-sidebar-link${location.pathname === item.path ? " active" : ""}`}
               onClick={() => navigate(item.path)}
             >
-              {item.icon && <span className="host-sidebar-icon">{item.icon}</span>}
+              <span className="soldier-sidebar-icon">{item.icon}</span>
               <span>{item.label}</span>
             </div>
           ))}
         </nav>
         <button
-          className="host-logout-btn"
+          className="soldier-logout-btn"
           onClick={() => {
             logout();
             navigate("/login");
           }}
         >
-          <span style={{ fontSize: 20, marginRight: 8 }}><HiOutlineLogout /></span>
+          <span role="img" aria-label="logout" style={{ fontSize: 20, marginRight: 8 }}>↪️</span>
           Log Out
         </button>
       </aside>
-      <main className="host-main-panel">
-        <header className="host-header">
+      <main className="soldier-main-panel">
+        <header className="soldier-header">
           <div></div>
-          <div className="host-header-title">
+          <div className="soldier-header-title">
             {menu.find(item => location.pathname === item.path)?.label ??
               menu.find(item => location.pathname.startsWith(item.path))?.label}
           </div>
           <div
-            className="host-header-profile"
+            className="soldier-header-profile"
             style={{ cursor: "pointer" }}
-            onClick={() => navigate("/host/profile")}
+            onClick={() => navigate("/profile")}
             title="View Profile"
           >
-            <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
-            {hostName}
+            <span role="img" aria-label="soldier" style={{ fontSize: 24, marginRight: 10 }}>👤</span>
+            {soldierName}
           </div>
         </header>
-        <div className="host-content-panel">
+        <div className="soldier-content-panel">
           <Outlet />
         </div>
       </main>

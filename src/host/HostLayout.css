@@ -1,63 +1,60 @@
-.host-root-layout {
+.soldier-root-layout {
   display: flex;
   height: 100vh;
   font-family: 'Inter', Arial, sans-serif;
 }
 
-.host-sidebar {
-  background: #285E61;
+.soldier-sidebar {
+  background: #234E52;
   color: #fff;
-  width: 230px;
+  width: 220px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   padding-top: 28px;
-  min-width: 200px;
+  min-width: 180px;
 }
 
-.host-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-left: 4px;
-  margin: 32px 0 28px 0;
+.soldier-logo {
+  font-size: 2rem;
+  font-weight: 700;
+  padding-left: 24px;
+  margin-bottom: 38px;
 }
-
-.host-logo-img {
-  width: 220px;
+.soldier-logo-img {
+  width: 120px;
   height: auto;
-  object-fit: contain;
 }
 
-.host-sidebar-link {
+.soldier-sidebar-link {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 14px 32px;
+  padding: 13px 24px;
   width: 100%;
   cursor: pointer;
   font-size: 1rem;
   transition: background 0.2s;
   border-left: 4px solid transparent;
+  gap: 11px;
 }
 
-.host-sidebar-link.active,
-.host-sidebar-link:hover {
-  background: #2F855A;
+.soldier-sidebar-link.active,
+.soldier-sidebar-link:hover {
+  background: #2C7A7B;
   border-left: 4px solid #fff;
 }
 
-.host-sidebar-icon {
-  font-size: 1.2rem;
+.soldier-sidebar-icon {
+  font-size: 1.15rem;
   display: flex;
   align-items: center;
 }
 
-.host-logout-btn {
-  margin: auto 0 30px 32px;
-  padding: 9px 30px;
+.soldier-logout-btn {
+  margin: auto 0 30px 24px;
+  padding: 9px 28px;
   border: none;
-  background: #2F855A;
+  background: #38a169;
   color: #fff;
   border-radius: 6px;
   font-size: 1rem;
@@ -68,11 +65,11 @@
   transition: background 0.2s;
 }
 
-.host-logout-btn:hover {
+.soldier-logout-btn:hover {
   background: #308d67;
 }
 
-.host-main-panel {
+.soldier-main-panel {
   flex: 1;
   background: #f7f7f8;
   display: flex;
@@ -80,39 +77,33 @@
   min-width: 0;
 }
 
-.host-header {
+.soldier-header {
   height: 64px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 36px 0 16px;
-  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
+  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
   font-size: 1.14rem;
 }
 
-.host-header-title {
+.soldier-header-title {
   font-weight: 600;
-  color: #235c56;
-  font-size: 1.15rem;
+  color: #234E52;
+  font-size: 1.13rem;
 }
 
-.host-header-profile {
+.soldier-header-profile {
   display: flex;
   align-items: center;
   font-weight: 500;
-  color: #235c56;
+  color: #234E52;
   font-size: 1rem;
-  cursor: pointer;
 }
 
-.host-content-panel {
+.soldier-content-panel {
   flex: 1;
   padding: 36px;
   overflow-y: auto;
-}
-
-.host-notification-badge {
-  vertical-align: middle;
-  margin-left: 5px;
 }

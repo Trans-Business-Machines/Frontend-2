@@ -2,13 +2,13 @@ import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
-import "./SoldierLayout.css";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { LuMapPinCheckInside } from "react-icons/lu";
 import { MdOutlineShoppingCartCheckout } from "react-icons/md";
 import { LuFolderSearch } from "react-icons/lu";
 import { HiOutlineLogout } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
+import "./SoldierLayout.css";
 
 export default function SoldierLayout() {
   const navigate = useNavigate();
