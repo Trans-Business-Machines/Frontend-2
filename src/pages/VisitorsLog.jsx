@@ -1,140 +1,226 @@
-import React, { useState } from "react";
 import "./VisitorsLog.css";
+import { useState } from "react";
+import { useDebounce } from "use-debounce";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { capitalize } from "../utils";
+import format from "date-fns/format";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 
-// 15 sample visitors with host and purpose
-const sampleVisitors = [
-  { name: "John Doe", id: "20215234", host: "Angela Moss", purpose: "Meeting", timeIn: "08:15 AM", timeOut: "10:00 AM", date: "06/23/2025" },
-  { name: "Lucy Smith", id: "20215125", host: "Emma White", purpose: "Delivery", timeIn: "12:30 PM", timeOut: "01:00 PM", date: "06/23/2025" },
-  { name: "Tom Baker", id: "20215219", host: "John Doe", purpose: "Interview", timeIn: "05:15 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Rita Patel", id: "20215327", host: "Angela Moss", purpose: "Consulting", timeIn: "11:00 AM", timeOut: "12:00 PM", date: "06/23/2025" },
-  { name: "Sam Johnson", id: "20225341", host: "Emma White", purpose: "Support", timeIn: "09:25 AM", timeOut: "11:12 AM", date: "06/23/2025" },
-  { name: "Priya Kumar", id: "20215789", host: "John Doe", purpose: "Delivery", timeIn: "09:45 AM", timeOut: "", date: "06/23/2025" },
-  { name: "Victor Chen", id: "20216661", host: "Angela Moss", purpose: "Vendor", timeIn: "12:15 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Emily Brown", id: "20218999", host: "Emma White", purpose: "Meeting", timeIn: "01:00 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Ahmed Hassan", id: "20213222", host: "John Doe", purpose: "Interview", timeIn: "01:45 PM", timeOut: "02:30 PM", date: "06/23/2025" },
-  { name: "Anna Müller", id: "20219900", host: "Angela Moss", purpose: "Support", timeIn: "02:15 PM", timeOut: "", date: "06/23/2025" },
-  { name: "James Lee", id: "20218881", host: "Emma White", purpose: "Vendor", timeIn: "03:00 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Elena Petrova", id: "20211234", host: "John Doe", purpose: "Delivery", timeIn: "03:30 PM", timeOut: "", date: "06/23/2025" },
-  { name: "David Smith", id: "20214321", host: "Angela Moss", purpose: "Meeting", timeIn: "04:00 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Yusuf Adeyemi", id: "20215555", host: "Emma White", purpose: "Consulting", timeIn: "04:25 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Sofia Gonzalez", id: "20216666", host: "John Doe", purpose: "Support", timeIn: "04:55 PM", timeOut: "05:30 PM", date: "06/23/2025" },
-];
+const getVisitorsLog = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
 export default function VisitorsLog() {
-  const [filters, setFilters] = useState({
-    date: "",
-    host: "",
-    purpose: ""
-  });
-
-  // Pagination logic
   const [page, setPage] = useState(1);
-  const perPage = 10;
-  const pageCount = Math.ceil(sampleVisitors.length / perPage);
-
-  // Filtering (host and purpose only by dropdown, so filter only if selected)
-  const filteredVisitors = sampleVisitors.filter(v => {
-    let pass = true;
-    if (filters.date) pass = pass && v.date === filters.date;
-    if (filters.host) pass = pass && v.host === filters.host;
-    if (filters.purpose) pass = pass && v.purpose === filters.purpose;
-    return pass;
+  const [filters, setFilters] = useState({
+    host: "",
+    purpose: "",
+    visitDate: "",
   });
 
-  // Paginated visitors
-  const pagedVisitors = filteredVisitors.slice((page - 1) * perPage, page * perPage);
+  const [debouncedFilters] = useDebounce(filters, 1000);
 
-  // Reset to page 1 on filter change
-  React.useEffect(() => {
-    setPage(1);
-  }, [filters.date, filters.host, filters.purpose]);
+  const getURL = () => {
+    const params = new URLSearchParams();
+
+    if (page) params.append("page", page);
+    if (debouncedFilters.host !== "all")
+      params.append("host", debouncedFilters.host);
+    if (debouncedFilters.purpose)
+      params.append("purpose", debouncedFilters.purpose);
+    if (debouncedFilters.visitDate)
+      params.append("date", debouncedFilters.visitDate);
+
+    return `/visits?${params.toString()}`;
+  };
+
+  const { data, isLoading } = useSWR(getURL(), getVisitorsLog);
+
+  function nextPage() {
+    setPage((prevPage) => prevPage + 1);
+  }
+
+  function prevPage() {
+    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
+  }
+
+  if (isLoading) {
+    return (
+      <div>
+        <p>Loading visitor log info....</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="visitorslog-content">
-      {/* Centered Heading */}
-      <div className="visitorslog-header-center">
-        <div>
-          <h2>Visitors Log</h2>
-          <p>View and filter all visitor activity records</p>
+    <div className="main-app">
+      <div className="main-content">
+        {/* Centered Heading */}
+        <div className="visitorslog-header-center">
+          <div>
+            <h2>Visitors Log</h2>
+            <p>View and filter all visitor activity records</p>
+          </div>
         </div>
-      </div>
 
-      {/* Filter Row - host and purpose as dropdowns, but empty for now */}
-      <form className="visitorslog-filters-row">
-        <input
-          type="date"
-          value={filters.date}
-          onChange={e => setFilters(f => ({ ...f, date: e.target.value }))}
-          placeholder="mm/dd/yyyy"
-        />
-        <select
-          value={filters.host}
-          onChange={e => setFilters(f => ({ ...f, host: e.target.value }))}
-        >
-          <option value="">Host (Select)</option>
-          {/* No options, backend will populate */}
-        </select>
-        <select
-          value={filters.purpose}
-          onChange={e => setFilters(f => ({ ...f, purpose: e.target.value }))}
-        >
-          <option value="">Purpose (Select)</option>
-          {/* No options, backend will populate */}
-        </select>
-      </form>
+        {/* Centered Filter Row */}
+        <form className="visitorslog-filters-row">
+          <input
+            type="date"
+            placeholder="yyyy-mm-dd"
+            value={filters.visitDate}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                visitDate: e.target.value.trim(),
+              }))
+            }
+          />
+          <input
+            type="text"
+            placeholder="Host"
+            value={filters.host}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                host: e.target.value.trim(),
+              }))
+            }
+          />
+          <input
+            type="text"
+            placeholder="Purpose"
+            value={filters.purpose}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                purpose: e.target.value.trim(),
+              }))
+            }
+          />
+        </form>
 
-      {/* Results Table */}
-      <div className="visitorslog-table-section">
-        <table className="visitorslog-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>ID Number</th>
-              <th>Host</th>
-              <th>Purpose</th>
-              <th>Time In</th>
-              <th>Time Out</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagedVisitors.length === 0 ? (
+        {/* Results Table */}
+        <div className="visitorslog-table-section">
+          <table className="visitorslog-table">
+            <thead>
               <tr>
-                <td colSpan={7} style={{textAlign: "center", color: "#888"}}>No records found.</td>
+                <th>Name</th>
+                <th>ID Number</th>
+                <th>Host</th>
+                <th>Purpose</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Date</th>
               </tr>
-            ) : (
-              pagedVisitors.map((v, i) => (
-                <tr key={i}>
-                  <td>{v.name}</td>
-                  <td>{v.id}</td>
-                  <td>{v.host || "-"}</td>
-                  <td>{v.purpose || "-"}</td>
-                  <td>{v.timeIn}</td>
-                  <td>{v.timeOut || "-"}</td>
-                  <td>{v.date}</td>
+            </thead>
+            <tbody>
+              {data?.visits?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    style={{ textAlign: "center", color: "#888" }}
+                  >
+                    No records found.
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                data?.visits?.map((v, i) => (
+                  <tr key={i} style={{ color: "#111" }}>
+                    <td
+                      style={{
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {v.firstname} {v.lastname}
+                    </td>
+                    <td
+                      style={{
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {v.national_id}
+                    </td>
+                    <td
+                      style={{
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {v.host.firstname} {v.host.lastname}
+                    </td>
+                    <td
+                      style={{
+                        textTransform: "capitalize",
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {capitalize(v.purpose)}
+                    </td>
+                    <td
+                      style={{
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {format(new Date(v.time_in), "hh:mm a")}
+                    </td>
+                    <td
+                      style={{
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {v.time_out
+                        ? format(new Date(v.time_out), "hh:mm a")
+                        : "-"}
+                    </td>
+                    <td
+                      style={{
+                        paddingBlock: "1.25rem",
+                        paddingInline: "0.625rem",
+                      }}
+                    >
+                      {format(new Date(v.visit_date), "MMMM do, yyyy")}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
 
-        {/* Pagination */}
-        <div className="visitorslog-pagination">
-          <span>
-            Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filteredVisitors.length)} of {filteredVisitors.length}
-          </span>
-          <div className="visitorslog-pagination-controls">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)}>{"<"}</button>
-            {Array.from({ length: pageCount }).map((_, i) => (
-              <button
-                key={i + 1}
-                className={page === i + 1 ? "active" : ""}
-                onClick={() => setPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button disabled={page === pageCount} onClick={() => setPage(page + 1)}>{">"}</button>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              marginTop: "20px",
+              marginLeft: "auto",
+              justifyContent: "right",
+              alignItems: "center",
+              width: "40%",
+              maxWidth: "400px",
+            }}
+          >
+            <button
+              className="dashboard-btn"
+              onClick={prevPage}
+              disabled={!data?.hasPrev}
+            >
+              <FaChevronLeft size={14} />
+            </button>
+            <button className="current-page-btn">{page}</button>
+            <button
+              className="dashboard-btn"
+              onClick={nextPage}
+              disabled={!data?.hasNext}
+            >
+              <FaChevronRight size={14} />
+            </button>
           </div>
         </div>
       </div>

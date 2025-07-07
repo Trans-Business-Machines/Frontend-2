@@ -1,28 +1,79 @@
-.visitorslog-pagination {
+.visitorslog-header-center {
+  width: 100%;
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  font-size: 1rem;
+  margin: 28px 0 12px 0;
 }
-.visitorslog-pagination-controls button {
-  background: none;
-  border: 1px solid #cfd8dc;
-  color: #235c56;
-  border-radius: 5px;
-  margin: 0 2px;
-  padding: 2px 10px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.15s;
+
+.visitorslog-header-center h2 {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.32rem;
+  color: #257c5a;
+  margin-bottom: 3px;
 }
-.visitorslog-pagination-controls button.active,
-.visitorslog-pagination-controls button:hover {
-  background: #30B87B;
-  color: #fff;
-  border-color: #30B87B;
+
+.visitorslog-header-center p {
+  text-align: center;
+  color: #888;
+  font-size: 1.04rem;
+  margin: 0;
 }
-.visitorslog-pagination-controls button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+.visitorslog-filters-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  margin-top: 8px;
+}
+
+.visitorslog-filters-row select,
+.visitorslog-filters-row input[type="date"],
+.visitorslog-filters-row input[type="text"] {
+  background: #f7f7f7;
+  border: 1.4px solid #eaeaea;
+  border-radius: 23px;
+  padding: 8px 18px;
+  font-size: 1.03rem;
+  outline: none;
+  min-width: 145px;
+  transition: border 0.15s;
+  color: #222;
+}
+
+.visitorslog-filters-row select:focus,
+.visitorslog-filters-row input:focus {
+  border-color: #257c5a;
+}
+
+.visitorslog-table-section {
+  margin-top: 12px;
+}
+
+.visitorslog-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(40,48,70,0.04);
+}
+
+.visitorslog-table th, .visitorslog-table td {
+  padding: 11px 14px;
+  text-align: left;
+}
+
+.visitorslog-table th {
+  background: #f5f7f7;
+  color: #257c5a;
+  font-size: 1.01rem;
+  font-weight: 700;
+}
+
+.visitorslog-table tr:nth-child(even) {
+  background: #fafbfb;
 }
