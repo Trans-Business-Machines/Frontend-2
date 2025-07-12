@@ -15,9 +15,9 @@ export default function Profile() {
   const { user } = useAuth();
 
   const { data: profile, isLoading } = useSWR(
-    `/users/${user.userId}`,
-    getProfile
-  );
+  user?.userId ? `/users/${user.userId}` : null,
+  getProfile
+);
 
   return (
     <section>
@@ -153,3 +153,5 @@ export default function Profile() {
     </section>
   );
 }
+
+
