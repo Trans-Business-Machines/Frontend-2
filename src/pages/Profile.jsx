@@ -57,6 +57,29 @@ export default function Profile() {
               <div className="profile-row">
                 <span className="profile-icon">
                   <svg width="18" height="18" fill="none">
+                    <rect
+                      x="2.5"
+                      y="2.5"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M6 7h6M6 10h4"
+                      stroke="#888"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+                <span className="profile-label">User ID</span>
+                <span className="profile-value">{user.userId}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-icon">
+                  <svg width="18" height="18" fill="none">
                     <circle
                       cx="9"
                       cy="6"

@@ -125,8 +125,7 @@ export default function SoldierLayout() {
             {soldierName}
           </div>
         </header>
-        <div className="soldier-content-panel">
-          <Outlet />
+        <div className="soldier-content-panel"><Outlet />
         </div>
       </main>
     </div>
