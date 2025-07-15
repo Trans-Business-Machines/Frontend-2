@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./HostLayout.css";
+import logo from "../assets/logo.png";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { MdNotificationsActive } from "react-icons/md";
 import { SlCalender } from "react-icons/sl";
@@ -12,7 +13,7 @@ import { CgProfile } from "react-icons/cg";
 export default function HostLayout({ hostName = "Host User" }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   // Sidebar menu matching your screenshot
   const menu = [
@@ -20,8 +21,7 @@ export default function HostLayout({ hostName = "Host User" }) {
     {
       label: (
         <span style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ fontSize: 18, marginRight: 5 }}><MdNotificationsActive />
-</span>
+          <span style={{ fontSize: 18, marginRight: 5 }}><MdNotificationsActive /></span>
           Notifications
           <span className="host-notification-badge"
             style={{
@@ -40,16 +40,22 @@ export default function HostLayout({ hostName = "Host User" }) {
       icon: null,
       path: "/host/notifications"
     },
-    { label: "Availability", icon: <span style={{ fontSize: 18 }}><SlCalender />
-</span>, path: "/host/availability" },
-    { label: "History", icon: <span style={{ fontSize: 18 }}><FaHistory />
-</span>, path: "/host/history" },
+    { label: "Availability", icon: <span style={{ fontSize: 18 }}><SlCalender /></span>, path: "/host/availability" },
+    { label: "History", icon: <span style={{ fontSize: 18 }}><FaHistory /></span>, path: "/host/history" },
   ];
+
+  // Helper function to capitalize first letter
+  const capitalizeRole = (role) => {
+    if (!role) return hostName;
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
 
   return (
     <div className="host-root-layout">
       <aside className="host-sidebar">
-        <div className="host-logo">LOGO</div>
+        <div className="host-logo">
+          <img src={logo || "/placeholder.svg"} alt="Logo" className="host-logo-img" />
+        </div>
         <nav>
           {menu.map(item => (
             <div
@@ -88,7 +94,7 @@ export default function HostLayout({ hostName = "Host User" }) {
             title="View Profile"
           >
             <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
-            {hostName}
+            {capitalizeRole(user?.role)}
           </div>
         </header>
         <div className="host-content-panel">
