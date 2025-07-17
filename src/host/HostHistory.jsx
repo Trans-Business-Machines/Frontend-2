@@ -1,34 +1,35 @@
 import React, { useState, useMemo, useEffect } from "react";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 import "./HostHistory.css";
 
-// Visitor data
-const visitors = [
-  { name: "John Doe", id: "20251234", purpose: "Delivery", timeIn: "09:15 AM", timeOut: "09:45 AM", date: "12-03-2025" },
-  { name: "Lucy Smith", id: "20251235", purpose: "HR", timeIn: "08:50 AM", timeOut: "09:30 AM", date: "18-03-2025" },
-  { name: "Tom Baker", id: "20251236", purpose: "Delivery", timeIn: "10:45 AM", timeOut: "11:00 AM", date: "25-03-2025" },
-  { name: "Rita Patel", id: "20251237", purpose: "Inquiry", timeIn: "11:05 AM", timeOut: "12:30 PM", date: "29-03-2025" },
-  { name: "Angela Wu", id: "20251238", purpose: "Maintenance", timeIn: "09:03 AM", timeOut: "10:10 AM", date: "05-04-2025" },
-  { name: "Carlos Garcia", id: "20251239", purpose: "Delivery", timeIn: "10:00 AM", timeOut: "10:45 AM", date: "08-04-2025" },
-  { name: "Sarah O'Neil", id: "20251240", purpose: "HR", timeIn: "09:20 AM", timeOut: "09:55 AM", date: "11-04-2025" },
-  { name: "Victor Chen", id: "20251241", purpose: "Inquiry", timeIn: "11:30 AM", timeOut: "12:10 PM", date: "13-04-2025" },
-  { name: "Emily Brown", id: "20251242", purpose: "Maintenance", timeIn: "08:50 AM", timeOut: "09:20 AM", date: "16-04-2025" },
-  { name: "Mohammed Ali", id: "20251243", purpose: "Delivery", timeIn: "09:40 AM", timeOut: "10:12 AM", date: "19-04-2025" },
-  { name: "Anna Müller", id: "20251244", purpose: "HR", timeIn: "10:17 AM", timeOut: "10:45 AM", date: "20-04-2025" },
-  { name: "James Lee", id: "20251245", purpose: "Inquiry", timeIn: "09:25 AM", timeOut: "09:55 AM", date: "22-04-2025" },
-  { name: "Priya Kumar", id: "20251246", purpose: "Maintenance", timeIn: "11:10 AM", timeOut: "12:00 PM", date: "25-04-2025" },
-  { name: "Elena Petrova", id: "20251247", purpose: "Delivery", timeIn: "08:45 AM", timeOut: "09:30 AM", date: "27-04-2025" },
-  { name: "Sam Johnson", id: "20251248", purpose: "HR", timeIn: "09:35 AM", timeOut: "10:00 AM", date: "01-05-2025" },
-  { name: "Ahmed Hassan", id: "20251249", purpose: "Inquiry", timeIn: "10:25 AM", timeOut: "11:00 AM", date: "05-05-2025" },
-  { name: "Grace Kim", id: "20251250", purpose: "Maintenance", timeIn: "09:10 AM", timeOut: "09:55 AM", date: "09-05-2025" },
-  { name: "Peter Evans", id: "20251251", purpose: "Delivery", timeIn: "10:40 AM", timeOut: "11:10 AM", date: "13-05-2025" },
-  { name: "Maria Rossi", id: "20251252", purpose: "HR", timeIn: "08:55 AM", timeOut: "09:35 AM", date: "17-05-2025" },
-  { name: "Satoshi Tanaka", id: "20251253", purpose: "Inquiry", timeIn: "09:50 AM", timeOut: "10:20 AM", date: "20-05-2025" },
-  { name: "Linda Clark", id: "20251254", purpose: "Maintenance", timeIn: "11:00 AM", timeOut: "12:05 PM", date: "23-05-2025" },
-  { name: "Nina Dubois", id: "20251255", purpose: "Delivery", timeIn: "09:05 AM", timeOut: "09:50 AM", date: "26-05-2025" },
-  { name: "David Smith", id: "20251256", purpose: "HR", timeIn: "10:10 AM", timeOut: "10:40 AM", date: "29-05-2025" },
-  { name: "Yusuf Adeyemi", id: "20251257", purpose: "Inquiry", timeIn: "09:30 AM", timeOut: "10:10 AM", date: "01-06-2025" },
-  { name: "Sofia Gonzalez", id: "20251258", purpose: "Maintenance", timeIn: "11:20 AM", timeOut: "12:00 PM", date: "05-06-2025" },
-];
+const HOST_ID = "xkb2gzc57rotpy228wtbbvui"; // The host's unique ID
+const perPage = 10;
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return "-";
+  const date = new Date(timeStr);
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+// Fetch function
+const fetchHostVisits = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data; // Should return { visits: [...] }
+};
 
 export default function HostHistory() {
   const [search, setSearch] = useState("");
@@ -36,46 +37,76 @@ export default function HostHistory() {
   const [purpose, setPurpose] = useState("");
   const [page, setPage] = useState(1);
 
-  const perPage = 10;
+  // Fetch visits for this host
+  const { data, error, isLoading } = useSWR(
+    `/visits/host/${HOST_ID}?today=false`,
+    fetchHostVisits
+  );
 
+  // Extract visits array safely
+  const visits = data?.visits || [];
+
+  // Filter + sort logic
   const filtered = useMemo(() => {
-    let results = visitors;
+    let results = visits.map((v) => ({
+      id: v.national_id || "-",
+      name: `${v.firstname || ""} ${v.lastname || ""}`.trim(),
+      purpose: v.purpose || "-",
+      timeIn: formatTime(v.time_in),
+      timeOut: formatTime(v.time_out),
+      date: formatDate(v.visit_date),
+    }));
 
+    // Search
     if (search.trim()) {
       const query = search.trim().toLowerCase();
       results = results.filter(
         (v) =>
           v.name.toLowerCase().includes(query) ||
-          v.id.includes(query) ||
+          v.id.toString().includes(query) ||
           v.date.includes(query)
       );
     }
 
+    // Filter by purpose
     if (purpose) {
       results = results.filter((v) => v.purpose === purpose);
     }
 
+    // Sort by date
     results = results.sort((a, b) => {
       const [da, ma, ya] = a.date.split("-").map(Number);
       const [db, mb, yb] = b.date.split("-").map(Number);
       const dateA = new Date(ya, ma - 1, da);
       const dateB = new Date(yb, mb - 1, db);
-      return dateSort === "Ascending"
-        ? dateA - dateB
-        : dateB - dateA;
+      return dateSort === "Ascending" ? dateA - dateB : dateB - dateA;
     });
 
     return results;
-  }, [search, dateSort, purpose]);
+  }, [visits, search, dateSort, purpose]);
 
+  // Pagination
   const pageCount = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
+  // Reset page when filters change
   useEffect(() => {
     setPage(1);
   }, [search, dateSort, purpose]);
 
-  const uniquePurposes = [...new Set(visitors.map(v => v.purpose))];
+  const uniquePurposes = [...new Set(visits.map((v) => v.purpose))];
+
+  if (isLoading) {
+    return <div className="host-history-page">Loading history...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="host-history-page" style={{ color: "red" }}>
+        Failed to load history: {error.message}
+      </div>
+    );
+  }
 
   return (
     <div className="host-history-page">
@@ -103,7 +134,9 @@ export default function HostHistory() {
         <select value={purpose} onChange={(e) => setPurpose(e.target.value)}>
           <option value="">All</option>
           {uniquePurposes.map((p) => (
-            <option key={p} value={p}>{p}</option>
+            <option key={p} value={p}>
+              {p}
+            </option>
           ))}
         </select>
       </div>
@@ -128,8 +161,8 @@ export default function HostHistory() {
                 </td>
               </tr>
             ) : (
-              paginated.map((v) => (
-                <tr key={v.id}>
+              paginated.map((v, idx) => (
+                <tr key={idx}>
                   <td>{v.name}</td>
                   <td>{v.id}</td>
                   <td>{v.purpose}</td>
@@ -142,14 +175,16 @@ export default function HostHistory() {
           </tbody>
         </table>
 
+        {/* Pagination controls */}
         <div className="host-history-pagination">
           <span>
-            Showing {filtered.length === 0 ? 0 : (page - 1) * perPage + 1}
-            -
+            Showing {filtered.length === 0 ? 0 : (page - 1) * perPage + 1}-
             {Math.min(page * perPage, filtered.length)} of {filtered.length}
           </span>
           <div className="host-history-pagination-controls">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)}>{"<"}</button>
+            <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+              {"<"}
+            </button>
             {Array.from({ length: pageCount }).map((_, i) => (
               <button
                 key={i}
@@ -159,7 +194,12 @@ export default function HostHistory() {
                 {i + 1}
               </button>
             ))}
-            <button disabled={page === pageCount} onClick={() => setPage(page + 1)}>{">"}</button>
+            <button
+              disabled={page === pageCount}
+              onClick={() => setPage(page + 1)}
+            >
+              {">"}
+            </button>
           </div>
         </div>
       </div>

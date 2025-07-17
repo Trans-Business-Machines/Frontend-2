@@ -43,7 +43,7 @@ export default function HostDashboard() {
         <div className="admin-dashboard-welcome-card">
           <div>
             <div className="admin-dashboard-welcome-title">
-              Welcome to your dashboard
+              Welcome to your dashboard {hostName}
             </div>
             <div className="admin-dashboard-welcome-sub">
               Here’s an overview of today's activities
