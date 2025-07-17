@@ -1,49 +1,86 @@
-import "./VisitorsLog.css";
-import { useState } from "react";
-import { useDebounce } from "use-debounce";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
-import { capitalize } from "../utils";
-import format from "date-fns/format";
-import useSWR from "swr";
-import axiosInstance from "../api/axiosInstance";
+"use client"
+import "./VisitorsLog.css"
+import { useState, useEffect } from "react"
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6"
+import { capitalize } from "../utils" // Assuming this utility exists
+import format from "date-fns/format"
+import useSWR from "swr"
+import axiosInstance from "../api/axiosInstance" // Assuming axiosInstance is correctly configured
 
 const getVisitorsLog = async (url) => {
-  const res = await axiosInstance.get(url);
-  return res.data;
-};
+  const res = await axiosInstance.get(url)
+  return res.data
+}
 
 export default function VisitorsLog() {
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(1)
   const [filters, setFilters] = useState({
     host: "",
     purpose: "",
     visitDate: "",
-  });
+  })
 
-  const [debouncedFilters] = useDebounce(filters, 1000);
+  // Load ALL visits data once (no filters in the URL)
+  const { data: allVisitsData, isLoading } = useSWR(`/visits?page=1&limit=1000`, getVisitorsLog)
 
-  const getURL = () => {
-    const params = new URLSearchParams();
+  // State to hold filtered visits
+  const [filteredVisits, setFilteredVisits] = useState([])
+  const [totalPages, setTotalPages] = useState(1)
+  const ITEMS_PER_PAGE = 10 // Adjust as needed
 
-    if (page) params.append("page", page);
-    if (debouncedFilters.host !== "all")
-      params.append("host", debouncedFilters.host);
-    if (debouncedFilters.purpose)
-      params.append("purpose", debouncedFilters.purpose);
-    if (debouncedFilters.visitDate)
-      params.append("date", debouncedFilters.visitDate);
+  // Apply filters on the frontend whenever filters or allVisitsData changes
+  useEffect(() => {
+    if (!allVisitsData?.visits) return
 
-    return `/visits?${params.toString()}`;
-  };
+    // Apply all filters on the frontend
+    let results = [...allVisitsData.visits]
 
-  const { data, isLoading } = useSWR(getURL(), getVisitorsLog);
+    // Filter by host (case-insensitive partial match)
+    if (filters.host) {
+      const hostLower = filters.host.toLowerCase()
+      results = results.filter((visit) => {
+        const hostFullName = `${visit.host.firstname} ${visit.host.lastname}`.toLowerCase()
+        return hostFullName.includes(hostLower)
+      })
+    }
+
+    // Filter by purpose (case-insensitive partial match)
+    if (filters.purpose) {
+      const purposeLower = filters.purpose.toLowerCase()
+      results = results.filter((visit) => visit.purpose.toLowerCase().includes(purposeLower))
+    }
+
+    // Filter by date (exact match)
+    if (filters.visitDate) {
+      const dateStr = filters.visitDate // Format: YYYY-MM-DD
+      results = results.filter((visit) => {
+        const visitDate = new Date(visit.visit_date)
+        const formattedVisitDate = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, "0")}-${String(visitDate.getDate()).padStart(2, "0")}`
+        return formattedVisitDate === dateStr
+      })
+    }
+
+    // Calculate total pages
+    setTotalPages(Math.ceil(results.length / ITEMS_PER_PAGE))
+
+    // Paginate results
+    const startIndex = (page - 1) * ITEMS_PER_PAGE
+    const paginatedResults = results.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
+    setFilteredVisits(paginatedResults)
+  }, [allVisitsData, filters, page])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [filters])
 
   function nextPage() {
-    setPage((prevPage) => prevPage + 1);
+    setPage((prevPage) => Math.min(prevPage + 1, totalPages))
   }
 
   function prevPage() {
-    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
+    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1))
   }
 
   if (isLoading) {
@@ -51,7 +88,7 @@ export default function VisitorsLog() {
       <div>
         <p>Loading visitor log info....</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -63,7 +100,6 @@ export default function VisitorsLog() {
           <p>View and filter all visitor activity records</p>
         </div>
       </div>
-
       {/* Centered Filter Row */}
       <form className="visitorslog-filters-row">
         <input
@@ -100,7 +136,6 @@ export default function VisitorsLog() {
           }
         />
       </form>
-
       {/* Results Table */}
       <div className="visitorslog-table-section">
         <table className="visitorslog-table">
@@ -116,14 +151,14 @@ export default function VisitorsLog() {
             </tr>
           </thead>
           <tbody>
-            {data?.visits?.length === 0 ? (
+            {filteredVisits.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", color: "#888" }}>
                   No records found.
                 </td>
               </tr>
             ) : (
-              data?.visits?.map((v, i) => (
+              filteredVisits.map((v, i) => (
                 <tr key={i} style={{ color: "#111" }}>
                   <td
                     style={{
@@ -187,7 +222,6 @@ export default function VisitorsLog() {
             )}
           </tbody>
         </table>
-
         <div
           style={{
             display: "flex",
@@ -200,23 +234,15 @@ export default function VisitorsLog() {
             maxWidth: "400px",
           }}
         >
-          <button
-            className="pagination-button"
-            onClick={prevPage}
-            disabled={!data?.hasPrev}
-          >
+          <button className="pagination-button" onClick={prevPage} disabled={page === 1}>
             <FaChevronLeft size={14} />
           </button>
           <button className="current-page-btn">{page}</button>
-          <button
-            className="pagination-button"
-            onClick={nextPage}
-            disabled={!data?.hasNext}
-          >
+          <button className="pagination-button" onClick={nextPage} disabled={page === totalPages}>
             <FaChevronRight size={14} />
           </button>
         </div>
       </div>
     </div>
-  );
+  )
 }
