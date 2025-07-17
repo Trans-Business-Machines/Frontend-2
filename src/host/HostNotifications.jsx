@@ -1,62 +1,84 @@
-import React, { useState } from "react";
 import "./HostNotifications.css";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
+import axiosInstance from "../api/axiosInstance";
+import AllNotifications from "../components/AllNotifications";
+import UnreadNotifications from "../components/UnreadNotifications";
 
-const initialNotifications = [
-  {
-    id: 1,
-    message:
-      "Good morning, you have a visitor John Doe. They checked-in at 8:30 am and entry was approved by Officer Brian.",
-    meta: "Delivery | 3rd June, 2025 8:30am",
-    isUnread: true,
-    date: "2025-06-03",
-  },
-  {
-    id: 2,
-    message:
-      "Good morning, you have a visitor Jane Smith. They checked-in at 9:10 am and entry was approved by Officer Brian.",
-    meta: "HR | 3rd June, 2025 9:10am",
-    isUnread: true,
-    date: "2025-06-03",
-  },
-  {
-    id: 3,
-    message:
-      "Good morning, you have a visitor Alex Lee. They checked-in at 11:00 am and entry was approved by Officer Brian.",
-    meta: "Delivery | 2nd June, 2025 11:00am",
-    isUnread: false,
-    date: "2025-06-02",
-  },
-  {
-    id: 4,
-    message: "Your availability was updated.",
-    meta: "System | 2nd June, 2025 7:00am",
-    isUnread: false,
-    date: "2025-06-02",
-  },
-];
+const getAllNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+const getUnreadNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+const updateNotification = async (url, { arg }) => {
+  const { notificationId, userId } = arg;
+
+  url = url.replace(":id", notificationId);
+  const body = { userId };
+  const res = await axiosInstance.patch(url, body);
+  return res.data;
+};
 
 export default function HostNotifications() {
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [filter, setFilter] = useState("all");
+  const [type, setType] = useState("all");
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-  const filtered = notifications.filter((n) => {
-    const matchesSearch =
-      n.message.toLowerCase().includes(search.toLowerCase()) ||
-      n.meta.toLowerCase().includes(search.toLowerCase()) ||
-      n.date.includes(search);
-    const matchesFilter =
-      filter === "all" || (filter === "unread" && n.isUnread);
-    return matchesSearch && matchesFilter;
-  });
+  const { data: allnotifications } = useSWR(
+    `/notifications/?type=${type}&page=${page}`,
+    getAllNotifications
+  );
 
-  const unreadCount = notifications.filter((n) => n.isUnread).length;
+  const { data: unreadnotifications } = useSWR(
+    `/notifications/?type=${type}`,
+    getUnreadNotifications
+  );
 
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isUnread: false } : n))
-    );
-  };
+  const { trigger: update } = useSWRMutation(
+    "/notifications/:id",
+    updateNotification
+  );
+
+  const filtered = useMemo(() => {
+    let notifications = null;
+
+    if (type === "all") {
+      notifications = allnotifications?.result?.notifications;
+    } else if (type === "unread") {
+      notifications = unreadnotifications?.result?.notifications;
+    }
+
+    let term = search.toLowerCase();
+
+    if (!term) {
+      return notifications;
+    }
+
+    notifications = notifications.filter((n) => {
+      if (
+        n.message.toLowerCase().includes(term) ||
+        n.message.toLowerCase().includes(term)
+      ) {
+        return n;
+      }
+    });
+
+    return notifications;
+  }, [unreadnotifications, search]);
+
+  function nextPage() {
+    setPage((page) => page + 1);
+  }
+
+  function prevPage() {
+    setPage((page) => Math.max(page - 1, 1));
+  }
 
   return (
     <div className="host-scrollable-content">
@@ -66,61 +88,40 @@ export default function HostNotifications() {
           <input
             type="text"
             className="host-notifications-date-filter"
-            placeholder="Search by message or date (e.g. 2025-06-03)"
+            placeholder="Search by purpose or name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="host-notifications-filter-btns">
             <button
-              className={filter === "all" ? "active" : ""}
-              onClick={() => setFilter("all")}
+              className={type === "all" ? "active" : ""}
+              onClick={() => setType("all")}
             >
               All
             </button>
             <button
-              className={filter === "unread" ? "active" : ""}
-              onClick={() => setFilter("unread")}
+              className={type === "unread" ? "active" : ""}
+              onClick={() => setType("unread")}
             >
               Unread
-              {unreadCount > 0 && (
-                <span className="host-notifications-badge">{unreadCount}</span>
-              )}
             </button>
           </div>
         </div>
-        <div className="host-notification-list">
-          {filtered.length === 0 && (
-            <div className="host-notifications-empty">
-              No notifications found.
-            </div>
+        <div style={{ width: "80%" }}>
+          {type === "all" ? (
+            <AllNotifications
+              notifications={filtered || []}
+              hasNext={allnotifications?.result?.hasNext}
+              hasPrev={allnotifications?.result?.hasPrev}
+              next={nextPage}
+              prev={prevPage}
+            />
+          ) : (
+            <UnreadNotifications
+              notifications={filtered || []}
+              update={update}
+            />
           )}
-          {filtered.map((n) => (
-            <div
-              className={
-                "host-notification-card" + (n.isUnread ? " unread" : " read")
-              }
-              key={n.id}
-              onClick={() => n.isUnread && markAsRead(n.id)}
-              tabIndex={0}
-              title={n.isUnread ? "Mark as read" : ""}
-            >
-              <div className="host-notification-msg">
-                {n.message}
-                {n.isUnread && (
-                  <span
-                    className="host-notification-unread-dot"
-                    title="Unread"
-                  ></span>
-                )}
-              </div>
-              <div className="host-notification-meta">{n.meta}</div>
-            </div>
-          ))}
-        </div>
-        <div className="host-notification-load-btn-row">
-          <button className="host-notification-load-btn" disabled>
-            Load More
-          </button>
         </div>
       </div>
     </div>
