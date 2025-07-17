@@ -10,25 +10,36 @@ import useSWR from "swr";
 import axiosInstance from "../api/axiosInstance";
 
 const getTodaysVisitors = async (url) => {
-  const res = await axiosInstance.get(url);
-  return res.data;
+  try {
+    const res = await axiosInstance.get(url);
+    return res.data;
+  } catch (error) {
+    console.warn("Error fetching today's visitors:", error?.response?.status, error?.message);
+    return { visits: [], hasNext: false, hasPrev: false }; // fallback
+  }
 };
 
 const getStats = async (url) => {
-  const res = await axiosInstance.get(url);
-  return res.data;
+  try {
+    const res = await axiosInstance.get(url);
+    return res.data;
+  } catch (error) {
+    console.warn("Error fetching stats:", error?.response?.status, error?.message);
+    return { visitCount: 0, activeVisitors: 0, checkedOutVisitors: 0 }; // fallback
+  }
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useSWR(
+  const { data = { visits: [], hasNext: false, hasPrev: false }, isLoading } = useSWR(
     `/visits/today?page=${page}`,
     getTodaysVisitors
   );
 
-  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
+  const { data: stats = { visitCount: 0, activeVisitors: 0, checkedOutVisitors: 0 }, isLoading: statsLoading } =
+    useSWR("/stats", getStats);
 
   if (isLoading || statsLoading) {
     return <div>Loading visitors and stats...</div>;
@@ -53,13 +64,13 @@ export default function Dashboard() {
         </div>
         <div className="soldier-banner-date">{format(new Date(), "PPP")}</div>
       </article>
+
+      {/* Stats Section */}
       <div className="soldier-stat-card-row">
         <div className="soldier-stat-card">
           <div className="soldier-stat-card-content">
-            <div className="soldier-stat-card-label">
-              Today's Total Visitors
-            </div>
-            <div className="soldier-stat-card-value">{stats.visitCount}</div>
+            <div className="soldier-stat-card-label">Today's Total Visitors</div>
+            <div className="soldier-stat-card-value">{stats.visitCount ?? 0}</div>
           </div>
           <div className="soldier-stat-card-icon soldier-stat-groupicon">
             <svg width="32" height="32" fill="none">
@@ -77,9 +88,7 @@ export default function Dashboard() {
         <div className="soldier-stat-card">
           <div className="soldier-stat-card-content">
             <div className="soldier-stat-card-label">Active Visitors</div>
-            <div className="soldier-stat-card-value">
-              {stats.activeVisitors}
-            </div>
+            <div className="soldier-stat-card-value">{stats.activeVisitors ?? 0}</div>
           </div>
           <div className="soldier-stat-card-icon soldier-stat-personicon">
             <svg width="32" height="32" fill="none">
@@ -96,9 +105,7 @@ export default function Dashboard() {
         <div className="soldier-stat-card">
           <div className="soldier-stat-card-content">
             <div className="soldier-stat-card-label">Checked-Out Visitors</div>
-            <div className="soldier-stat-card-value">
-              {stats.checkedOutVisitors}
-            </div>
+            <div className="soldier-stat-card-value">{stats.checkedOutVisitors ?? 0}</div>
           </div>
           <div className="soldier-stat-card-icon soldier-stat-clockicon">
             <svg width="32" height="32" fill="none">
@@ -120,53 +127,29 @@ export default function Dashboard() {
         <div className="dashboard-table-header">
           <h3>Today's Visitors</h3>
           <div style={{ display: "flex", gap: "1rem" }}>
-            <button
-              className="shorcut-btn"
-              onClick={() => navigate("/visitors-log")}
-            >
+            <button className="shorcut-btn" onClick={() => navigate("/visitors-log")}>
               <HiDocumentSearch size={24} />
               <span>View full log</span>
             </button>
-            <button
-              className="shorcut-btn"
-              onClick={() => navigate("/check-in")}
-            >
+            <button className="shorcut-btn" onClick={() => navigate("/check-in")}>
               <IoIosAddCircle size={24} />
-              <span>check in</span>
+              <span>Check in</span>
             </button>
-            <button
-              className="shorcut-btn"
-              onClick={() => navigate("/check-out")}
-            >
+            <button className="shorcut-btn" onClick={() => navigate("/check-out")}>
               <IoMdLogOut size={24} />
               <span>Check Out</span>
             </button>
           </div>
         </div>
 
-        {data?.visits?.length === 0 ? (
-          <div
-            style={{
-              paddingBlock: "1rem",
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                fontWeight: "bold",
-                fontSize: "1.45rem",
-                color: "#285e61",
-              }}
-            >
+        {data.visits.length === 0 ? (
+          <div style={{ paddingBlock: "1rem", textAlign: "center" }}>
+            <p style={{ fontWeight: "bold", fontSize: "1.45rem", color: "#285e61" }}>
               No Visitors today.
             </p>
           </div>
         ) : (
-          <div
-            style={{
-              marginTop: "1rem",
-            }}
-          >
+          <div style={{ marginTop: "1rem" }}>
             <Table visitors={data.visits} />
 
             <div
