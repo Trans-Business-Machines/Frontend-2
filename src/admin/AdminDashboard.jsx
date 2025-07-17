@@ -64,11 +64,12 @@ export default function AdminDashboard() {
 
       {/* Stats Cards */}
       <div className="admin-dashboard-cards-row">
+        {/* ✅ FIXED: Correct field for total visitors */}
         <div className="admin-dashboard-card">
           <div className="admin-dashboard-card-label">Total Visitors</div>
           <div className="admin-dashboard-card-content">
             <span className="admin-dashboard-card-value">
-              {stats?.totalVisitors ?? 0}
+              {stats?.visitCount ?? 0}
             </span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
               {/* icon */}
