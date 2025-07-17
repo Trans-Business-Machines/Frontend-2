@@ -1,105 +1,107 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import "./AdminUsers.css" // reuse styles for table, search, pagination
-import useSWR from "swr"
-import axiosInstance from "../api/axiosInstance"
+import { useState } from "react";
+import "./AdminUsers.css";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 
-const VISITORS_PER_PAGE = 10
+const VISITORS_PER_PAGE = 10;
 
-function formatDateForTable(dateStr) {
-  if (!dateStr) return ""
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, m, d] = dateStr.split("-")
-    return `${d}-${m}-${y}`
-  }
-  return dateStr
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB"); // DD/MM/YYYY
 }
 
-function formatTime(timeStr) {
-  if (!timeStr) return ""
-  // Handle different time formats that might come from backend
-  if (timeStr.includes("T")) {
-    // ISO format: extract time part
-    return new Date(timeStr).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    })
-  }
-  return timeStr
+function formatDateForFilter(dateStr) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toISOString().split("T")[0]; // YYYY-MM-DD for filtering
+}
+
+function formatTime(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 export default function AdminVisitorLog() {
-  const [search, setSearch] = useState("")
-  const [filterStatus, setFilterStatus] = useState("")
-  const [filterDate, setFilterDate] = useState("")
-  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [page, setPage] = useState(1);
 
-  // Fetch visitors with pagination from backend
+  // Fetch all visits with pagination
   const fetchVisitors = async (url) => {
-    try {
-      const res = await axiosInstance.get(url)
-      console.log("Visitors API response:", res.data)
-      return res.data
-    } catch (error) {
-      console.error("Failed to fetch visitors:", error)
-      throw error
-    }
-  }
+    const res = await axiosInstance.get(url);
+    console.log("Visitors API response:", res.data);
+    return res.data;
+  };
 
-  // Use SWR with pagination
-  const { data, error, isLoading, mutate } = useSWR(`/visits?page=${page}&limit=${VISITORS_PER_PAGE}`, fetchVisitors)
+  const { data, error, isLoading } = useSWR(
+    `/visits?page=${page}&limit=${VISITORS_PER_PAGE}`,
+    fetchVisitors
+  );
 
-  // Handle different response formats from backend
-  let visitors = []
-  let totalPages = 1
+  let visitors = [];
+  let totalPages = 1;
 
   if (data) {
     if (Array.isArray(data)) {
-      visitors = data
-      totalPages = Math.ceil(visitors.length / VISITORS_PER_PAGE)
-    } else if (data.visits && Array.isArray(data.visits)) {
-      visitors = data.visits
-      totalPages = data.totalPages || Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE)
-    } else if (data.data && Array.isArray(data.data)) {
-      visitors = data.data
-      totalPages = data.totalPages || Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE)
+      visitors = data;
+    } else if (data.visits) {
+      visitors = data.visits;
+      totalPages =
+        data.totalPages ||
+        Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE);
+    } else if (data.data) {
+      visitors = data.data;
+      totalPages =
+        data.totalPages ||
+        Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE);
     }
   }
 
-  // Client-side filtering for search and status (since backend pagination might not include all data)
-  const filteredVisitors = visitors.filter((v) => {
-    const searchTerm = search.toLowerCase()
-    const searchMatch =
+  // ✅ Normalize visits into a consistent shape
+  const normalizedVisitors = visitors.map((v) => ({
+    id: v._id,
+    name: `${v.firstname || ""} ${v.lastname || ""}`.trim(),
+    idNumber: v.national_id || "-",
+    phone: v.phone || "",
+    host: v.host ? `${v.host.firstname || ""} ${v.host.lastname || ""}`.trim() : "-",
+    status: v.status || "checked-out",
+    date: formatDateForFilter(v.visit_date), // for filtering
+    visitDate: v.visit_date, // full date
+    timeIn: v.time_in || v.visit_date,
+    timeOut: v.time_out || null, // might not exist yet
+  }));
+
+  // ✅ Filtering logic
+  const filteredVisitors = normalizedVisitors.filter((v) => {
+    const searchTerm = search.toLowerCase();
+    const matchesSearch =
       !search ||
-      (v.name || "").toLowerCase().includes(searchTerm) ||
-      (v.phone || "").toString().includes(search) ||
-      (v.idNumber || "").toString().includes(search) ||
-      (v.host || "").toLowerCase().includes(searchTerm) ||
-      (v.purpose || "").toLowerCase().includes(searchTerm)
+      v.name.toLowerCase().includes(searchTerm) ||
+      v.phone.includes(search) ||
+      v.idNumber.includes(search) ||
+      v.host.toLowerCase().includes(searchTerm);
 
-    const statusMatch = filterStatus === "" || v.status === filterStatus
-    const dateMatch = !filterDate || v.date === filterDate
+    const matchesStatus =
+      !filterStatus || v.status.toLowerCase() === filterStatus.toLowerCase();
 
-    return searchMatch && statusMatch && dateMatch
-  })
+    const matchesDate =
+      !filterDate || v.date === filterDate; // compare YYYY-MM-DD
 
-  function handleSearchChange(e) {
-    setSearch(e.target.value)
-  }
+    return matchesSearch && matchesStatus && matchesDate;
+  });
 
-  function handleFilterStatus(e) {
-    setFilterStatus(e.target.value)
-  }
-
-  function handleFilterDate(e) {
-    setFilterDate(e.target.value)
-  }
-
-  function handlePageChange(newPage) {
-    setPage(newPage)
-  }
+  const handleSearchChange = (e) => setSearch(e.target.value);
+  const handleFilterStatus = (e) => setFilterStatus(e.target.value);
+  const handleFilterDate = (e) => setFilterDate(e.target.value);
+  const handlePageChange = (newPage) => setPage(newPage);
 
   if (isLoading) {
     return (
@@ -107,9 +109,11 @@ export default function AdminVisitorLog() {
         <div className="admin-users-header">
           <div className="admin-users-title">Visitor Log</div>
         </div>
-        <div style={{ textAlign: "center", padding: "20px" }}>Loading visitors...</div>
+        <div style={{ textAlign: "center", padding: "20px" }}>
+          Loading visitors...
+        </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -122,7 +126,7 @@ export default function AdminVisitorLog() {
           Error loading visitors: {error.message}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -131,9 +135,13 @@ export default function AdminVisitorLog() {
         <div className="admin-users-title">Visitor Log</div>
       </div>
 
-      <div className="admin-users-search" style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}>
+      {/* Search & Filters */}
+      <div
+        className="admin-users-search"
+        style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}
+      >
         <input
-          placeholder="Search by name, phone, ID number, host, or purpose"
+          placeholder="Search by name, phone, ID number, or host"
           value={search}
           onChange={handleSearchChange}
           style={{ flex: 1, minWidth: 300 }}
@@ -142,21 +150,22 @@ export default function AdminVisitorLog() {
         <select
           value={filterStatus}
           onChange={handleFilterStatus}
-          style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}
+          style={{ minWidth: 140, padding: "11px 16px", borderRadius: 20 }}
         >
           <option value="">All Statuses</option>
-          <option value="Checked In">Checked In</option>
-          <option value="Checked Out">Checked Out</option>
+          <option value="checked-in">Checked In</option>
+          <option value="checked-out">Checked Out</option>
         </select>
 
         <input
           type="date"
           value={filterDate}
           onChange={handleFilterDate}
-          style={{ minWidth: 140, padding: "11px 16px", borderRadius: 20 }}
+          style={{ minWidth: 160, padding: "11px 16px", borderRadius: 20 }}
         />
       </div>
 
+      {/* Visitors Table */}
       <table className="admin-users-table">
         <thead>
           <tr>
@@ -171,42 +180,51 @@ export default function AdminVisitorLog() {
           </tr>
         </thead>
         <tbody>
-          {filteredVisitors.length === 0 && (
+          {filteredVisitors.length === 0 ? (
             <tr>
               <td colSpan={8} style={{ textAlign: "center" }}>
-                {isLoading ? "Loading..." : "No visitors found."}
+                No visitors found.
               </td>
             </tr>
+          ) : (
+            filteredVisitors.map((v) => (
+              <tr key={v.id}>
+                <td>{v.name}</td>
+                <td>{v.idNumber}</td>
+                <td>{v.phone}</td>
+                <td>{v.host}</td>
+                <td>{formatDate(v.visitDate)}</td>
+                <td>{formatTime(v.timeIn)}</td>
+                <td>{v.timeOut ? formatTime(v.timeOut) : "-"}</td>
+                <td>
+                  <span
+                    className={
+                      v.status.toLowerCase() === "checked-in"
+                        ? "status-active"
+                        : "status-inactive"
+                    }
+                    style={{ textTransform: "capitalize" }}
+                  >
+                    {v.status.replace("-", " ")}
+                  </span>
+                </td>
+              </tr>
+            ))
           )}
-          {filteredVisitors.map((visitor) => (
-            <tr key={visitor._id || visitor.id}>
-              <td>{visitor.name || ""}</td>
-              <td>{visitor.idNumber || ""}</td>
-              <td>{visitor.phone || ""}</td>
-              <td>{visitor.host || ""}</td>
-              <td>{formatDateForTable(visitor.date)}</td>
-              <td>{formatTime(visitor.timeIn || visitor.checkInTime)}</td>
-              <td>{formatTime(visitor.timeOut || visitor.checkOutTime) || "-"}</td>
-              <td>
-                <span
-                  className={visitor.status === "Checked In" ? "status-active" : "status-inactive"}
-                  style={{ whiteSpace: "nowrap", display: "inline-block" }}
-                >
-                  {visitor.status}
-                </span>
-              </td>
-            </tr>
-          ))}
         </tbody>
       </table>
 
+      {/* Pagination */}
       <div className="admin-users-pagination">
-        <button onClick={() => handlePageChange(Math.max(1, page - 1))} disabled={page === 1}>
+        <button
+          onClick={() => handlePageChange(Math.max(1, page - 1))}
+          disabled={page === 1}
+        >
           {"<"}
         </button>
 
         {[...Array(Math.min(5, totalPages))].map((_, idx) => {
-          const pageNum = Math.max(1, Math.min(totalPages, page - 2 + idx))
+          const pageNum = Math.max(1, Math.min(totalPages, page - 2 + idx));
           return (
             <button
               key={pageNum}
@@ -215,13 +233,16 @@ export default function AdminVisitorLog() {
             >
               {pageNum}
             </button>
-          )
+          );
         })}
 
-        <button onClick={() => handlePageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages}>
+        <button
+          onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+          disabled={page === totalPages}
+        >
           {">"}
         </button>
       </div>
     </div>
-  )
+  );
 }

@@ -1,54 +1,53 @@
-import React, { useState } from "react";
+import React from "react";
 import useSWR from "swr";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import Table from "../components/Table";
 import axiosInstance from "../api/axiosInstance";
 import "./AdminDashboard.css";
 
-const getTodaysVisitors = async (url) => {
+// Fetchers for SWR
+const fetchVisitorsToday = async (url) => {
   const res = await axiosInstance.get(url);
   return res.data;
 };
 
-const getStats = async (url) => {
+const fetchStats = async (url) => {
   const res = await axiosInstance.get(url);
   return res.data;
 };
-
-function getFormattedDate() {
-  const date = new Date();
-  return date
-    .toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric"
-    })
-    .replace(/ /g, "-");
-}
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  
-  // Fetch only the first page with 10 records for dashboard
-  const { data, isLoading } = useSWR(`/visits?page=1&limit=10`, getTodaysVisitors);
-  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
 
-  if (isLoading || statsLoading) {
+  // Fetch today's visitors
+  const { data: todayVisitors, isLoading: visitorsLoading, error: visitorsError } = useSWR(
+    "/visits/today",
+    fetchVisitorsToday
+  );
+
+  // Fetch overall stats
+  const { data: stats, isLoading: statsLoading, error: statsError } = useSWR(
+    "/stats",
+    fetchStats
+  );
+
+  const loading = visitorsLoading || statsLoading;
+
+  if (loading) {
     return <div>Loading visitors and stats...</div>;
   }
 
-  // Handle case where data might not be loaded yet
-  if (!data || !stats) {
-    return <div>Loading dashboard data...</div>;
+  if (visitorsError || statsError) {
+    return <div style={{ color: "red" }}>Failed to load dashboard data.</div>;
   }
 
-  const adminName = "Jessica";
+  const todayList = todayVisitors?.visits || [];
+  const totalToday = todayList.length;
 
   return (
     <div className="admin-dashboard">
-      {/* Welcome Section */}
+      {/*  Welcome Section */}
       <div className="admin-dashboard-welcome-card">
         <div>
           <div className="admin-dashboard-welcome-title">
@@ -59,7 +58,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="admin-dashboard-date-pill">
-          {getFormattedDate()}
+          {format(new Date(), "dd-MMMM-yyyy")}
         </div>
       </div>
 
@@ -68,9 +67,11 @@ export default function AdminDashboard() {
         <div className="admin-dashboard-card">
           <div className="admin-dashboard-card-label">Total Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.totalVisitors || 0}</span>
+            <span className="admin-dashboard-card-value">
+              {stats?.totalVisitors ?? 0}
+            </span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
-              {/* Icon */}
+              {/* icon */}
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
                   <path fill="#fff" d="M16.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5c0-2.485 2.015-4.5 4.5-4.5Z"/>
@@ -82,11 +83,13 @@ export default function AdminDashboard() {
             </span>
           </div>
         </div>
-        
+
         <div className="admin-dashboard-card">
           <div className="admin-dashboard-card-label">Active Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.activeVisitors || 0}</span>
+            <span className="admin-dashboard-card-value">
+              {stats?.activeVisitors ?? 0}
+            </span>
             <span className="admin-dashboard-card-icon" style={{ background: "#e8f7f2" }}>
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
@@ -99,18 +102,18 @@ export default function AdminDashboard() {
             </span>
           </div>
         </div>
-        
+
         <div className="admin-dashboard-card">
           <div className="admin-dashboard-card-label">Checked Out</div>
           <div className="admin-dashboard-card-content">
             <span className="admin-dashboard-card-value">
-              <strong>{stats.checkedOutVisitors || 0}</strong>
+              {stats?.checkedOutVisitors ?? 0}
             </span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
-                  <circle cx="12" cy="8" r="4" fill="#fff"/>
-                  <rect x="6" y="14" width="12" height="7" rx="3.5" fill="#fff"/>
+                  <circle cx="12" cy="8" r="4" fill="#fff" />
+                  <rect x="6" y="14" width="12" height="7" rx="3.5" fill="#fff" />
                 </g>
               </svg>
             </span>
@@ -118,11 +121,20 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Activity Table */}
+      {/* Today's Visitors Table */}
       <div className="admin-dashboard-table-section">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: "600" }}>Recent Visitors</h3>
-          <button 
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: "600" }}>
+            Today’s Visitors ({totalToday})
+          </h3>
+          <button
             onClick={() => navigate("/admin/visitor-log")}
             style={{
               background: "#219150",
@@ -132,21 +144,27 @@ export default function AdminDashboard() {
               borderRadius: "0.375rem",
               cursor: "pointer",
               fontSize: "0.875rem",
-              fontWeight: "500"
+              fontWeight: "500",
             }}
           >
             View More
           </button>
         </div>
-        
-        {!data.visits || data.visits.length === 0 ? (
+
+        {totalToday === 0 ? (
           <div style={{ padding: "1rem", textAlign: "center" }}>
-            <p style={{ fontWeight: "bold", fontSize: "1.2rem", color: "#285e61" }}>
+            <p
+              style={{
+                fontWeight: "bold",
+                fontSize: "1.2rem",
+                color: "#285e61",
+              }}
+            >
               No visitors today.
             </p>
           </div>
         ) : (
-          <Table visitors={data.visits} />
+          <Table visitors={todayList} />
         )}
       </div>
     </div>
