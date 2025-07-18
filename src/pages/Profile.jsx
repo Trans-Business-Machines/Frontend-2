@@ -15,7 +15,7 @@ export default function Profile() {
   const { user } = useAuth();
 
   const { data: profile, isLoading } = useSWR(
-    `/users/${user.userId}`,
+    user?.userId ? `/users/${user.userId}` : null,
     getProfile
   );
 

@@ -1,29 +1,20 @@
 import React, { useState } from "react";
+import useSWR from "swr";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import Table from "../components/Table";
+import axiosInstance from "../api/axiosInstance";
 import "./AdminDashboard.css";
 
-const mockData = [
-  { type: "Visitor", name: "Angela Moss", email: "angela@company.com", action: "Checked in" },
-  { type: "User", name: "John Doe", email: "john@company.com", action: "Deleted" },
-  { type: "Visitor", name: "Lucy Smith", email: "lucy@company.com", action: "Checked in" },
-  { type: "User", name: "Paul Black", email: "paul@company.com", action: "Added" },
-  { type: "Visitor", name: "Carl Evans", email: "carl@company.com", action: "Checked out" },
-  { type: "User", name: "Ava Brown", email: "ava@company.com", action: "Added" },
-  { type: "Visitor", name: "Bella Frost", email: "bella@company.com", action: "Checked in" },
-  { type: "User", name: "Liam Lee", email: "liam@company.com", action: "Added" },
-  { type: "Visitor", name: "Kim Hunt", email: "kim@company.com", action: "Checked in" },
-  { type: "User", name: "Zara Blue", email: "zara@company.com", action: "Added" },
-  { type: "Visitor", name: "Noah Gill", email: "noah@company.com", action: "Checked out" },
-  { type: "Visitor", name: "Rita Moss", email: "rita@company.com", action: "Checked in" },
-  { type: "Visitor", name: "Steve Nash", email: "steve@company.com", action: "Checked out" },
-];
+const getTodaysVisitors = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
-const ROWS_PER_PAGE = 6;
-
-const stats = {
-  totalUsers: mockData.filter(d => d.type === "User").length,
-  todaysTotalVisitors: mockData.filter(d => d.type === "Visitor").length,
-  checkedIn: mockData.filter(d => d.action === "Checked in").length,
-  checkedOut: mockData.filter(d => d.action === "Checked out").length,
+const getStats = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
 };
 
 function getFormattedDate() {
@@ -38,9 +29,20 @@ function getFormattedDate() {
 }
 
 export default function AdminDashboard() {
-  const [page, setPage] = useState(1);
-  const totalPages = Math.ceil(mockData.length / ROWS_PER_PAGE);
-  const rowsToDisplay = mockData.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+  const navigate = useNavigate();
+  
+  // Fetch only the first page with 10 records for dashboard
+  const { data, isLoading } = useSWR(`/visits?page=1&limit=10`, getTodaysVisitors);
+  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
+
+  if (isLoading || statsLoading) {
+    return <div>Loading visitors and stats...</div>;
+  }
+
+  // Handle case where data might not be loaded yet
+  if (!data || !stats) {
+    return <div>Loading dashboard data...</div>;
+  }
 
   const adminName = "Jessica";
 
@@ -50,10 +52,10 @@ export default function AdminDashboard() {
       <div className="admin-dashboard-welcome-card">
         <div>
           <div className="admin-dashboard-welcome-title">
-            Welcome to your dashboard {adminName}
+            Welcome to your dashboard
           </div>
           <div className="admin-dashboard-welcome-sub">
-            Here’s an overview of today&apos;s activities
+            Here's an overview of today&apos;s activities
           </div>
         </div>
         <div className="admin-dashboard-date-pill">
@@ -64,9 +66,9 @@ export default function AdminDashboard() {
       {/* Stats Cards */}
       <div className="admin-dashboard-cards-row">
         <div className="admin-dashboard-card">
-          <div className="admin-dashboard-card-label">Total Users</div>
+          <div className="admin-dashboard-card-label">Total Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.totalUsers}</span>
+            <span className="admin-dashboard-card-value">{stats.totalVisitors || 0}</span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
               {/* Icon */}
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
@@ -80,11 +82,11 @@ export default function AdminDashboard() {
             </span>
           </div>
         </div>
-
+        
         <div className="admin-dashboard-card">
-          <div className="admin-dashboard-card-label">Today's Total Visitors</div>
+          <div className="admin-dashboard-card-label">Active Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.todaysTotalVisitors}</span>
+            <span className="admin-dashboard-card-value">{stats.activeVisitors || 0}</span>
             <span className="admin-dashboard-card-icon" style={{ background: "#e8f7f2" }}>
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
@@ -97,12 +99,12 @@ export default function AdminDashboard() {
             </span>
           </div>
         </div>
-
+        
         <div className="admin-dashboard-card">
-          <div className="admin-dashboard-card-label">Checked In / Checked Out</div>
+          <div className="admin-dashboard-card-label">Checked Out</div>
           <div className="admin-dashboard-card-content">
             <span className="admin-dashboard-card-value">
-              <strong>{stats.checkedIn}</strong> / <strong>{stats.checkedOut}</strong>
+              <strong>{stats.checkedOutVisitors || 0}</strong>
             </span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
@@ -116,43 +118,36 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Activity Table */}
+      {/* Recent Activity Table */}
       <div className="admin-dashboard-table-section">
-        <table className="admin-dashboard-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rowsToDisplay.map((row, idx) => (
-              <tr key={row.email + row.action + idx}>
-                <td>{row.type}</td>
-                <td>{row.name}</td>
-                <td>{row.email}</td>
-                <td>{row.action}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Pagination */}
-        <div className="admin-dashboard-pagination">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{"<"}</button>
-          {[...Array(totalPages)].map((_, idx) => (
-            <button
-              key={idx}
-              className={page === idx + 1 ? "active" : ""}
-              onClick={() => setPage(idx + 1)}
-            >
-              {idx + 1}
-            </button>
-          ))}
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{">"}</button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+          <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: "600" }}>Recent Visitors</h3>
+          <button 
+            onClick={() => navigate("/admin/visitor-log")}
+            style={{
+              background: "#219150",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.375rem",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: "500"
+            }}
+          >
+            View More
+          </button>
         </div>
+        
+        {!data.visits || data.visits.length === 0 ? (
+          <div style={{ padding: "1rem", textAlign: "center" }}>
+            <p style={{ fontWeight: "bold", fontSize: "1.2rem", color: "#285e61" }}>
+              No visitors today.
+            </p>
+          </div>
+        ) : (
+          <Table visitors={data.visits} />
+        )}
       </div>
     </div>
   );

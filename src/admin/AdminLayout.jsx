@@ -1,33 +1,44 @@
-import React from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import logo from "../assets/logo.png";
-import "./AdminLayout.css";
-import { AiOutlineDashboard } from "react-icons/ai";
-import { FaUserCog } from "react-icons/fa";
-import { LuFolderSearch } from "react-icons/lu";
-import { HiOutlineLogout } from "react-icons/hi";
-import { CgProfile } from "react-icons/cg";
+"use client"
+import { Outlet, useNavigate, useLocation } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
+import logo from "../assets/logo.png"
+import "./AdminLayout.css"
+import { AiOutlineDashboard } from "react-icons/ai"
+import { FaUserCog } from "react-icons/fa"
+import { LuFolderSearch } from "react-icons/lu"
+import { HiOutlineLogout } from "react-icons/hi"
+import { CgProfile } from "react-icons/cg"
 
-export default function AdminLayout({ adminName = "Admin Fulgence" }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { logout } = useAuth();
+export default function AdminLayout() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { logout, user } = useAuth() // Get user data from auth context
 
   const menu = [
     { label: "Dashboard", icon: <AiOutlineDashboard />, path: "/admin/dashboard" },
     { label: "User Management", icon: <FaUserCog />, path: "/admin/users" },
     { label: "Visitor Log", icon: <LuFolderSearch />, path: "/admin/visitor-log" },
-  ];
+  ]
+
+  // Get user role with fallback
+  const getUserRole = () => {
+    if (!user) return "Loading..."
+
+    // Handle different possible user object structures
+    const role = user.role || user.userRole || user.type || "User"
+
+    // Capitalize first letter of role
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+  }
 
   return (
     <div className="admin-root-layout">
       <aside className="admin-sidebar">
         <div className="admin-logo">
-          <img src={logo} alt="VMS Logo" className="admin-logo-img" />
+          <img src={logo || "/placeholder.svg"} alt="VMS Logo" className="admin-logo-img" />
         </div>
         <nav>
-          {menu.map(item => (
+          {menu.map((item) => (
             <div
               key={item.label}
               className={`admin-sidebar-link ${location.pathname.startsWith(item.path) ? "active" : ""}`}
@@ -41,11 +52,13 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
         <button
           className="admin-logout-btn"
           onClick={() => {
-            logout();
-            navigate("/login");
+            logout()
+            navigate("/login")
           }}
         >
-          <span style={{ fontSize: 20, marginRight: 8 }}><HiOutlineLogout /></span>
+          <span style={{ fontSize: 20, marginRight: 8 }}>
+            <HiOutlineLogout />
+          </span>
           Log Out
         </button>
       </aside>
@@ -53,7 +66,7 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
         <header className="admin-header">
           <div></div>
           <div className="admin-header-title">
-            {menu.find(item => location.pathname.startsWith(item.path))?.label}
+            {menu.find((item) => location.pathname.startsWith(item.path))?.label}
           </div>
           <div
             className="admin-header-profile"
@@ -61,8 +74,10 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
             onClick={() => navigate("/admin/profile")}
             title="View Profile"
           >
-            <span role="img" aria-label="admin" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
-            {adminName}
+            <span role="img" aria-label="admin" style={{ fontSize: 24, marginRight: 10 }}>
+              <CgProfile />
+            </span>
+            {getUserRole()}
           </div>
         </header>
         <div className="admin-content-panel">
@@ -70,5 +85,5 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
         </div>
       </main>
     </div>
-  );
+  )
 }

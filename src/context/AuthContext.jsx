@@ -18,6 +18,9 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  console.log(user)
+  console.log(token)
+
   /*
    Refresh the access token when the app loads to get a new access token
    if the refresh token is valid

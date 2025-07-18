@@ -11,11 +11,12 @@
   background: #fff;
   border-radius: 18px;
   box-shadow: 0 4px 20px rgba(40,48,70,0.04);
-  padding: 36px 48px 36px 48px;
-  max-width: 420px;
+  padding: 48px 64px;
+  max-width: 600px; /* was 420px */
   width: 100%;
   text-align: center;
 }
+
 
 .profile-avatar {
   margin-bottom: 12px;

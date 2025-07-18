@@ -1,75 +1,128 @@
-import React, { useState } from "react";
-import "./AdminUsers.css"; // reuse styles for table, search, pagination
+"use client"
 
-const mockVisitors = [
-  { name: "Alice Smith", idNumber: "38291034", phone: "0712345001", host: "Angela Moss", date: "2025-06-01", time: "Morning", purpose: "Meeting", status: "Checked In" },
-  { name: "Bob John", idNumber: "57820013", phone: "0712345002", host: "Paul Black", date: "2025-06-01", time: "Afternoon", purpose: "Delivery", status: "Checked Out" },
-  { name: "Carol White", idNumber: "41678390", phone: "0712345003", host: "Emma White", date: "2025-06-01", time: "Evening", purpose: "Interview", status: "Checked In" },
-  // ... add other visitors here ...
-];
+import { useState } from "react"
+import "./AdminUsers.css" // reuse styles for table, search, pagination
+import useSWR from "swr"
+import axiosInstance from "../api/axiosInstance"
 
-const VISITORS_PER_PAGE = 10;
+const VISITORS_PER_PAGE = 10
 
 function formatDateForTable(dateStr) {
-  if (!dateStr) return "";
+  if (!dateStr) return ""
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, m, d] = dateStr.split("-");
-    return `${d}-${m}-${y}`;
+    const [y, m, d] = dateStr.split("-")
+    return `${d}-${m}-${y}`
   }
-  return dateStr;
+  return dateStr
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return ""
+  // Handle different time formats that might come from backend
+  if (timeStr.includes("T")) {
+    // ISO format: extract time part
+    return new Date(timeStr).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+  }
+  return timeStr
 }
 
 export default function AdminVisitorLog() {
-  const [visitors] = useState(mockVisitors);
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
-  const [filterTime, setFilterTime] = useState("");
-  const [filterDate, setFilterDate] = useState("");
-  const [filterHost, setFilterHost] = useState("");
-  const [filterPurpose, setFilterPurpose] = useState("");
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("")
+  const [filterStatus, setFilterStatus] = useState("")
+  const [filterDate, setFilterDate] = useState("")
+  const [page, setPage] = useState(1)
 
+  // Fetch visitors with pagination from backend
+  const fetchVisitors = async (url) => {
+    try {
+      const res = await axiosInstance.get(url)
+      console.log("Visitors API response:", res.data)
+      return res.data
+    } catch (error) {
+      console.error("Failed to fetch visitors:", error)
+      throw error
+    }
+  }
+
+  // Use SWR with pagination
+  const { data, error, isLoading, mutate } = useSWR(`/visits?page=${page}&limit=${VISITORS_PER_PAGE}`, fetchVisitors)
+
+  // Handle different response formats from backend
+  let visitors = []
+  let totalPages = 1
+
+  if (data) {
+    if (Array.isArray(data)) {
+      visitors = data
+      totalPages = Math.ceil(visitors.length / VISITORS_PER_PAGE)
+    } else if (data.visits && Array.isArray(data.visits)) {
+      visitors = data.visits
+      totalPages = data.totalPages || Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE)
+    } else if (data.data && Array.isArray(data.data)) {
+      visitors = data.data
+      totalPages = data.totalPages || Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE)
+    }
+  }
+
+  // Client-side filtering for search and status (since backend pagination might not include all data)
   const filteredVisitors = visitors.filter((v) => {
-    const match =
-      v.name.toLowerCase().includes(search.toLowerCase()) ||
-      v.phone.includes(search) ||
-      v.idNumber.includes(search) ||
-      v.host.toLowerCase().includes(search.toLowerCase()) ||
-      formatDateForTable(v.date).includes(search);
-    const statusMatch = filterStatus === "" || v.status === filterStatus;
-    const timeMatch = filterTime === "" || v.time === filterTime;
-    const dateMatch = !filterDate || v.date === filterDate;
-    const hostMatch = filterHost === "" || v.host === filterHost;
-    const purposeMatch = filterPurpose === "" || v.purpose === filterPurpose;
-    return match && statusMatch && timeMatch && dateMatch && hostMatch && purposeMatch;
-  });
+    const searchTerm = search.toLowerCase()
+    const searchMatch =
+      !search ||
+      (v.name || "").toLowerCase().includes(searchTerm) ||
+      (v.phone || "").toString().includes(search) ||
+      (v.idNumber || "").toString().includes(search) ||
+      (v.host || "").toLowerCase().includes(searchTerm) ||
+      (v.purpose || "").toLowerCase().includes(searchTerm)
 
-  const totalPages = Math.ceil(filteredVisitors.length / VISITORS_PER_PAGE);
-  const visitorsToDisplay = filteredVisitors.slice((page - 1) * VISITORS_PER_PAGE, page * VISITORS_PER_PAGE);
+    const statusMatch = filterStatus === "" || v.status === filterStatus
+    const dateMatch = !filterDate || v.date === filterDate
+
+    return searchMatch && statusMatch && dateMatch
+  })
 
   function handleSearchChange(e) {
-    setSearch(e.target.value);
-    setPage(1);
+    setSearch(e.target.value)
   }
+
   function handleFilterStatus(e) {
-    setFilterStatus(e.target.value);
-    setPage(1);
+    setFilterStatus(e.target.value)
   }
-  function handleFilterTime(e) {
-    setFilterTime(e.target.value);
-    setPage(1);
-  }
+
   function handleFilterDate(e) {
-    setFilterDate(e.target.value);
-    setPage(1);
+    setFilterDate(e.target.value)
   }
-  function handleFilterHost(e) {
-    setFilterHost(e.target.value);
-    setPage(1);
+
+  function handlePageChange(newPage) {
+    setPage(newPage)
   }
-  function handleFilterPurpose(e) {
-    setFilterPurpose(e.target.value);
-    setPage(1);
+
+  if (isLoading) {
+    return (
+      <div className="admin-users">
+        <div className="admin-users-header">
+          <div className="admin-users-title">Visitor Log</div>
+        </div>
+        <div style={{ textAlign: "center", padding: "20px" }}>Loading visitors...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="admin-users">
+        <div className="admin-users-header">
+          <div className="admin-users-title">Visitor Log</div>
+        </div>
+        <div style={{ textAlign: "center", padding: "20px", color: "red" }}>
+          Error loading visitors: {error.message}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -80,66 +133,60 @@ export default function AdminVisitorLog() {
 
       <div className="admin-users-search" style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}>
         <input
-          placeholder="Search by name, phone, id number, host, date"
+          placeholder="Search by name, phone, ID number, host, or purpose"
           value={search}
           onChange={handleSearchChange}
-          style={{ flex: 1, minWidth: 200 }}
+          style={{ flex: 1, minWidth: 300 }}
         />
-        <select value={filterStatus} onChange={handleFilterStatus} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
+
+        <select
+          value={filterStatus}
+          onChange={handleFilterStatus}
+          style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}
+        >
           <option value="">All Statuses</option>
           <option value="Checked In">Checked In</option>
           <option value="Checked Out">Checked Out</option>
         </select>
-        <select value={filterTime} onChange={handleFilterTime} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
-          <option value="">All Times</option>
-          <option value="Morning">Morning</option>
-          <option value="Afternoon">Afternoon</option>
-          <option value="Evening">Evening</option>
-        </select>
+
         <input
           type="date"
           value={filterDate}
           onChange={handleFilterDate}
           style={{ minWidth: 140, padding: "11px 16px", borderRadius: 20 }}
         />
-        <select value={filterHost} onChange={handleFilterHost} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
-          <option value="">All Hosts</option>
-          {/* Optional: Add dynamic host options */}
-        </select>
-        <select value={filterPurpose} onChange={handleFilterPurpose} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
-          <option value="">All Purposes</option>
-          {/* Optional: Add dynamic purpose options */}
-        </select>
       </div>
 
       <table className="admin-users-table">
         <thead>
           <tr>
             <th>Name</th>
-            <th>Id Number</th>
+            <th>ID Number</th>
             <th>Phone</th>
             <th>Host</th>
             <th>Date</th>
-            <th>Time</th>
-            <th>Purpose</th>
+            <th>Time In</th>
+            <th>Time Out</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {visitorsToDisplay.length === 0 && (
+          {filteredVisitors.length === 0 && (
             <tr>
-              <td colSpan={8} style={{ textAlign: "center" }}>No visitors found.</td>
+              <td colSpan={8} style={{ textAlign: "center" }}>
+                {isLoading ? "Loading..." : "No visitors found."}
+              </td>
             </tr>
           )}
-          {visitorsToDisplay.map((visitor, idx) => (
-            <tr key={idx}>
-              <td>{visitor.name}</td>
-              <td>{visitor.idNumber}</td>
-              <td>{visitor.phone}</td>
-              <td>{visitor.host}</td>
+          {filteredVisitors.map((visitor) => (
+            <tr key={visitor._id || visitor.id}>
+              <td>{visitor.name || ""}</td>
+              <td>{visitor.idNumber || ""}</td>
+              <td>{visitor.phone || ""}</td>
+              <td>{visitor.host || ""}</td>
               <td>{formatDateForTable(visitor.date)}</td>
-              <td>{visitor.time}</td>
-              <td>{visitor.purpose}</td>
+              <td>{formatTime(visitor.timeIn || visitor.checkInTime)}</td>
+              <td>{formatTime(visitor.timeOut || visitor.checkOutTime) || "-"}</td>
               <td>
                 <span
                   className={visitor.status === "Checked In" ? "status-active" : "status-inactive"}
@@ -154,18 +201,27 @@ export default function AdminVisitorLog() {
       </table>
 
       <div className="admin-users-pagination">
-        <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+        <button onClick={() => handlePageChange(Math.max(1, page - 1))} disabled={page === 1}>
           {"<"}
         </button>
-        {[...Array(totalPages)].map((_, idx) => (
-          <button key={idx + 1} onClick={() => setPage(idx + 1)} className={page === idx + 1 ? "active" : ""}>
-            {idx + 1}
-          </button>
-        ))}
-        <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+
+        {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+          const pageNum = Math.max(1, Math.min(totalPages, page - 2 + idx))
+          return (
+            <button
+              key={pageNum}
+              onClick={() => handlePageChange(pageNum)}
+              className={page === pageNum ? "active" : ""}
+            >
+              {pageNum}
+            </button>
+          )
+        })}
+
+        <button onClick={() => handlePageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages}>
           {">"}
         </button>
       </div>
     </div>
-  );
+  )
 }
