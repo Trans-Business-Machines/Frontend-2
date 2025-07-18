@@ -1,142 +1,149 @@
-"use client"
-import "./VisitorsLog.css"
 import { useState, useEffect } from "react"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6"
-import { capitalize } from "../utils" // Assuming this utility exists
+import { capitalize } from "../utils"
 import format from "date-fns/format"
-import useSWR from "swr"
-import axiosInstance from "../api/axiosInstance" // Assuming axiosInstance is correctly configured
+import axiosInstance from "../api/axiosInstance"
+import "./VisitorsLog.css"
 
-const getVisitorsLog = async (url) => {
-  const res = await axiosInstance.get(url)
-  return res.data
-}
+const ITEMS_PER_PAGE = 10
 
 export default function VisitorsLog() {
-  const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({
-    host: "",
-    purpose: "",
-    visitDate: "",
-  })
-
-  // Load ALL visits data once (no filters in the URL)
-  const { data: allVisitsData, isLoading } = useSWR(`/visits?page=1&limit=1000`, getVisitorsLog)
-
-  // State to hold filtered visits
+  const [allVisits, setAllVisits] = useState([])
   const [filteredVisits, setFilteredVisits] = useState([])
-  const [totalPages, setTotalPages] = useState(1)
-  const ITEMS_PER_PAGE = 10 // Adjust as needed
+  const [page, setPage] = useState(1)
+  const [filters, setFilters] = useState({ host: "", purpose: "", visitDate: "" })
+  const [loading, setLoading] = useState(true)
 
-  // Apply filters on the frontend whenever filters or allVisitsData changes
   useEffect(() => {
-    if (!allVisitsData?.visits) return
+    async function fetchVisits() {
+      try {
+        const res = await axiosInstance.get("/visits?limit=10000")
+        const visits = Array.isArray(res.data.visits) ? res.data.visits : []
+        setAllVisits(visits)
+        setFilteredVisits(visits)
+      } catch (err) {
+        console.error("Error fetching visits:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchVisits()
+  }, [])
 
-    // Apply all filters on the frontend
-    let results = [...allVisitsData.visits]
+  useEffect(() => {
+    let results = Array.isArray(allVisits) ? [...allVisits] : []
 
-    // Filter by host (case-insensitive partial match)
-    if (filters.host) {
-      const hostLower = filters.host.toLowerCase()
-      results = results.filter((visit) => {
-        const hostFullName = `${visit.host.firstname} ${visit.host.lastname}`.toLowerCase()
-        return hostFullName.includes(hostLower)
+    if (filters.host.trim()) {
+      const searchHost = filters.host.toLowerCase()
+      results = results.filter((v) => {
+        const fullName = `${v.host?.firstname || ''} ${v.host?.lastname || ''}`.toLowerCase()
+        return fullName.includes(searchHost)
       })
     }
 
-    // Filter by purpose (case-insensitive partial match)
-    if (filters.purpose) {
-      const purposeLower = filters.purpose.toLowerCase()
-      results = results.filter((visit) => visit.purpose.toLowerCase().includes(purposeLower))
+    if (filters.purpose.trim()) {
+      const searchPurpose = filters.purpose.toLowerCase()
+      results = results.filter((v) => v.purpose?.toLowerCase().includes(searchPurpose))
     }
 
-    // Filter by date (exact match)
     if (filters.visitDate) {
-      const dateStr = filters.visitDate // Format: YYYY-MM-DD
-      results = results.filter((visit) => {
-        const visitDate = new Date(visit.visit_date)
-        const formattedVisitDate = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, "0")}-${String(visitDate.getDate()).padStart(2, "0")}`
-        return formattedVisitDate === dateStr
+      results = results.filter((v) => {
+        const visitDate = new Date(v.visit_date)
+        const formatted = `${visitDate.getFullYear()}-${String(
+          visitDate.getMonth() + 1
+        ).padStart(2, "0")}-${String(visitDate.getDate()).padStart(2, "0")}`
+        return formatted === filters.visitDate
       })
     }
 
-    // Calculate total pages
-    setTotalPages(Math.ceil(results.length / ITEMS_PER_PAGE))
+    setFilteredVisits(results)
+    setPage((prev) => {
+      const totalPages = Math.max(1, Math.ceil(results.length / ITEMS_PER_PAGE))
+      return prev > totalPages ? totalPages : 1
+    })
+  }, [filters, allVisits])
 
-    // Paginate results
-    const startIndex = (page - 1) * ITEMS_PER_PAGE
-    const paginatedResults = results.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  const totalPages = Math.max(1, Math.ceil(filteredVisits.length / ITEMS_PER_PAGE))
+  const startIndex = (page - 1) * ITEMS_PER_PAGE
+  const currentPageVisits = filteredVisits.slice(startIndex, startIndex + ITEMS_PER_PAGE)
 
-    setFilteredVisits(paginatedResults)
-  }, [allVisitsData, filters, page])
-
-  // Reset to page 1 when filters change
   useEffect(() => {
-    setPage(1)
-  }, [filters])
+    console.log("Pagination state:", {
+      page,
+      totalPages,
+      filteredVisitsLength: filteredVisits.length,
+      currentPageVisitsLength: currentPageVisits.length,
+      startIndex,
+    })
+  }, [page, filteredVisits.length, totalPages, currentPageVisits.length, startIndex])
 
-  function nextPage() {
-    setPage((prevPage) => Math.min(prevPage + 1, totalPages))
+  const nextPage = () => {
+    console.log("Next button clicked, current page:", page, "totalPages:", totalPages)
+    if (page < totalPages) {
+      setPage(page + 1)
+      console.log("Moving to page:", page + 1)
+    } else {
+      console.log("Cannot move to next page, already at last page")
+    }
   }
 
-  function prevPage() {
-    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1))
+  const prevPage = () => {
+    console.log("Prev button clicked, current page:", page)
+    if (page > 1) {
+      setPage(page - 1)
+      console.log("Moving to page:", page - 1)
+    }
   }
 
-  if (isLoading) {
-    return (
-      <div>
-        <p>Loading visitor log info....</p>
-      </div>
-    )
+  const goToPage = (num) => {
+    console.log("Go to page:", num)
+    if (num >= 1 && num <= totalPages) {
+      setPage(num)
+    }
   }
+
+  const getPageNumbers = () => {
+    const pages = []
+    const maxVisible = 5
+    let start = Math.max(1, page - Math.floor(maxVisible / 2))
+    let end = Math.min(totalPages, start + maxVisible - 1)
+
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1)
+    }
+    for (let i = start; i <= end; i++) pages.push(i)
+    return pages
+  }
+
+  if (loading) return <p>Loading visitor log...</p>
 
   return (
     <div className="main-content">
-      {/* Centered Heading */}
       <div className="visitorslog-header-center">
-        <div>
-          <h2>Visitors Log</h2>
-          <p>View and filter all visitor activity records</p>
-        </div>
+        <h2>Visitors Log</h2>
+        <p>View and filter all visitor activity records</p>
       </div>
-      {/* Centered Filter Row */}
-      <form className="visitorslog-filters-row">
+
+      <div className="visitorslog-filters-row">
         <input
           type="date"
-          placeholder="yyyy-mm-dd"
           value={filters.visitDate}
-          onChange={(e) =>
-            setFilters((prev) => ({
-              ...prev,
-              visitDate: e.target.value.trim(),
-            }))
-          }
+          onChange={(e) => setFilters((prev) => ({ ...prev, visitDate: e.target.value }))}
         />
         <input
           type="text"
-          placeholder="Host"
+          placeholder="Search Host"
           value={filters.host}
-          onChange={(e) =>
-            setFilters((prev) => ({
-              ...prev,
-              host: e.target.value.trim(),
-            }))
-          }
+          onChange={(e) => setFilters((prev) => ({ ...prev, host: e.target.value }))}
         />
         <input
           type="text"
-          placeholder="Purpose"
+          placeholder="Search Purpose"
           value={filters.purpose}
-          onChange={(e) =>
-            setFilters((prev) => ({
-              ...prev,
-              purpose: e.target.value.trim(),
-            }))
-          }
+          onChange={(e) => setFilters((prev) => ({ ...prev, purpose: e.target.value }))}
         />
-      </form>
-      {/* Results Table */}
+      </div>
+
       <div className="visitorslog-table-section">
         <table className="visitorslog-table">
           <thead>
@@ -151,97 +158,69 @@ export default function VisitorsLog() {
             </tr>
           </thead>
           <tbody>
-            {filteredVisits.length === 0 ? (
+            {currentPageVisits.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: "center", color: "#888" }}>
                   No records found.
                 </td>
               </tr>
             ) : (
-              filteredVisits.map((v, i) => (
-                <tr key={i} style={{ color: "#111" }}>
-                  <td
-                    style={{
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {v.firstname} {v.lastname}
-                  </td>
-                  <td
-                    style={{
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {v.national_id}
-                  </td>
-                  <td
-                    style={{
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {v.host.firstname} {v.host.lastname}
-                  </td>
-                  <td
-                    style={{
-                      textTransform: "capitalize",
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {capitalize(v.purpose)}
-                  </td>
-                  <td
-                    style={{
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {format(new Date(v.time_in), "hh:mm a")}
-                  </td>
-                  <td
-                    style={{
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {v.time_out ? format(new Date(v.time_out), "hh:mm a") : "-"}
-                  </td>
-                  <td
-                    style={{
-                      paddingBlock: "1.25rem",
-                      paddingInline: "0.625rem",
-                    }}
-                  >
-                    {format(new Date(v.visit_date), "MMMM do, yyyy")}
-                  </td>
+              currentPageVisits.map((v) => (
+                <tr key={v._id}>
+                  <td>{v.firstname} {v.lastname}</td>
+                  <td>{v.national_id}</td>
+                  <td>{v.host?.firstname} {v.host?.lastname}</td>
+                  <td style={{ textTransform: "capitalize" }}>{capitalize(v.purpose)}</td>
+                  <td>{format(new Date(v.time_in), "hh:mm a")}</td>
+                  <td>{v.time_out ? format(new Date(v.time_out), "hh:mm a") : "-"}</td>
+                  <td>{format(new Date(v.visit_date), "MMMM do, yyyy")}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            marginTop: "20px",
-            marginLeft: "auto",
-            justifyContent: "right",
-            alignItems: "center",
-            width: "40%",
-            maxWidth: "400px",
-          }}
-        >
-          <button className="pagination-button" onClick={prevPage} disabled={page === 1}>
-            <FaChevronLeft size={14} />
-          </button>
-          <button className="current-page-btn">{page}</button>
-          <button className="pagination-button" onClick={nextPage} disabled={page === totalPages}>
-            <FaChevronRight size={14} />
-          </button>
-        </div>
+
+        {filteredVisits.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              marginTop: "20px",
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <button onClick={prevPage} disabled={page === 1}>
+              <FaChevronLeft /> Prev
+            </button>
+
+            {getPageNumbers().map((num) => (
+              <button
+                key={num}
+                onClick={() => goToPage(num)}
+                style={{
+                  background: num === page ? "#219150" : "#fff",
+                  color: num === page ? "#fff" : "#000",
+                  border: "1px solid #ccc",
+                  padding: "0.4rem 0.8rem",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                {num}
+              </button>
+            ))}
+
+            <button onClick={nextPage} disabled={page >= totalPages}>
+              Next <FaChevronRight />
+            </button>
+
+            <span style={{ marginLeft: "1rem", color: "#555" }}>
+              Page {page} of {totalPages}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )

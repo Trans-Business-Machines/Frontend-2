@@ -7,9 +7,8 @@ import { capitalize } from "../utils";
 import Snackbar from "../components/Snackbar";
 import axiosInstance from "../api/axiosInstance";
 
-// ✅ Fetch hosts with schedules (updated endpoint)
-const getHostsWithSchedules = () => {
-  return axiosInstance.get("/users/hosts-with-schedules");
+const getAllHosts = () => {
+  return axiosInstance.get("/hosts");
 };
 
 const getVisitPurposes = () => {
@@ -17,6 +16,7 @@ const getVisitPurposes = () => {
 };
 
 export default function Checkin() {
+  // State for form fields
   const [form, setForm] = useState({
     firstname: "",
     lastname: "",
@@ -25,28 +25,26 @@ export default function Checkin() {
     host: "",
     purpose: "",
   });
-
   const [data, setData] = useState({});
   const [checkingIn, setCheckingIn] = useState(false);
   const { user } = useAuth();
 
-  // ✅ Fetch hosts (with schedules) + purposes
+  // Parallel fetch the Hosts and Purposes from the backend on component mount
   useEffect(() => {
-    async function fetchHostsAndPurposes() {
+    async function getHostsAndPurposes() {
       try {
         const [hostsResponse, purposesResponse] = await Promise.all([
-          getHostsWithSchedules(),
+          getAllHosts(),
           getVisitPurposes(),
         ]);
-
-        const hosts = hostsResponse.data.hosts; // includes schedule info
+        const hosts = hostsResponse.data.hosts;
         const purposes = purposesResponse.data.purposes;
-        setData({ hosts, purposes });
+        setData((prevData) => ({ ...prevData, hosts, purposes }));
       } catch (err) {
-        console.error("Error getting hosts and purposes", err);
+        console.log("Error getting hosts and purposes", err);
       }
     }
-    fetchHostsAndPurposes();
+    getHostsAndPurposes();
   }, []);
 
   const clearForm = () => {
@@ -60,6 +58,7 @@ export default function Checkin() {
     });
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -67,13 +66,20 @@ export default function Checkin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCheckingIn(true);
-
     try {
-      const res = await axiosInstance.post("/visits/new", {
+      // IMPORTANT: Trim whitespace from string fields before sending to backend
+      const trimmedForm = {
         ...form,
+        firstname: form.firstname.trim(),
+        lastname: form.lastname.trim(),
+        national_id: form.national_id.trim(), // Also trim ID if it's strictly numeric
+        phone: form.phone.trim(),             // Also trim phone if it's strictly numeric
+      };
+
+      const res = await axiosInstance.post("/visits/new", {
+        ...trimmedForm, // Use the trimmed form data
         checkin_officer: user.userId,
       });
-
       if (res.data.success) {
         toast.custom(
           <Snackbar
@@ -94,22 +100,11 @@ export default function Checkin() {
     }
   };
 
-  // ✅ Helper to check if host is currently available
-  const isHostAvailable = (schedule) => {
-    if (!schedule) return false;
-    const now = new Date();
-    const start = new Date(schedule.start_date);
-    const end = new Date(schedule.end_date);
-    return now >= start && now <= end;
-  };
-
   return (
     <div className="checkin-form-outer">
       <form className="checkin-form" onSubmit={handleSubmit} autoComplete="off">
         <h2 className="checkin-title">New Visitor Check-In</h2>
         <hr className="checkin-divider" />
-
-        {/* Visitor Details */}
         <div className="checkin-fields-row">
           <div className="checkin-field">
             <label>
@@ -138,7 +133,6 @@ export default function Checkin() {
             />
           </div>
         </div>
-
         <div className="checkin-field">
           <label>
             ID Number<span className="checkin-req">*</span>
@@ -152,7 +146,6 @@ export default function Checkin() {
             required
           />
         </div>
-
         <div className="checkin-field">
           <label>
             Phone Number<span className="checkin-req">*</span>
@@ -166,8 +159,6 @@ export default function Checkin() {
             required
           />
         </div>
-
-        {/* ✅ Host Dropdown */}
         <div className="checkin-field">
           <label>
             Host<span className="checkin-req">*</span>
@@ -182,21 +173,18 @@ export default function Checkin() {
               <option value="" disabled>
                 Select a host
               </option>
-              {data?.hosts?.map((host) => {
-                const available = isHostAvailable(host.schedule);
-                return (
-                  <option key={host._id} value={host._id}>
-                    {capitalize(host.firstname)} {capitalize(host.lastname)}{" "}
-                    {/* ✅ Show status in color */}
-                    {available ? " - ✅ Available" : " - ❌ Unavailable"}
-                  </option>
-                );
-              })}
+              {data?.hosts?.map((host) => (
+                <option key={host._id} value={host._id}>
+                  {capitalize(host.firstname)} {capitalize(host.lastname)}{" "}
+                  &nbsp;
+                  {host.role === "receptionist" && (
+                    <span>- ({capitalize(host.role)})</span>
+                  )}
+                </option>
+              ))}
             </select>
           </div>
         </div>
-
-        {/* Purpose */}
         <div className="checkin-field">
           <label>
             Purpose of Visit<span className="checkin-req">*</span>
@@ -217,7 +205,6 @@ export default function Checkin() {
             ))}
           </select>
         </div>
-
         <button className="checkin-btn" type="submit" disabled={checkingIn}>
           Check In Visitor
         </button>
