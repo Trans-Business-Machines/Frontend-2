@@ -31,7 +31,7 @@
 .host-sidebar-link {
   display: flex;
   align-items: center;
-  padding: 12px 40px;
+  padding: 12px 55px;
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 14px;
