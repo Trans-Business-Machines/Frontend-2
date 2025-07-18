@@ -16,25 +16,31 @@
 }
 
 .host-logo {
-  font-size: 2rem;
-  font-weight: 700;
-  padding-left: 32px;
-  margin-bottom: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0 28px 0;
+}
+
+.host-logo-img {
+  width: 220px;
+  height: auto;
+  object-fit: contain;
 }
 
 .host-sidebar-link {
   display: flex;
   align-items: center;
-  padding: 14px 32px;
-  width: 100%;
+  padding: 12px 55px;
   cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 14px;
   font-size: 1rem;
-  transition: background 0.2s;
   border-left: 4px solid transparent;
-  gap: 11px;
 }
 
-.host-sidebar-link.active, .host-sidebar-link:hover {
+.host-sidebar-link.active,
+.host-sidebar-link:hover {
   background: #2F855A;
   border-left: 4px solid #fff;
 }
