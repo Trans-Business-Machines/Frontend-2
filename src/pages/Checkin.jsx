@@ -37,7 +37,6 @@ export default function Checkin() {
           getAllHosts(),
           getVisitPurposes(),
         ]);
-
         const hosts = hostsResponse.data.hosts;
         const purposes = purposesResponse.data.purposes;
         setData((prevData) => ({ ...prevData, hosts, purposes }));
@@ -67,13 +66,20 @@ export default function Checkin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCheckingIn(true);
-
     try {
-      const res = await axiosInstance.post("/visits/new", {
+      // IMPORTANT: Trim whitespace from string fields before sending to backend
+      const trimmedForm = {
         ...form,
+        firstname: form.firstname.trim(),
+        lastname: form.lastname.trim(),
+        national_id: form.national_id.trim(), // Also trim ID if it's strictly numeric
+        phone: form.phone.trim(),             // Also trim phone if it's strictly numeric
+      };
+
+      const res = await axiosInstance.post("/visits/new", {
+        ...trimmedForm, // Use the trimmed form data
         checkin_officer: user.userId,
       });
-
       if (res.data.success) {
         toast.custom(
           <Snackbar

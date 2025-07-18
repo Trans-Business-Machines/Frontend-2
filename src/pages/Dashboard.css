@@ -8,7 +8,7 @@
   padding: 0;
 }
 
-/* Welcome Banner - same as .admin-dashboard-welcome-card */
+/* Welcome Banner */
 .soldier-welcome-banner {
   display: flex;
   justify-content: space-between;
@@ -69,7 +69,7 @@
 
 
 
-/* Stat Card Row - match admin-dashboard-cards-row */
+/* Stat Card Row */
 .soldier-stat-card-row {
   display: flex;
   gap: 24px;
@@ -79,7 +79,7 @@
   margin-right: auto;
 }
 
-/* Each Stat Card - match .admin-dashboard-card */
+/* Each Stat Card */
 .soldier-stat-card {
   background: #fff;
   border-radius: 10px;
@@ -126,7 +126,7 @@
   color: white;
 }
 
-/* Table Section - keep as before, or match admin if you wish */
+/* Table Section */
 .dashboard-table-section {
   background: #fff;
   border-radius: 10px;
@@ -255,7 +255,6 @@
   background-color: #018E42;
 }
 
-/* Remove old left-alignment and shield */
 .soldier-banner-left,
 .soldier-banner-shield {
   display: none !important;
