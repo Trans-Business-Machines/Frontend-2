@@ -64,6 +64,7 @@ export default function Login() {
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false)
   const [forgotPasswordError, setForgotPasswordError] = useState("")
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("")
+  const [resetToken, setResetToken] = useState("")
 
   // Contact Admin States
   const [showContactAdminModal, setShowContactAdminModal] = useState(false)
@@ -182,11 +183,12 @@ export default function Login() {
       return
     }
     try {
-      const response = await axiosInstance.post("http://localhost:3000/api/auth/verify-otp", {
+      const {  data } = await axiosInstance.post("http://localhost:3000/api/auth/verify-otp", {
         email: forgotEmail,
         otp,
       })
-      setForgotPasswordSuccess(response.data.message || "OTP verified successfully.")
+      setForgotPasswordSuccess("OTP verified successfully.")
+      setResetToken(data?.resetToken)
       setForgotPasswordStep("newPassword")
     } catch (err) {
       const message = err.response?.data?.message || "OTP verification failed. Please try again."
@@ -213,10 +215,8 @@ export default function Login() {
     }
     try {
       const response = await axiosInstance.post("http://localhost:3000/api/auth/reset-password", {
-        email: forgotEmail,
-        otp, // Ensure OTP is sent here
-        newPassword,
-        confirmPassword,
+        password:confirmPassword,
+        resetToken
       })
       setForgotPasswordSuccess(response.data.message || "Password updated successfully!")
       toast.custom(<Snackbar type="success" message="Password updated successfully!" icon={FaCheck} />)

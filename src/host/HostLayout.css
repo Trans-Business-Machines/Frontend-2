@@ -31,22 +31,18 @@
 .host-sidebar-link {
   display: flex;
   align-items: center;
-  padding: 14px 32px 14px 28px;
-  width: 100%;
+  padding: 12px 40px;
   cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 14px;
   font-size: 1rem;
-  transition: background 0.2s;
-  gap: 11px;
-  box-sizing: border-box;
+  border-left: 4px solid transparent;
 }
 
-.host-sidebar-link.active {
-  background: #2F855A;
-  padding: 14px 0px 14px 28px;
-}
-
+.host-sidebar-link.active,
 .host-sidebar-link:hover {
   background: #2F855A;
+  border-left: 4px solid #fff;
 }
 
 .host-sidebar-icon {

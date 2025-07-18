@@ -1,50 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axiosInstance from "../api/axiosInstance";
 import "./HostNotifications.css";
-
-const initialNotifications = [
-  {
-    id: 1,
-    message:
-      "Good morning, you have a visitor John Doe. They checked-in at 8:30 am and entry was approved by Officer Brian.",
-    meta: "Delivery | 3rd June, 2025 8:30am",
-    isUnread: true,
-    date: "2025-06-03",
-  },
-  {
-    id: 2,
-    message:
-      "Good morning, you have a visitor Jane Smith. They checked-in at 9:10 am and entry was approved by Officer Brian.",
-    meta: "HR | 3rd June, 2025 9:10am",
-    isUnread: true,
-    date: "2025-06-03",
-  },
-  {
-    id: 3,
-    message:
-      "Good morning, you have a visitor Alex Lee. They checked-in at 11:00 am and entry was approved by Officer Brian.",
-    meta: "Delivery | 2nd June, 2025 11:00am",
-    isUnread: false,
-    date: "2025-06-02",
-  },
-  {
-    id: 4,
-    message: "Your availability was updated.",
-    meta: "System | 2nd June, 2025 7:00am",
-    isUnread: false,
-    date: "2025-06-02",
-  },
-];
+import { useAuth } from "../context/AuthContext";
 
 export default function HostNotifications() {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const { user } = useAuth(); // to get the host ID
+  const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
+  // Fetch notifications from backend
+  const fetchNotifications = async () => {
+    try {
+      const res = await axiosInstance.get(`/notifications?type=all`);
+      const backendNotifications = res.data?.result?.notifications || [];
+      setNotifications(
+        backendNotifications.map((n) => ({
+          ...n,
+          isUnread: !n.isRead, // backend uses isRead, frontend expects isUnread
+          meta: `${n.title} | ${new Date(n.createdAt).toLocaleString()}`,
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  //  Mark one notification as read (permanent)
+  const markAsRead = async (id) => {
+    try {
+      await axiosInstance.patch(`/notifications/${id}`, {
+        userId: user?.userId, //  required by backend to verify ownership
+      });
+
+      // Update local state immediately
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, isUnread: false } : n))
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+    }
+  };
+
+  // Filter + search
   const filtered = notifications.filter((n) => {
     const matchesSearch =
       n.message.toLowerCase().includes(search.toLowerCase()) ||
       n.meta.toLowerCase().includes(search.toLowerCase()) ||
-      n.date.includes(search);
+      (n.createdAt || "").includes(search);
     const matchesFilter =
       filter === "all" || (filter === "unread" && n.isUnread);
     return matchesSearch && matchesFilter;
@@ -52,16 +62,12 @@ export default function HostNotifications() {
 
   const unreadCount = notifications.filter((n) => n.isUnread).length;
 
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isUnread: false } : n))
-    );
-  };
-
   return (
     <div className="host-scrollable-content">
       <div className="host-notifications-wrapper">
         <div className="host-notifications-title">Your Notifications</div>
+
+        {/* Search + Filter Row */}
         <div className="host-notifications-filter-row">
           <input
             type="text"
@@ -88,35 +94,44 @@ export default function HostNotifications() {
             </button>
           </div>
         </div>
+
+        {/* Notification List */}
         <div className="host-notification-list">
-          {filtered.length === 0 && (
+          {loading && <div>Loading notifications...</div>}
+
+          {!loading && filtered.length === 0 && (
             <div className="host-notifications-empty">
               No notifications found.
             </div>
           )}
-          {filtered.map((n) => (
-            <div
-              className={
-                "host-notification-card" + (n.isUnread ? " unread" : " read")
-              }
-              key={n.id}
-              onClick={() => n.isUnread && markAsRead(n.id)}
-              tabIndex={0}
-              title={n.isUnread ? "Mark as read" : ""}
-            >
-              <div className="host-notification-msg">
-                {n.message}
-                {n.isUnread && (
-                  <span
-                    className="host-notification-unread-dot"
-                    title="Unread"
-                  ></span>
-                )}
+
+          {!loading &&
+            filtered.map((n) => (
+              <div
+                className={
+                  "host-notification-card" +
+                  (n.isUnread ? " unread" : " read")
+                }
+                key={n._id}
+                onClick={() => n.isUnread && markAsRead(n._id)}
+                tabIndex={0}
+                title={n.isUnread ? "Mark as read" : "Already read"}
+              >
+                <div className="host-notification-msg">
+                  {n.message}
+                  {n.isUnread && (
+                    <span
+                      className="host-notification-unread-dot"
+                      title="Unread"
+                    ></span>
+                  )}
+                </div>
+                <div className="host-notification-meta">{n.meta}</div>
               </div>
-              <div className="host-notification-meta">{n.meta}</div>
-            </div>
-          ))}
+            ))}
         </div>
+
+        {/* Load More Placeholder */}
         <div className="host-notification-load-btn-row">
           <button className="host-notification-load-btn" disabled>
             Load More

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../api/axiosInstance";
 import "./HostLayout.css";
 import logo from "../assets/logo.png";
 import { AiOutlineDashboard } from "react-icons/ai";
@@ -15,36 +16,69 @@ export default function HostLayout({ hostName = "Host User" }) {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  // Sidebar menu matching your screenshot
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await axiosInstance.get("/notifications?type=unread");
+        const count = res.data?.result?.notifications?.length || 0;
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to fetch unread notifications:", error);
+      }
+    };
+
+    fetchUnreadCount();
+    // Optionally refresh every 30s
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const menu = [
-    { label: "Dashboard", icon: <span style={{ fontSize: 18 }}><AiOutlineDashboard /></span>, path: "/host/dashboard" },
+    { 
+      label: "Dashboard", 
+      icon: <span style={{ fontSize: 18 }}><AiOutlineDashboard /></span>, 
+      path: "/host/dashboard" 
+    },
     {
       label: (
         <span style={{ display: "flex", alignItems: "center" }}>
           <span style={{ fontSize: 18, marginRight: 5 }}><MdNotificationsActive /></span>
           Notifications
-          <span className="host-notification-badge"
-            style={{
-              background: "#e53e3e",
-              color: "#fff",
-              borderRadius: "50%",
-              fontSize: 12,
-              marginLeft: 8,
-              padding: "2px 7px",
-              fontWeight: 700,
-              display: "inline-block"
-            }}
-          >2</span>
+          {unreadCount > 0 && (
+            <span className="host-notification-badge"
+              style={{
+                background: "#e53e3e",
+                color: "#fff",
+                borderRadius: "50%",
+                fontSize: 12,
+                marginLeft: 8,
+                padding: "2px 7px",
+                fontWeight: 700,
+                display: "inline-block"
+              }}
+            >
+              {unreadCount}
+            </span>
+          )}
         </span>
       ),
-      icon: null,
       path: "/host/notifications"
     },
-    { label: "Availability", icon: <span style={{ fontSize: 18 }}><SlCalender /></span>, path: "/host/availability" },
-    { label: "History", icon: <span style={{ fontSize: 18 }}><FaHistory /></span>, path: "/host/history" },
+    { 
+      label: "Availability", 
+      icon: <span style={{ fontSize: 18 }}><SlCalender /></span>, 
+      path: "/host/availability" 
+    },
+    { 
+      label: "History", 
+      icon: <span style={{ fontSize: 18 }}><FaHistory /></span>, 
+      path: "/host/history" 
+    },
   ];
 
-  // Helper function to capitalize first letter
   const capitalizeRole = (role) => {
     if (!role) return hostName;
     return role.charAt(0).toUpperCase() + role.slice(1);
@@ -52,6 +86,7 @@ export default function HostLayout({ hostName = "Host User" }) {
 
   return (
     <div className="host-root-layout">
+      {/* Sidebar */}
       <aside className="host-sidebar">
         <div className="host-logo">
           <img src={logo || "/placeholder.svg"} alt="Logo" className="host-logo-img" />
@@ -79,6 +114,8 @@ export default function HostLayout({ hostName = "Host User" }) {
           Log Out
         </button>
       </aside>
+
+      {/* Main panel */}
       <main className="host-main-panel">
         <header className="host-header">
           <div></div>
@@ -87,16 +124,43 @@ export default function HostLayout({ hostName = "Host User" }) {
               menu.find(item => location.pathname.startsWith(item.path))?.label
             }
           </div>
-          <div
-            className="host-header-profile"
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate("/host/profile")}
-            title="View Profile"
-          >
-            <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
-            {capitalizeRole(user?.role)}
+
+          {/* Topbar notifications count */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+            <div
+              style={{ position: "relative", cursor: "pointer" }}
+              onClick={() => navigate("/host/notifications")}
+            >
+              <MdNotificationsActive size={22} color="#235c56" />
+              {unreadCount > 0 && (
+                <span style={{
+                  position: "absolute",
+                  top: -5,
+                  right: -8,
+                  background: "#e53e3e",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  fontSize: 11,
+                  padding: "2px 6px",
+                  fontWeight: 700
+                }}>
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+
+            <div
+              className="host-header-profile"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/host/profile")}
+              title="View Profile"
+            >
+              <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
+              {capitalizeRole(user?.role)}
+            </div>
           </div>
         </header>
+
         <div className="host-content-panel">
           <Outlet />
         </div>
