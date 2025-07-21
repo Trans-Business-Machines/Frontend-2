@@ -18,23 +18,39 @@ export default function HostLayout({ hostName = "Host User" }) {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch unread notifications count
+  //  Fetch actual unread notifications count
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const res = await axiosInstance.get("/notifications?type=unread");
-        const count = res.data?.result?.notifications?.length || 0;
-        setUnreadCount(count);
+        const res = await axiosInstance.get("/notifications?type=all"); 
+        const allNotifications = res.data?.result?.notifications || [];
+        const unread = allNotifications.filter(n => !n.isRead);
+        setUnreadCount(unread.length);
       } catch (error) {
         console.error("Failed to fetch unread notifications:", error);
       }
     };
 
     fetchUnreadCount();
-    // Optionally refresh every 30s
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(fetchUnreadCount, 30000); // refresh every 30s
     return () => clearInterval(interval);
   }, []);
+
+  //  Mark notifications as read when visiting the notifications page
+  useEffect(() => {
+    const markAllAsRead = async () => {
+      if (location.pathname === "/host/notifications") {
+        try {
+          await axiosInstance.post("/notifications/subscribe");
+          setUnreadCount(0); // reset immediately in UI
+        } catch (error) {
+          console.error("Failed to mark notifications as read:", error);
+        }
+      }
+    };
+
+    markAllAsRead();
+  }, [location.pathname]);
 
   const menu = [
     { 
@@ -45,10 +61,13 @@ export default function HostLayout({ hostName = "Host User" }) {
     {
       label: (
         <span style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ fontSize: 18, marginRight: 5 }}><MdNotificationsActive /></span>
+          <span style={{ fontSize: 18, marginRight: 5 }}>
+            <MdNotificationsActive />
+          </span>
           Notifications
           {unreadCount > 0 && (
-            <span className="host-notification-badge"
+            <span
+              className="host-notification-badge"
               style={{
                 background: "#e53e3e",
                 color: "#fff",
@@ -57,7 +76,7 @@ export default function HostLayout({ hostName = "Host User" }) {
                 marginLeft: 8,
                 padding: "2px 7px",
                 fontWeight: 700,
-                display: "inline-block"
+                display: "inline-block",
               }}
             >
               {unreadCount}
@@ -133,17 +152,19 @@ export default function HostLayout({ hostName = "Host User" }) {
             >
               <MdNotificationsActive size={22} color="#235c56" />
               {unreadCount > 0 && (
-                <span style={{
-                  position: "absolute",
-                  top: -5,
-                  right: -8,
-                  background: "#e53e3e",
-                  color: "#fff",
-                  borderRadius: "50%",
-                  fontSize: 11,
-                  padding: "2px 6px",
-                  fontWeight: 700
-                }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -5,
+                    right: -8,
+                    background: "#e53e3e",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    fontSize: 11,
+                    padding: "2px 6px",
+                    fontWeight: 700,
+                  }}
+                >
                   {unreadCount}
                 </span>
               )}
@@ -155,7 +176,9 @@ export default function HostLayout({ hostName = "Host User" }) {
               onClick={() => navigate("/host/profile")}
               title="View Profile"
             >
-              <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
+              <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}>
+                <CgProfile />
+              </span>
               {capitalizeRole(user?.role)}
             </div>
           </div>

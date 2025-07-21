@@ -1,33 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import "./AdminUsers.css" // reuse styles for table, search, pagination
 import useSWR from "swr"
-import axiosInstance from "../api/axiosInstance"
+import axiosInstance from "../api/axiosInstance" // Assuming axiosInstance is correctly configured
+import "./AdminUsers.css" // Import the CSS file
 
 const VISITORS_PER_PAGE = 10
 
 function formatDateForTable(dateStr) {
   if (!dateStr) return ""
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, m, d] = dateStr.split("-")
-    return `${d}-${m}-${y}`
-  }
-  return dateStr
+  const date = new Date(dateStr)
+  return date.toLocaleDateString("en-GB") // dd/mm/yyyy
 }
 
 function formatTime(timeStr) {
   if (!timeStr) return ""
-  // Handle different time formats that might come from backend
-  if (timeStr.includes("T")) {
-    // ISO format: extract time part
-    return new Date(timeStr).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    })
-  }
-  return timeStr
+  const date = new Date(timeStr)
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })
 }
 
 export default function AdminVisitorLog() {
@@ -36,69 +29,116 @@ export default function AdminVisitorLog() {
   const [filterDate, setFilterDate] = useState("")
   const [page, setPage] = useState(1)
 
-  // Fetch visitors with pagination from backend
+  // Fetch visitors directly from backend
   const fetchVisitors = async (url) => {
-    try {
-      const res = await axiosInstance.get(url)
-      console.log("Visitors API response:", res.data)
-      return res.data
-    } catch (error) {
-      console.error("Failed to fetch visitors:", error)
-      throw error
-    }
+    const res = await axiosInstance.get(url)
+    return res.data
   }
 
-  // Use SWR with pagination
-  const { data, error, isLoading, mutate } = useSWR(`/visits?page=${page}&limit=${VISITORS_PER_PAGE}`, fetchVisitors)
+  const { data, error, isLoading } = useSWR(`/visits?page=${page}&limit=${VISITORS_PER_PAGE}`, fetchVisitors)
 
-  // Handle different response formats from backend
+  // Default values
   let visitors = []
   let totalPages = 1
-
+  let currentPage = page
   if (data) {
-    if (Array.isArray(data)) {
-      visitors = data
-      totalPages = Math.ceil(visitors.length / VISITORS_PER_PAGE)
-    } else if (data.visits && Array.isArray(data.visits)) {
-      visitors = data.visits
-      totalPages = data.totalPages || Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE)
-    } else if (data.data && Array.isArray(data.data)) {
-      visitors = data.data
-      totalPages = data.totalPages || Math.ceil((data.total || visitors.length) / VISITORS_PER_PAGE)
-    }
+    visitors = data.visits || []
+    totalPages = data.totalPages || 1
+    currentPage = data.currentPage || page
   }
 
-  // Client-side filtering for search and status (since backend pagination might not include all data)
+  // Filter visitors for current page
   const filteredVisitors = visitors.filter((v) => {
     const searchTerm = search.toLowerCase()
+    const fullName = `${v.firstname || ""} ${v.lastname || ""}`.trim()
+    const hostName =
+      v.host && typeof v.host === "object" ? `${v.host.firstname || ""} ${v.host.lastname || ""}`.trim() : v.host || ""
+
     const searchMatch =
       !search ||
-      (v.name || "").toLowerCase().includes(searchTerm) ||
-      (v.phone || "").toString().includes(search) ||
-      (v.idNumber || "").toString().includes(search) ||
-      (v.host || "").toLowerCase().includes(searchTerm) ||
+      fullName.toLowerCase().includes(searchTerm) ||
+      (v.phone || "").toLowerCase().includes(searchTerm) ||
+      (v.national_id || "").toLowerCase().includes(searchTerm) ||
+      hostName.toLowerCase().includes(searchTerm) ||
       (v.purpose || "").toLowerCase().includes(searchTerm)
 
-    const statusMatch = filterStatus === "" || v.status === filterStatus
-    const dateMatch = !filterDate || v.date === filterDate
+    const statusMatch = !filterStatus || v.status.toLowerCase() === filterStatus.toLowerCase()
+
+    const dateMatch = !filterDate || new Date(v.visit_date).toISOString().split("T")[0] === filterDate
 
     return searchMatch && statusMatch && dateMatch
   })
 
-  function handleSearchChange(e) {
+  const handleSearchChange = (e) => {
     setSearch(e.target.value)
+    setPage(1)
+    // Removed mutate() here as filtering is currently client-side
   }
-
-  function handleFilterStatus(e) {
+  const handleFilterStatus = (e) => {
     setFilterStatus(e.target.value)
+    setPage(1)
+    // Removed mutate() here as filtering is currently client-side
   }
-
-  function handleFilterDate(e) {
+  const handleFilterDate = (e) => {
     setFilterDate(e.target.value)
+    setPage(1)
+    // Removed mutate() here as filtering is currently client-side
   }
 
-  function handlePageChange(newPage) {
-    setPage(newPage)
+  const goToPage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage)
+    }
+  }
+
+  // Export PDF function with token handling
+  const handleExportData = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        alert("You are not logged in. Please login to export reports.")
+        return
+      }
+
+      const response = await fetch("http://localhost:3000/api/report", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Failed to export visitors data. Server response:", response.status, errorText)
+
+        let errorMessage = "Failed to export visitors data."
+        if (response.status === 401) {
+          errorMessage = "Authentication failed. Please log in again."
+        } else if (response.status === 403) {
+          errorMessage = "Forbidden: You do not have permission to generate this report."
+        } else if (response.status >= 500) {
+          errorMessage = "Server error. Please try again later."
+        } else if (errorText) {
+          errorMessage += ` Details: ${errorText.substring(0, 100)}...`
+        }
+        throw new Error(errorMessage)
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = "monthly-visitor-report.pdf"
+      document.body.appendChild(link)
+      link.click()
+
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      // alert("Monthly visitor report downloaded successfully!")
+    } catch (error) {
+      console.error("Export error:", error)
+      alert(`Export failed: ${error.message || "Please check console for details."}`)
+    }
   }
 
   if (isLoading) {
@@ -130,7 +170,7 @@ export default function AdminVisitorLog() {
       <div className="admin-users-header">
         <div className="admin-users-title">Visitor Log</div>
       </div>
-
+      {/* Search and filters */}
       <div className="admin-users-search" style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}>
         <input
           placeholder="Search by name, phone, ID number, host, or purpose"
@@ -138,17 +178,15 @@ export default function AdminVisitorLog() {
           onChange={handleSearchChange}
           style={{ flex: 1, minWidth: 300 }}
         />
-
         <select
           value={filterStatus}
           onChange={handleFilterStatus}
           style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}
         >
           <option value="">All Statuses</option>
-          <option value="Checked In">Checked In</option>
-          <option value="Checked Out">Checked Out</option>
+          <option value="checked-in">Checked In</option>
+          <option value="checked-out">Checked Out</option>
         </select>
-
         <input
           type="date"
           value={filterDate}
@@ -156,7 +194,7 @@ export default function AdminVisitorLog() {
           style={{ minWidth: 140, padding: "11px 16px", borderRadius: 20 }}
         />
       </div>
-
+      {/* Table */}
       <table className="admin-users-table">
         <thead>
           <tr>
@@ -174,52 +212,54 @@ export default function AdminVisitorLog() {
           {filteredVisitors.length === 0 && (
             <tr>
               <td colSpan={8} style={{ textAlign: "center" }}>
-                {isLoading ? "Loading..." : "No visitors found."}
+                No visitors found.
               </td>
             </tr>
           )}
-          {filteredVisitors.map((visitor) => (
-            <tr key={visitor._id || visitor.id}>
-              <td>{visitor.name || ""}</td>
-              <td>{visitor.idNumber || ""}</td>
-              <td>{visitor.phone || ""}</td>
-              <td>{visitor.host || ""}</td>
-              <td>{formatDateForTable(visitor.date)}</td>
-              <td>{formatTime(visitor.timeIn || visitor.checkInTime)}</td>
-              <td>{formatTime(visitor.timeOut || visitor.checkOutTime) || "-"}</td>
-              <td>
-                <span
-                  className={visitor.status === "Checked In" ? "status-active" : "status-inactive"}
-                  style={{ whiteSpace: "nowrap", display: "inline-block" }}
-                >
-                  {visitor.status}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {filteredVisitors.map((v) => {
+            const fullName = `${v.firstname || ""} ${v.lastname || ""}`.trim()
+            const hostName =
+              v.host && typeof v.host === "object"
+                ? `${v.host.firstname || ""} ${v.host.lastname || ""}`.trim()
+                : v.host || ""
+            return (
+              <tr key={v._id}>
+                <td>{fullName}</td>
+                <td>{v.national_id || ""}</td>
+                <td>{v.phone || ""}</td>
+                <td>{hostName}</td>
+                <td>{formatDateForTable(v.visit_date)}</td>
+                <td>{formatTime(v.time_in)}</td>
+                <td>{formatTime(v.time_out) || "-"}</td>
+                <td>
+                  <span
+                    className={v.status === "checked-in" ? "status-active" : "status-inactive"}
+                    style={{ whiteSpace: "nowrap", display: "inline-block" }}
+                  >
+                    {v.status}
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
-
+      {/* Pagination */}
       <div className="admin-users-pagination">
-        <button onClick={() => handlePageChange(Math.max(1, page - 1))} disabled={page === 1}>
+        <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
           {"<"}
         </button>
-
-        {[...Array(Math.min(5, totalPages))].map((_, idx) => {
-          const pageNum = Math.max(1, Math.min(totalPages, page - 2 + idx))
-          return (
-            <button
-              key={pageNum}
-              onClick={() => handlePageChange(pageNum)}
-              className={page === pageNum ? "active" : ""}
-            >
-              {pageNum}
-            </button>
-          )
-        })}
-
-        <button onClick={() => handlePageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages}>
+        <span style={{ margin: "0 10px" }}>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
           {">"}
+        </button>
+      </div>
+      {/* Export button */}
+      <div className="export-btn-container">
+        <button className="export-btn" onClick={handleExportData}>
+          Export Data
         </button>
       </div>
     </div>

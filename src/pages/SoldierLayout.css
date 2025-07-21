@@ -7,18 +7,20 @@
 .soldier-sidebar {
   background: #285E61;
   color: #fff;
-  width: 220px;
+  width: 230px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   padding-top: 28px;
   min-width: 200px;
 }
 
 .soldier-logo {
-  font-size: 2rem;
-  font-weight: 700;
-  padding-left: 4px;
-  margin-bottom: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0 28px 0;
+}
 
 .soldier-logo-img {
   width: 220px;
@@ -29,7 +31,7 @@
 .soldier-sidebar-link {
   display: flex;
   align-items: center;
-  padding: 12px 45px;
+  padding: 12px 40px;
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 14px;
@@ -38,25 +40,22 @@
 }
 
 .soldier-sidebar-link.active,
-.soldier-sidebar-link:hover {
+.host-sidebar-link:hover {
   background: #2F855A;
   border-left: 4px solid #fff;
 }
 
 .soldier-sidebar-icon {
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
 }
 
 .soldier-logout-btn {
-  width: calc(100% - 48px);
-  margin: auto 24px 30px 24px;
-  padding: 12px;
+  margin: auto 0 30px 32px;
+  padding: 9px 30px;
   border: none;
-  background: #2F855A;
+  background: #38a169;
   color: #fff;
   border-radius: 6px;
   font-size: 1rem;
@@ -64,9 +63,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
   transition: background 0.2s;
-  gap: 8px;
 }
 
 .soldier-logout-btn:hover {
@@ -86,27 +83,24 @@
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 0 36px 0 16px;
-  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
+  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
   font-size: 1.14rem;
-  position: relative;
 }
 
 .soldier-header-title {
   font-weight: 600;
-  color: #234E52;
-  font-size: 1.13rem;
+  color: #235c56;
+  font-size: 1.15rem;
 }
 
 .soldier-header-profile {
   display: flex;
   align-items: center;
   font-weight: 500;
-  color: #234E52;
+  color: #235c56;
   font-size: 1rem;
-  position: absolute;
-  right: 36px;
 }
 
 .soldier-content-panel {
@@ -115,103 +109,56 @@
   overflow-y: auto;
 }
 
-.visitorslog-header-center {
-  width: 100%;
+.soldier-notification-badge {
+  vertical-align: middle;
+  margin-left: 5px;
+}
+
+/* ✅ Keep sidebar fixed and visible on all devices */
+.soldier-root-layout {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 28px 0 12px 0;
-}
-
-.visitorslog-header-center h2 {
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.32rem;
-  color: #257c5a;
-  margin-bottom: 3px;
-}
-
-.visitorslog-header-center p {
-  text-align: center;
-  color: #888;
-  font-size: 1.04rem;
-  margin: 0;
-}
-
-.visitorslog-filters-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
-  margin-top: 8px;
-}
-
-.visitorslog-filters-row select,
-.visitorslog-filters-row input[type="date"],
-.visitorslog-filters-row input[type="text"] {
-  background: #f7f7f7;
-  border: 1.4px solid #eaeaea;
-  border-radius: 23px;
-  padding: 8px 18px;
-  font-size: 1.03rem;
-  outline: none;
-  min-width: 145px;
-  transition: border 0.15s;
-  color: #222;
-}
-
-.visitorslog-filters-row select:focus,
-.visitorslog-filters-row input:focus {
-  border-color: #257c5a;
-}
-
-.visitorslog-table-section {
-  margin-top: 12px;
-}
-
-.visitorslog-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border-radius: 12px;
+  height: 100vh;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(40,48,70,0.04);
 }
 
-.visitorslog-table th, .visitorslog-table td {
-  padding: 11px 14px;
-  text-align: left;
+.soldier-sidebar {
+  position: fixed;         /* Sidebar stays fixed */
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  overflow-y: auto;        /* Scroll if content is long */
+  z-index: 1000;
 }
 
-.visitorslog-table th {
-  background: #285E61;
-  color: #f5f7f7;
-  font-size: 1.01rem;
-  font-weight: 700;
+.soldier-main-panel {
+  margin-left: 230px;      /* Same width as sidebar */
+  flex: 1;
+  overflow-y: auto;
 }
 
-.visitorslog-table tr:nth-child(even) {
-  background: #fafbfb;
+/*  Make sure main content adjusts with sidebar width */
+@media (max-width: 768px) {
+  .soldier-sidebar {
+    width: 200px;          /* Slightly smaller sidebar on tablets */
+  }
+  .soldier-main-panel {
+    margin-left: 200px;    /* Match new width */
+  }
 }
 
-/* Pagination */
-.visitorslog-pagination{
-  display: flex;
-  justify-content: flex-end;
-  gap: 5px;
-}
-
-.visitorslog-pagination button {
-  background: #e9ecef;
-  border: none;
-  color: #235c56;
-  border-radius: 4px;
-  padding: 4px 12px;
-  margin: 0 1px;
-  cursor: pointer;
-}
-
-.visitorslog-pagination button:hover {
-  background: #dfe2e6;
+@media (max-width: 480px) {
+  .soldier-sidebar {
+    width: 180px;          /* Smaller on mobile */
+  }
+  .soldier-main-panel {
+    margin-left: 180px;    /* Match mobile width */
+  }
+  .soldier-logo-img {
+    width: 140px;          /* Shrink logo on mobile */
+  }
+  .soldier-sidebar-link {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
 }

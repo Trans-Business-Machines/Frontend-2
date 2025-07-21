@@ -1,11 +1,16 @@
 .host-root-layout {
   display: flex;
   height: 100vh;
-  font-family: 'Inter', Arial, sans-serif;
+  font-family: "Inter", Arial, sans-serif;
 }
 
+/* Sidebar stays fixed on desktop */
 .host-sidebar {
-  background: #285E61;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: #285e61;
   color: #fff;
   width: 230px;
   display: flex;
@@ -13,13 +18,18 @@
   align-items: flex-start;
   padding-top: 28px;
   min-width: 200px;
+  flex-shrink: 0;
+  z-index: 1000;
+  transition: left 0.3s ease-in-out; /* smooth slide for mobile */
 }
 
+/* Logo container full width */
 .host-logo {
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 32px 0 28px 0;
+  width: 100%;
 }
 
 .host-logo-img {
@@ -28,20 +38,26 @@
   object-fit: contain;
 }
 
+.host-sidebar-nav {
+  width: 100%;
+}
+
 .host-sidebar-link {
   display: flex;
   align-items: center;
-  padding: 12px 55px;
+  padding: 12px 40px;
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 14px;
   font-size: 1rem;
   border-left: 4px solid transparent;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .host-sidebar-link.active,
 .host-sidebar-link:hover {
-  background: #2F855A;
+  background: #2f855a;
   border-left: 4px solid #fff;
 }
 
@@ -70,7 +86,9 @@
   background: #308d67;
 }
 
+/* ✅ Main content shifts when sidebar visible */
 .host-main-panel {
+  margin-left: 230px; /* shift content when sidebar fixed */
   flex: 1;
   background: #f7f7f8;
   display: flex;
@@ -85,8 +103,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 36px 0 16px;
-  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
+  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
   font-size: 1.14rem;
+  flex-shrink: 0;
+}
+
+.host-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .host-header-title {
@@ -112,4 +137,75 @@
 .host-notification-badge {
   vertical-align: middle;
   margin-left: 5px;
+}
+
+/* Sidebar overlay for mobile */
+.host-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 900;
+  display: none;
+}
+
+/* Sidebar toggle button hidden on desktop */
+.host-sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #235c56;
+  cursor: pointer;
+}
+
+/* --- RESPONSIVE --- */
+
+/* Tablets & below */
+@media (max-width: 1024px) {
+  .host-main-panel {
+    margin-left: 0; /* no shift on mobile */
+  }
+
+  /* Sidebar hidden offscreen by default */
+  .host-sidebar {
+    right: 200px;
+  }
+
+  /* Show sidebar when .open added */
+  .host-sidebar.open {
+    left: 0;
+  }
+
+  /* Show overlay only on mobile when sidebar is open */
+  .host-sidebar-overlay {
+    display: block;
+  }
+
+  /* Show toggle button on mobile */
+  .host-sidebar-toggle {
+    display: inline-block;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .host-header {
+    padding: 0 15px;
+    height: 55px;
+  }
+
+  .host-header-title {
+    font-size: 1rem;
+  }
+
+  .host-header-profile {
+    font-size: 0.85rem;
+  }
+
+  .host-content-panel {
+    padding: 15px;
+  }
 }

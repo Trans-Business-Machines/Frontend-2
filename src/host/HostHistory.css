@@ -58,7 +58,7 @@
 }
 
 .host-history-table-container {
-  overflow-x: auto;
+  overflow-x: auto; /* Enables horizontal scroll on small screens */
 }
 
 .host-history-table {
@@ -70,11 +70,13 @@
   box-shadow: 0 2px 12px #00000007;
 }
 
-.host-history-table th, .host-history-table td {
+.host-history-table th,
+.host-history-table td {
   padding: 12px 14px;
   border-bottom: 1px solid #e2e8f0;
   text-align: center;
   font-size: 1rem;
+  white-space: nowrap; /* Prevents text wrapping in cells */
 }
 
 .host-history-table th {
@@ -128,4 +130,106 @@
 .host-history-pagination-controls button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Responsive Styles */
+
+/* Medium screens (tablets ≤ 768px) */
+@media (max-width: 768px) {
+  .host-history-page {
+    padding: 24px 20px; /* Reduce padding */
+    max-width: 95%;
+  }
+
+  .host-history-title {
+    font-size: 1.4rem;
+  }
+
+  .host-history-desc {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  .host-history-search {
+    max-width: 90%; /* Search box takes more width */
+    font-size: 0.95rem;
+    padding: 10px 18px;
+  }
+
+  .host-history-filter-row {
+    gap: 12px;
+  }
+
+  .host-history-filter-row label {
+    font-size: 1rem;
+  }
+
+  .host-history-select {
+    font-size: 0.95rem;
+    padding: 7px 11px;
+  }
+
+  .host-history-table th,
+  .host-history-table td {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .host-history-pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+/* Small screens (phones ≤ 480px) */
+@media (max-width: 480px) {
+  .host-history-page {
+    padding: 20px 15px;
+  }
+
+  .host-history-title {
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+  }
+
+  .host-history-desc {
+    font-size: 0.9rem;
+  }
+
+  .host-history-search {
+    max-width: 100%;
+    font-size: 0.9rem;
+    padding: 9px 15px;
+  }
+
+  .host-history-filter-row {
+    flex-direction: column; /* Stack filters vertically */
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .host-history-filter-row label {
+    font-size: 0.95rem;
+  }
+
+  .host-history-select {
+    width: 100%; /* Dropdown fills available width */
+  }
+
+  .host-history-table th,
+  .host-history-table td {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .host-history-pagination {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .host-history-pagination-controls button {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+  }
 }
