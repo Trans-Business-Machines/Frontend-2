@@ -187,6 +187,42 @@
   cursor: default;
 }
 
+/* --- Differentiate Unread vs Read --- */
+
+/* Unread notifications: highlighted background + bold text */
+.host-notification-card.unread {
+  background: #e8f5e9; /* light green background */
+  box-shadow: 0 2px 8px rgba(0, 128, 0, 0.15);
+  border-left: 4px solid #309073;
+}
+
+.host-notification-card.unread .host-notification-msg {
+  font-weight: 700;
+  color: #1b5e20; /* darker green for emphasis */
+}
+
+/* Read notifications: subtle, normal text */
+.host-notification-card.read {
+  opacity: 0.85;
+  background: #fff;
+  border-left: 4px solid transparent;
+}
+
+.host-notification-card.read .host-notification-msg {
+  font-weight: 400;
+  color: #555;
+}
+
+/* Unread dot */
+.host-notification-unread-dot {
+  width: 10px;
+  height: 10px;
+  background: #e53935; /* red dot for unread */
+  border-radius: 50%;
+  display: inline-block;
+}
+
+
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
   .host-notifications-wrapper {
