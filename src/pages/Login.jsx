@@ -129,11 +129,6 @@ export default function Login() {
     user = await login({ email, password });
   }
 
-  // If backend returns a token, save it to localStorage
-  if (user?.token) {
-    localStorage.setItem("token", user.token);
-  }
-
   //  Redirect based on role
   if (user?.role === "soldier") {
     toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
@@ -167,7 +162,7 @@ export default function Login() {
     }
     try {
       // Corrected API endpoint for sending OTP
-      const response = await axiosInstance.post("/forgot-password", {
+      const response = await axiosInstance.post("/auth/forgot-password", {
         email: forgotEmail,
       })
       setForgotPasswordSuccess(response.data.message || "OTP sent to your email.")
@@ -191,7 +186,7 @@ export default function Login() {
       return
     }
     try {
-      const {  data } = await axiosInstance.post("/verify-otp", {
+      const {  data } = await axiosInstance.post("/auth/verify-otp", {
         email: forgotEmail,
         otp,
       })
@@ -222,7 +217,7 @@ export default function Login() {
       return
     }
     try {
-      const response = await axiosInstance.post("/reset-password", {
+      const response = await axiosInstance.post("/auth/reset-password", {
         password:confirmPassword,
         resetToken
       })

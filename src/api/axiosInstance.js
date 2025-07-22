@@ -1,10 +1,9 @@
 import axios from "axios";
 
 // ✅ Base URL for your backend
-export const baseURL = "/api";
+export const baseURL = "https://vms-yj7f.onrender.com/api";
 
-const axiosInstance = axios.create({
-  baseURL,
+const axiosInstance = axios.create({  baseURL,
   withCredentials: true,
 });
 

@@ -8,7 +8,7 @@ import axiosInstance from "../api/axiosInstance";
 import "./AdminDashboard.css";
 
 const getTodaysVisitors = async (url) => {
-  const res = await axiosInstance.get(url);
+  const res = await get(url);
   return res.data;
 };
 
