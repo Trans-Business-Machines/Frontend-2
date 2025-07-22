@@ -60,7 +60,7 @@ export default function VisitorsLog() {
       }
 
       console.log("Fetching visits with params:", params)
-      const response = await axiosInstance.get("http://localhost:3000/api/visits", { params })
+      const response = await axiosInstance.get("/visits", { params })
 
       const { visits: fetchedVisits, hasNext, hasPrev } = response.data
 

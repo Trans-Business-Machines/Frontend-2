@@ -167,7 +167,7 @@ export default function Login() {
     }
     try {
       // Corrected API endpoint for sending OTP
-      const response = await axiosInstance.post("http://localhost:3000/api/auth/forgot-password", {
+      const response = await axiosInstance.post("/forgot-password", {
         email: forgotEmail,
       })
       setForgotPasswordSuccess(response.data.message || "OTP sent to your email.")
@@ -191,7 +191,7 @@ export default function Login() {
       return
     }
     try {
-      const {  data } = await axiosInstance.post("http://localhost:3000/api/auth/verify-otp", {
+      const {  data } = await axiosInstance.post("/verify-otp", {
         email: forgotEmail,
         otp,
       })
@@ -222,7 +222,7 @@ export default function Login() {
       return
     }
     try {
-      const response = await axiosInstance.post("http://localhost:3000/api/auth/reset-password", {
+      const response = await axiosInstance.post("/reset-password", {
         password:confirmPassword,
         resetToken
       })
@@ -304,7 +304,7 @@ export default function Login() {
     console.log("Sending Contact Admin Form Data:", contactAdminForm)
 
     try {
-      const response = await axiosInstance.post("http://localhost:3000/api/contact-admin", contactAdminForm)
+      const response = await axiosInstance.post("http:///contact-admin", contactAdminForm)
       setContactAdminSuccess(response.data.message || "Your request has been sent to the admin.")
       toast.custom(<Snackbar type="success" message="Request sent successfully!" icon={FaCheck} />)
       setShowContactAdminModal(false)
