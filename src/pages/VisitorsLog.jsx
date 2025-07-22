@@ -1,143 +1,198 @@
-import React, { useState } from "react";
-import "./VisitorsLog.css";
+"use client"
 
-// 15 sample visitors with host and purpose
-const sampleVisitors = [
-  { name: "John Doe", id: "20215234", host: "Angela Moss", purpose: "Meeting", timeIn: "08:15 AM", timeOut: "10:00 AM", date: "06/23/2025" },
-  { name: "Lucy Smith", id: "20215125", host: "Emma White", purpose: "Delivery", timeIn: "12:30 PM", timeOut: "01:00 PM", date: "06/23/2025" },
-  { name: "Tom Baker", id: "20215219", host: "John Doe", purpose: "Interview", timeIn: "05:15 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Rita Patel", id: "20215327", host: "Angela Moss", purpose: "Consulting", timeIn: "11:00 AM", timeOut: "12:00 PM", date: "06/23/2025" },
-  { name: "Sam Johnson", id: "20225341", host: "Emma White", purpose: "Support", timeIn: "09:25 AM", timeOut: "11:12 AM", date: "06/23/2025" },
-  { name: "Priya Kumar", id: "20215789", host: "John Doe", purpose: "Delivery", timeIn: "09:45 AM", timeOut: "", date: "06/23/2025" },
-  { name: "Victor Chen", id: "20216661", host: "Angela Moss", purpose: "Vendor", timeIn: "12:15 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Emily Brown", id: "20218999", host: "Emma White", purpose: "Meeting", timeIn: "01:00 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Ahmed Hassan", id: "20213222", host: "John Doe", purpose: "Interview", timeIn: "01:45 PM", timeOut: "02:30 PM", date: "06/23/2025" },
-  { name: "Anna Müller", id: "20219900", host: "Angela Moss", purpose: "Support", timeIn: "02:15 PM", timeOut: "", date: "06/23/2025" },
-  { name: "James Lee", id: "20218881", host: "Emma White", purpose: "Vendor", timeIn: "03:00 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Elena Petrova", id: "20211234", host: "John Doe", purpose: "Delivery", timeIn: "03:30 PM", timeOut: "", date: "06/23/2025" },
-  { name: "David Smith", id: "20214321", host: "Angela Moss", purpose: "Meeting", timeIn: "04:00 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Yusuf Adeyemi", id: "20215555", host: "Emma White", purpose: "Consulting", timeIn: "04:25 PM", timeOut: "", date: "06/23/2025" },
-  { name: "Sofia Gonzalez", id: "20216666", host: "John Doe", purpose: "Support", timeIn: "04:55 PM", timeOut: "05:30 PM", date: "06/23/2025" },
-];
+import { useState, useEffect, useCallback } from "react"
+import "./VisitorsLog.css"
+import axiosInstance from "../api/axiosInstance" // Assuming axiosInstance is available here
+
+const RECORDS_PER_PAGE = 10 // This will be the 'limit' parameter for your API
+
+// Helper function to format ISO date string to "YYYY-MM-DD"
+const formatDate = (isoString) => {
+  if (!isoString) return "N/A"
+  try {
+    const date = new Date(isoString)
+    return date.toISOString().split("T")[0] // Extracts "YYYY-MM-DD"
+  } catch (e) {
+    console.error("Error formatting date:", e)
+    return "Invalid Date"
+  }
+}
+
+// Helper function to format ISO time string to "HH:MM AM/PM"
+const formatTime = (isoString) => {
+  if (!isoString) return "N/A"
+  try {
+    const date = new Date(isoString)
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+  } catch (e) {
+    console.error("Error formatting time:", e)
+    return "Invalid Time"
+  }
+}
 
 export default function VisitorsLog() {
-  const [filters, setFilters] = useState({
-    date: "",
-    host: "",
-    purpose: ""
-  });
+  const [visits, setVisits] = useState([])
+  const [textSearch, setTextSearch] = useState("")
+  const [dateSearch, setDateSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [hasNextPage, setHasNextPage] = useState(false)
+  const [hasPrevPage, setHasPrevPage] = useState(false)
 
-  // Pagination logic
-  const [page, setPage] = useState(1);
-  const perPage = 10;
-  const pageCount = Math.ceil(sampleVisitors.length / perPage);
+  const fetchVisits = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const params = {
+        page: currentPage,
+        limit: RECORDS_PER_PAGE,
+      }
 
-  // Filtering (host and purpose only by dropdown, so filter only if selected)
-  const filteredVisitors = sampleVisitors.filter(v => {
-    let pass = true;
-    if (filters.date) pass = pass && v.date === filters.date;
-    if (filters.host) pass = pass && v.host === filters.host;
-    if (filters.purpose) pass = pass && v.purpose === filters.purpose;
-    return pass;
-  });
+      // Add search parameters if they exist
+      if (textSearch) {
+        // Assuming your backend can search across multiple fields with a single 'search' param
+        params.search = textSearch
+      }
+      if (dateSearch) {
+        // Assuming your backend filters by 'visit_date' using a 'date' param
+        params.date = dateSearch
+      }
 
-  // Paginated visitors
-  const pagedVisitors = filteredVisitors.slice((page - 1) * perPage, page * perPage);
+      console.log("Fetching visits with params:", params)
+      const response = await axiosInstance.get("/visits", { params })
 
-  // Reset to page 1 on filter change
-  React.useEffect(() => {
-    setPage(1);
-  }, [filters.date, filters.host, filters.purpose]);
+      const { visits: fetchedVisits, hasNext, hasPrev } = response.data
+
+      // Map the fetched data to match your table's expected structure
+      const mappedVisits = fetchedVisits.map((visit) => ({
+        name: `${visit.firstname || ""} ${visit.lastname || ""}`.trim(),
+        phone: visit.phone || "N/A",
+        purpose: visit.purpose || "N/A",
+        host: `${visit.host?.firstname || ""} ${visit.host?.lastname || ""}`.trim(),
+        dateIn: formatDate(visit.visit_date), // Use visit_date for Date In
+        timeIn: formatTime(visit.time_in), // Use time_in for Time In
+        timeOut: visit.time_out ? formatTime(visit.time_out) : "-", // Changed from "N/A" to "-"
+      }))
+
+      setVisits(mappedVisits)
+      setHasNextPage(hasNext)
+      setHasPrevPage(hasPrev)
+    } catch (err) {
+      console.error("Failed to fetch visits:", err)
+      setError("Failed to load visitor records. Please try again.")
+      setVisits([]) // Clear visits on error
+      setHasNextPage(false)
+      setHasPrevPage(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentPage, textSearch, dateSearch])
+
+  // Fetch data on component mount and when dependencies change
+  useEffect(() => {
+    fetchVisits()
+  }, [fetchVisits])
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+  }
+
+  // Reset page to 1 when search terms change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [textSearch, dateSearch])
+
+  if (isLoading) {
+    return (
+      <div className="visitors-log-container">
+        <div className="visitors-log-header">
+          <h1 className="visitors-log-title">Visitors Log</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px", color: "#555" }}>
+          Loading visitor records...
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="visitors-log-container">
+        <div className="visitors-log-header">
+          <h1 className="visitors-log-title">Visitors Log</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px", color: "red" }}>{error}</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="visitorslog-content">
-      {/* Centered Heading */}
-      <div className="visitorslog-header-center">
-        <div>
-          <h2>Visitors Log</h2>
-          <p>View and filter all visitor activity records</p>
-        </div>
+    <div className="visitors-log-container">
+      <div className="visitors-log-header">
+        <h1 className="visitors-log-title">Visitors Log</h1>
       </div>
 
-      {/* Filter Row - host and purpose as dropdowns, but empty for now */}
-      <form className="visitorslog-filters-row">
+      <div className="visitors-log-search-row">
+        <input
+          type="text"
+          placeholder="Search by Name, Phone, Purpose, Host"
+          value={textSearch}
+          onChange={(e) => setTextSearch(e.target.value)}
+        />
         <input
           type="date"
-          value={filters.date}
-          onChange={e => setFilters(f => ({ ...f, date: e.target.value }))}
-          placeholder="mm/dd/yyyy"
+          placeholder="Search by Date"
+          value={dateSearch}
+          onChange={(e) => setDateSearch(e.target.value)}
         />
-        <select
-          value={filters.host}
-          onChange={e => setFilters(f => ({ ...f, host: e.target.value }))}
-        >
-          <option value="">Host (Select)</option>
-          {/* No options, backend will populate */}
-        </select>
-        <select
-          value={filters.purpose}
-          onChange={e => setFilters(f => ({ ...f, purpose: e.target.value }))}
-        >
-          <option value="">Purpose (Select)</option>
-          {/* No options, backend will populate */}
-        </select>
-      </form>
+      </div>
 
-      {/* Results Table */}
-      <div className="visitorslog-table-section">
-        <table className="visitorslog-table">
-          <thead>
+      <table className="visitors-log-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Purpose</th>
+            <th>Host</th>
+            <th>Date In</th>
+            <th>Time In</th>
+            <th>Time Out</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visits.length === 0 ? (
             <tr>
-              <th>Name</th>
-              <th>ID Number</th>
-              <th>Host</th>
-              <th>Purpose</th>
-              <th>Time In</th>
-              <th>Time Out</th>
-              <th>Date</th>
+              <td colSpan={7} className="no-records-message">
+                No records found.
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {pagedVisitors.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{textAlign: "center", color: "#888"}}>No records found.</td>
+          ) : (
+            visits.map((visitor, index) => (
+              <tr key={index}>
+                <td>{visitor.name}</td>
+                <td>{visitor.phone}</td>
+                <td>{visitor.purpose}</td>
+                <td>{visitor.host}</td>
+                <td>{visitor.dateIn}</td>
+                <td>{visitor.timeIn}</td>
+                <td>{visitor.timeOut}</td>
               </tr>
-            ) : (
-              pagedVisitors.map((v, i) => (
-                <tr key={i}>
-                  <td>{v.name}</td>
-                  <td>{v.id}</td>
-                  <td>{v.host || "-"}</td>
-                  <td>{v.purpose || "-"}</td>
-                  <td>{v.timeIn}</td>
-                  <td>{v.timeOut || "-"}</td>
-                  <td>{v.date}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
 
-        {/* Pagination */}
-        <div className="visitorslog-pagination">
-          <span>
-            Showing {(page - 1) * perPage + 1}-{Math.min(page * perPage, filteredVisitors.length)} of {filteredVisitors.length}
-          </span>
-          <div className="visitorslog-pagination-controls">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)}>{"<"}</button>
-            {Array.from({ length: pageCount }).map((_, i) => (
-              <button
-                key={i + 1}
-                className={page === i + 1 ? "active" : ""}
-                onClick={() => setPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button disabled={page === pageCount} onClick={() => setPage(page + 1)}>{">"}</button>
-          </div>
-        </div>
+      <div className="visitors-log-pagination">
+        <button onClick={() => handlePageChange(currentPage - 1)} disabled={!hasPrevPage}>
+          Previous
+        </button>
+        <button className="active">{currentPage}</button>
+        <button onClick={() => handlePageChange(currentPage + 1)} disabled={!hasNextPage}>
+          Next
+        </button>
       </div>
     </div>
-  );
+  )
 }

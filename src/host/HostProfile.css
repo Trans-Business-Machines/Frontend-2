@@ -1,3 +1,4 @@
+/*  Default profile styles (unchanged) */
 .profile-container {
   width: 100%;
   display: flex;
@@ -10,8 +11,8 @@
 .profile-card {
   background: #fff;
   border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(40,48,70,0.04);
-  padding: 36px 48px 36px 48px;
+  box-shadow: 0 4px 20px rgba(40, 48, 70, 0.04);
+  padding: 36px 48px;
   max-width: 420px;
   width: 100%;
   text-align: center;
@@ -81,6 +82,69 @@
   transition: background 0.18s;
   margin-top: 10px;
 }
+
 .profile-change-btn:hover {
   background: #e3b800;
+}
+
+.host-scrollable-content {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* HORIZONTAL SIDEBAR FOR SMALL DEVICES */
+.mobile-bottom-nav {
+  display: none; /* Hidden by default on large screens */
+}
+
+/* Show it only on small devices */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #285e61;
+    color: #fff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 60px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+  }
+
+  .mobile-bottom-nav a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mobile-bottom-nav a svg {
+    font-size: 1.4rem; /* icon size */
+    margin-bottom: 2px;
+  }
+
+  /* Adjust profile content so it’s not hidden behind the nav */
+  .profile-container {
+    padding-bottom: 80px;
+  }
+}
+
+/* Phones (≤480px) more compact */
+@media (max-width: 480px) {
+  .mobile-bottom-nav {
+    height: 55px;
+  }
+
+  .mobile-bottom-nav a {
+    font-size: 0.8rem;
+  }
+
+  .mobile-bottom-nav a svg {
+    font-size: 1.2rem;
+  }
 }

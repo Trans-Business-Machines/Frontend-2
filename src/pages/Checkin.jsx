@@ -1,35 +1,103 @@
-import React, { useState } from "react";
 import "./Checkin.css";
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import { capitalize } from "../utils";
+import Snackbar from "../components/Snackbar";
+import axiosInstance from "../api/axiosInstance";
+
+const getAllHosts = () => {
+  return axiosInstance.get("/hosts");
+};
+
+const getVisitPurposes = () => {
+  return axiosInstance.get("/purposes");
+};
 
 export default function Checkin() {
   // State for form fields
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    idNumber: "",
+    firstname: "",
+    lastname: "",
+    national_id: "",
     phone: "",
     host: "",
-    purpose: ""
+    purpose: "",
   });
+  const [data, setData] = useState({});
+  const [checkingIn, setCheckingIn] = useState(false);
+  const { user } = useAuth();
+
+  // Parallel fetch the Hosts and Purposes from the backend on component mount
+  useEffect(() => {
+    async function getHostsAndPurposes() {
+      try {
+        const [hostsResponse, purposesResponse] = await Promise.all([
+          getAllHosts(),
+          getVisitPurposes(),
+        ]);
+        const hosts = hostsResponse.data.hosts;
+        const purposes = purposesResponse.data.purposes;
+        setData((prevData) => ({ ...prevData, hosts, purposes }));
+      } catch (err) {
+        console.log("Error getting hosts and purposes", err);
+      }
+    }
+    getHostsAndPurposes();
+  }, []);
+
+  const clearForm = () => {
+    setForm({
+      firstname: "",
+      lastname: "",
+      national_id: "",
+      phone: "",
+      host: "",
+      purpose: "",
+    });
+  };
 
   // Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Form submission handler
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: send form data to backend
-    alert("Visitor checked in (mock).");
-    setForm({
-      firstName: "",
-      lastName: "",
-      idNumber: "",
-      phone: "",
-      host: "",
-      purpose: ""
-    });
+    setCheckingIn(true);
+    try {
+      // IMPORTANT: Trim whitespace from string fields before sending to backend
+      const trimmedForm = {
+        ...form,
+        firstname: form.firstname.trim(),
+        lastname: form.lastname.trim(),
+        national_id: form.national_id.trim(), // Also trim ID if it's strictly numeric
+        phone: form.phone.trim(),             // Also trim phone if it's strictly numeric
+      };
+
+      const res = await axiosInstance.post("/visits/new", {
+        ...trimmedForm, // Use the trimmed form data
+        checkin_officer: user.userId,
+      });
+      if (res.data.success) {
+        toast.custom(
+          <Snackbar
+            icon={FaCheck}
+            message="Visitor checked in successfully!"
+            type="success"
+          />
+        );
+        clearForm();
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Check-in failed";
+      toast.custom(
+        <Snackbar icon={FaXmark} message={errorMessage} type="error" />
+      );
+    } finally {
+      setCheckingIn(false);
+    }
   };
 
   return (
@@ -44,9 +112,9 @@ export default function Checkin() {
             </label>
             <input
               type="text"
-              name="firstName"
+              name="firstname"
               placeholder="First Name"
-              value={form.firstName}
+              value={form.firstname}
               onChange={handleChange}
               required
             />
@@ -57,9 +125,9 @@ export default function Checkin() {
             </label>
             <input
               type="text"
-              name="lastName"
+              name="lastname"
               placeholder="Last Name"
-              value={form.lastName}
+              value={form.lastname}
               onChange={handleChange}
               required
             />
@@ -71,9 +139,9 @@ export default function Checkin() {
           </label>
           <input
             type="text"
-            name="idNumber"
+            name="national_id"
             placeholder="ID Number"
-            value={form.idNumber}
+            value={form.national_id}
             onChange={handleChange}
             required
           />
@@ -85,7 +153,7 @@ export default function Checkin() {
           <input
             type="text"
             name="phone"
-            placeholder="+254 0712 345 678"
+            placeholder="07xxxxxxxx"
             value={form.phone}
             onChange={handleChange}
             required
@@ -96,29 +164,24 @@ export default function Checkin() {
             Host<span className="checkin-req">*</span>
           </label>
           <div className="checkin-host-row">
-            <input
-              type="text"
-              name="host"
-              placeholder="Search host..."
-              value={form.host}
-              onChange={handleChange}
-              required
-              autoComplete="off"
-              // In real use, this should be a dropdown/autocomplete from backend
-              readOnly
-            />
-            <span className="checkin-available-dot">
-              <span className="dot" /> Available
-            </span>
             <select
               className="checkin-select"
               name="host"
               value={form.host}
               onChange={handleChange}
-              disabled
             >
-              <option value="">Select</option>
-              {/* Real options come from backend */}
+              <option value="" disabled>
+                Select a host
+              </option>
+              {data?.hosts?.map((host) => (
+                <option key={host._id} value={host._id}>
+                  {capitalize(host.firstname)} {capitalize(host.lastname)}{" "}
+                  &nbsp;
+                  {host.role === "receptionist" && (
+                    <span>- ({capitalize(host.role)})</span>
+                  )}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -132,11 +195,17 @@ export default function Checkin() {
             onChange={handleChange}
             required
           >
-            <option value="">E.g., Meeting, Interview, Delivery...</option>
-            {/* Real options come from backend */}
+            <option value="" disabled>
+              Select a purpose
+            </option>
+            {data?.purposes?.map((p, idx) => (
+              <option key={idx} value={p}>
+                {capitalize(p)}
+              </option>
+            ))}
           </select>
         </div>
-        <button className="checkin-btn" type="submit">
+        <button className="checkin-btn" type="submit" disabled={checkingIn}>
           Check In Visitor
         </button>
       </form>

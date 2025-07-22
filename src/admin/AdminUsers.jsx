@@ -1,169 +1,508 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./AdminUsers.css";
+"use client"
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
+import { FaUserEdit } from "react-icons/fa"
+import { AiFillDelete } from "react-icons/ai"
+import "./AdminUsers.css"
+import axiosInstance from "../api/axiosInstance"
 
-const mockUsers = [
-  { id: 1, name: "Angela Moss", email: "angela@company.com", phone: "+1 555 123 456", role: "Admin", status: "Active" },
-  { id: 2, name: "John Doe", email: "john@company.com", phone: "+1 555 987 789", role: "Soldier", status: "Inactive" },
-  { id: 3, name: "Emma White", email: "emma@company.com", phone: "+1 555 654 321", role: "Host", status: "Active" },
-  { id: 4, name: "Paul Black", email: "paul@company.com", phone: "+1 555 111 111", role: "Host", status: "Active" },
-  { id: 5, name: "Sam Green", email: "sam@company.com", phone: "+1 555 222 222", role: "Soldier", status: "Inactive" },
-  { id: 6, name: "Zara Blue", email: "zara@company.com", phone: "+1 555 333 333", role: "Host", status: "Active" },
-  { id: 7, name: "Ava Brown", email: "ava@company.com", phone: "+1 555 444 444", role: "Admin", status: "Active" },
-  { id: 8, name: "Liam Lee", email: "liam@company.com", phone: "+1 555 555 555", role: "Host", status: "Active" },
-  { id: 9, name: "Mia White", email: "mia@company.com", phone: "+1 555 666 666", role: "Soldier", status: "Inactive" },
-  { id: 10, name: "Ethan Clark", email: "ethan@company.com", phone: "+1 555 777 777", role: "Host", status: "Active" },
-  { id: 11, name: "Olivia King", email: "olivia@company.com", phone: "+1 555 888 888", role: "Admin", status: "Active" },
-  { id: 12, name: "Noah Scott", email: "noah@company.com", phone: "+1 555 999 999", role: "Host", status: "Active" },
-  { id: 13, name: "Sophia Adams", email: "sophia@company.com", phone: "+1 555 101 010", role: "Soldier", status: "Inactive" },
-  { id: 14, name: "Mason Ward", email: "mason@company.com", phone: "+1 555 121 212", role: "Host", status: "Active" },
-  { id: 15, name: "Isabella Bell", email: "isabella@company.com", phone: "+1 555 131 313", role: "Admin", status: "Active" },
-  { id: 16, name: "Lucas Evans", email: "lucas@company.com", phone: "+1 555 141 414", role: "Host", status: "Active" },
-  { id: 17, name: "Mila Turner", email: "mila@company.com", phone: "+1 555 151 515", role: "Soldier", status: "Inactive" },
-  { id: 18, name: "James Harris", email: "james@company.com", phone: "+1 555 161 616", role: "Host", status: "Active" }
-];
-
-const USERS_PER_PAGE = 5;
+const USERS_PER_PAGE = 9
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState(mockUsers);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [editIdx, setEditIdx] = useState(null);
-  const [editUser, setEditUser] = useState(null);
-  const navigate = useNavigate();
+  const [users, setUsers] = useState([])
+  const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [editIdx, setEditIdx] = useState(null)
+  const [editUser, setEditUser] = useState(null)
+  const [userToDelete, setUserToDelete] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  // Filter users by search
-  const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.phone.includes(search) ||
-    ("" + u.id).includes(search)
-  );
+  // Fetch ALL users
+  const fetchAllUsers = async () => {
+    try {
+      setIsLoading(true)
+      let allUsers = []
+      const attempts = [
+        { url: "/users", params: { limit: 10000 } },
+        { url: "/users", params: { per_page: 10000 } },
+        { url: "/users", params: { size: 10000 } },
+        { url: "/users", params: { limit: 10000, page: 1 } },
+        { url: "/users", params: {} },
+      ]
 
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
-  const usersToDisplay = filteredUsers.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE);
+      let success = false
+      for (const attempt of attempts) {
+        try {
+          const response = await axiosInstance.get(attempt.url, { params: attempt.params })
 
-  // Open edit modal
-  function handleEdit(idx) {
-    setEditIdx(idx);
-    setEditUser({ ...filteredUsers[idx] });
-  }
-  // Save edited user
-  function handleEditSave() {
-    // Find user by original ID
-    const realIdx = users.findIndex(u => u.id === filteredUsers[editIdx].id);
-    const updatedUser = { ...editUser, id: editUser.id };
-    const updated = [...users];
-    updated[realIdx] = updatedUser;
-    setUsers(updated);
-    setEditIdx(null);
-    setEditUser(null);
-  }
-  // Delete with confirmation
-  function handleDelete(idx) {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      const realIdx = users.findIndex(u => u.id === filteredUsers[idx].id);
-      setUsers(users => users.filter((_, i) => i !== realIdx));
-      if ((filteredUsers.length - 1) % USERS_PER_PAGE === 0 && page > 1) setPage(page - 1);
+          if (Array.isArray(response.data)) {
+            allUsers = response.data
+            success = true
+            break
+          } else if (response.data.users && Array.isArray(response.data.users)) {
+            allUsers = response.data.users
+            success = true
+            break
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            allUsers = response.data.data
+            success = true
+            break
+          }
+        } catch {
+          continue
+        }
+      }
+
+      if (!success || allUsers.length <= 10) {
+        allUsers = await fetchUsersPaginated()
+      }
+
+      setUsers(allUsers)
+      const newTotalPages = Math.ceil(allUsers.length / USERS_PER_PAGE)
+      if (page > newTotalPages && newTotalPages > 0) {
+        setPage(newTotalPages)
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch users:", error)
+      if (users.length === 0) setUsers([])
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  // Fetch users with pagination fallback
+  const fetchUsersPaginated = async () => {
+    let allUsers = []
+    let currentPage = 1
+    let hasMore = true
+    const maxPages = 100
+
+    while (hasMore && currentPage <= maxPages) {
+      try {
+        const response = await axiosInstance.get("/users", {
+          params: { page: currentPage, limit: 100 },
+        })
+
+        let pageUsers = []
+        let totalPages = 1
+
+        if (Array.isArray(response.data)) {
+          pageUsers = response.data
+          hasMore = pageUsers.length === 100
+        } else if (response.data.users && Array.isArray(response.data.users)) {
+          pageUsers = response.data.users
+          totalPages = response.data.totalPages || response.data.pages || 1
+          hasMore = currentPage < totalPages || response.data.hasMore === true
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          pageUsers = response.data.data
+          totalPages = response.data.totalPages || response.data.pages || 1
+          hasMore = currentPage < totalPages || response.data.hasMore === true
+        }
+
+        if (pageUsers.length === 0) {
+          hasMore = false
+          break
+        }
+
+        allUsers = [...allUsers, ...pageUsers]
+        currentPage++
+      } catch (error) {
+        console.error(`❌ Error fetching page ${currentPage}:`, error)
+        hasMore = false
+      }
+    }
+    return allUsers
+  }
+
+  useEffect(() => {
+    fetchAllUsers()
+  }, [])
+
+  useEffect(() => {
+    if (location.state?.refreshUsers) {
+      fetchAllUsers()
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+
+  const filteredUsers = Array.isArray(users)
+    ? users.filter((u) => {
+        const searchTerm = search.toLowerCase()
+        const fullName = `${u.firstname} ${u.lastname}`.toLowerCase()
+        const userId = (u._id || "").toLowerCase()
+        const email = (u.email || "").toLowerCase()
+        const phone = (u.phone || "").toString()
+        return (
+          userId.includes(searchTerm) ||
+          fullName.includes(searchTerm) ||
+          email.includes(searchTerm) ||
+          phone.includes(search)
+        )
+      })
+    : []
+
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE)
+  const usersToDisplay = filteredUsers.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE)
+
+  function handleEdit(user) {
+    const userIndex = usersToDisplay.findIndex((u) => u._id === user._id)
+    setEditIdx(userIndex)
+    setEditUser({ ...user })
+  }
+
+  function cancelEdit() {
+    setEditIdx(null)
+    setEditUser(null)
+  }
+
+  async function saveEdit() {
+    if (!editUser.firstname || !editUser.lastname || !editUser.email || !editUser.phone) return
+
+    setIsSaving(true)
+    try {
+      await axiosInstance.patch(`/users/${editUser._id}`, {
+        firstname: editUser.firstname,
+        lastname: editUser.lastname,
+        email: editUser.email,
+        phone: editUser.phone,
+        role: editUser.role,
+      })
+
+      const updatedUsers = users.map((user) =>
+        user._id === editUser._id ? { ...user, ...editUser } : user
+      )
+      setUsers(updatedUsers)
+      setEditIdx(null)
+      setEditUser(null)
+    } catch (error) {
+      console.error("❌ Failed to update user:", error)
+      fetchAllUsers()
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  function confirmDelete(user) {
+    setUserToDelete(user)
+  }
+
+  function cancelDelete() {
+    setUserToDelete(null)
+  }
+
+  async function deleteUserConfirmed() {
+    try {
+      await axiosInstance.delete(`/users/${userToDelete._id}`)
+      const updatedUsers = users.filter((u) => u._id !== userToDelete._id)
+      setUsers(updatedUsers)
+
+      const newFilteredUsers = updatedUsers.filter((u) => {
+        const searchTerm = search.toLowerCase()
+        const fullName = `${u.firstname} ${u.lastname}`.toLowerCase()
+        const userId = (u._id || "").toLowerCase()
+        const email = (u.email || "").toLowerCase()
+        const phone = (u.phone || "").toString()
+        return (
+          userId.includes(searchTerm) ||
+          fullName.includes(searchTerm) ||
+          email.includes(searchTerm) ||
+          phone.includes(search)
+        )
+      })
+
+      const newTotalPages = Math.ceil(newFilteredUsers.length / USERS_PER_PAGE)
+      if (page > newTotalPages && newTotalPages > 0) {
+        setPage(newTotalPages)
+      }
+      setUserToDelete(null)
+    } catch (error) {
+      console.error("❌ Failed to delete user:", error)
+      fetchAllUsers()
+    }
+  }
+
+  function handlePageChange(newPage) {
+    if (newPage >= 1 && newPage <= totalPages) setPage(newPage)
+  }
+
+  const handleAddUser = () => {
+    navigate("/admin/users/new", {
+      state: { returnTo: "/admin/users", refreshUsers: true },
+    })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="admin-users">
+        <div className="admin-users-header">
+          <div className="admin-users-title">Manage System Users</div>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px" }}>
+          Loading all users...
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="admin-users">
       <div className="admin-users-header">
         <div className="admin-users-title">Manage System Users</div>
-        <button
-          className="admin-add-user-btn"
-          onClick={() => navigate("/admin/users/new")}
-        >+ Add New User</button>
+        <button className="admin-add-user-btn" onClick={handleAddUser}>
+          + Add New User
+        </button>
       </div>
+
       <div className="admin-users-search">
         <input
-          placeholder="Enter ID, name, email or phone"
+          placeholder="Search by User ID, Name, Email, or Phone"
           value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setPage(1)
+          }}
         />
       </div>
+
       <table className="admin-users-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Actions</th>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {usersToDisplay.length === 0 &&
-            <tr><td colSpan={7} style={{textAlign:"center"}}>No users found.</td></tr>
-          }
+          {usersToDisplay.length === 0 && (
+            <tr>
+              <td colSpan={6} style={{ textAlign: "center" }}>
+                {filteredUsers.length === 0
+                  ? "No users found."
+                  : "No users to display on this page."}
+              </td>
+            </tr>
+          )}
           {usersToDisplay.map((user, idx) => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>{user.phone}</td>
-              <td>{user.role}</td>
+            <tr key={user._id}>
+              <td>{user._id}</td>
               <td>
-                <span className={user.status === "Active" ? "status-active" : "status-inactive"}>
-                  {user.status}
-                </span>
+                {editIdx === idx ? (
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <input
+                      type="text"
+                      value={editUser.firstname}
+                      onChange={(e) =>
+                        setEditUser({ ...editUser, firstname: e.target.value })
+                      }
+                      style={{
+                        width: "80px",
+                        padding: "4px",
+                        border: "1px solid #ccc",
+                        borderRadius: "3px",
+                      }}
+                      disabled={isSaving}
+                    />
+                    <input
+                      type="text"
+                      value={editUser.lastname}
+                      onChange={(e) =>
+                        setEditUser({ ...editUser, lastname: e.target.value })
+                      }
+                      style={{
+                        width: "80px",
+                        padding: "4px",
+                        border: "1px solid #ccc",
+                        borderRadius: "3px",
+                      }}
+                      disabled={isSaving}
+                    />
+                  </div>
+                ) : (
+                  `${user.firstname} ${user.lastname}`
+                )}
               </td>
               <td>
-                <span className="action-icon" title="Edit" onClick={() => handleEdit(idx)}>✏️</span>
-                <span className="action-icon" title="Delete" onClick={() => handleDelete(idx)}>🗑️</span>
+                {editIdx === idx ? (
+                  <input
+                    type="email"
+                    value={editUser.email}
+                    onChange={(e) =>
+                      setEditUser({ ...editUser, email: e.target.value })
+                    }
+                    style={{
+                      width: "150px",
+                      padding: "4px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                    }}
+                    disabled={isSaving}
+                  />
+                ) : (
+                  user.email
+                )}
+              </td>
+              <td>
+                {editIdx === idx ? (
+                  <input
+                    type="text"
+                    value={editUser.phone}
+                    onChange={(e) =>
+                      setEditUser({ ...editUser, phone: e.target.value })
+                    }
+                    style={{
+                      width: "100px",
+                      padding: "4px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                    }}
+                    disabled={isSaving}
+                  />
+                ) : (
+                  user.phone
+                )}
+              </td>
+              <td>
+                {editIdx === idx ? (
+                  <select
+                    value={editUser.role}
+                    onChange={(e) =>
+                      setEditUser({ ...editUser, role: e.target.value })
+                    }
+                    style={{
+                      width: "100px",
+                      padding: "4px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                    }}
+                    disabled={isSaving}
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="moderator">Moderator</option>
+                    <option value="host">Host</option>
+                    <option value="soldier">Soldier</option>
+                  </select>
+                ) : (
+                  user.role
+                )}
+              </td>
+              <td>
+                {editIdx === idx ? (
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <button
+                      onClick={saveEdit}
+                      disabled={isSaving}
+                      style={{
+                        backgroundColor: isSaving ? "#ccc" : "#4CAF50",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                        cursor: isSaving ? "not-allowed" : "pointer",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {isSaving ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={isSaving}
+                      style={{
+                        backgroundColor: "#f44336",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                        cursor: isSaving ? "not-allowed" : "pointer",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span
+                      className="action-icon"
+                      title="Edit"
+                      onClick={() => handleEdit(user)}
+                    >
+                      <FaUserEdit color="green" />
+                    </span>
+                    <span
+                      className="action-icon"
+                      title="Delete"
+                      onClick={() => confirmDelete(user)}
+                    >
+                      <AiFillDelete color="red" />
+                    </span>
+                  </>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      {/* Pagination */}
+
       <div className="admin-users-pagination">
-        <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page === 1}>{"<"}</button>
-        {[...Array(totalPages)].map((_, idx) => (
-          <button key={idx+1} onClick={() => setPage(idx+1)} className={page === idx+1 ? "active" : ""}>{idx+1}</button>
-        ))}
-        <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page === totalPages}>{" > "}</button>
+        <button
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+          style={{
+            opacity: page === 1 ? 0.5 : 1,
+            cursor: page === 1 ? "not-allowed" : "pointer",
+          }}
+        >
+          {"<"}
+        </button>
+        <button className="active">{page}</button>
+        <button
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === totalPages || totalPages === 0}
+          style={{
+            opacity: page === totalPages || totalPages === 0 ? 0.5 : 1,
+            cursor:
+              page === totalPages || totalPages === 0 ? "not-allowed" : "pointer",
+          }}
+        >
+          {">"}
+        </button>
       </div>
-      {/* Edit modal */}
-      {editUser && (
+
+      {userToDelete && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal">
-            <h3>Edit User</h3>
-            <div className="modal-field">
-              <label>ID</label>
-              <input
-                type="text"
-                value={editUser.id}
-                onChange={e => setEditUser({ ...editUser, id: e.target.value })}
-              />
-            </div>
-            <div className="modal-field">
-              <label>Name</label>
-              <input value={editUser.name} onChange={e => setEditUser({...editUser, name: e.target.value})} />
-            </div>
-            <div className="modal-field">
-              <label>Email</label>
-              <input value={editUser.email} onChange={e => setEditUser({...editUser, email: e.target.value})} />
-            </div>
-            <div className="modal-field">
-              <label>Phone</label>
-              <input value={editUser.phone} onChange={e => setEditUser({...editUser, phone: e.target.value})} />
-            </div>
-            <div className="modal-field">
-              <label>Role</label>
-              <input value={editUser.role} onChange={e => setEditUser({...editUser, role: e.target.value})} />
-            </div>
-            <div className="modal-field">
-              <label>Status</label>
-              <input value={editUser.status} onChange={e => setEditUser({...editUser, status: e.target.value})} />
-            </div>
+            <h3>Delete user?</h3>
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>
+                {userToDelete.firstname} {userToDelete.lastname}
+              </strong>
+              ?
+            </p>
             <div className="modal-actions">
-              <button onClick={handleEditSave} className="modal-save-btn">Save</button>
-              <button onClick={() => { setEditUser(null); setEditIdx(null); }} className="modal-cancel-btn">Cancel</button>
+              <button onClick={cancelDelete} className="modal-cancel-btn">
+                Cancel
+              </button>
+              <button
+                onClick={deleteUserConfirmed}
+                className="modal-save-btn"
+                style={{ backgroundColor: "#F45B47" }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -9,9 +9,9 @@
 .checkin-form {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 22px rgba(40,48,70,0.06);
+  box-shadow: 0 4px 22px rgba(40, 48, 70, 0.06);
   padding: 38px 38px 26px 38px;
-  max-width: 470px;
+  max-width: 40rem;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -70,6 +70,7 @@
   outline: none;
   margin-bottom: 0;
   transition: border 0.15s;
+  color:black
 }
 
 .checkin-field input:focus,
@@ -83,27 +84,9 @@
   gap: 9px;
 }
 
-.checkin-available-dot {
-  display: flex;
-  align-items: center;
-  font-size: 0.98rem;
-  color: #277062;
-  margin-left: 9px;
-  font-weight: 500;
-}
-
-.checkin-available-dot .dot {
-  width: 10px;
-  height: 10px;
-  background: #4acf4a;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
-  border: 1.5px solid #fff;
-  box-shadow: 0 0 2px #27706255;
-}
 
 .checkin-select {
+  width: 100%;
   min-width: 28px;
   background: #f7f7f7;
   border: none;
@@ -111,7 +94,7 @@
 }
 
 .checkin-btn {
-  background: #257c5a;
+  background: #2F855A;
   color: #fff;
   border: none;
   border-radius: 23px;
@@ -120,10 +103,52 @@
   padding: 10px 0;
   margin-top: 18px;
   cursor: pointer;
-  box-shadow: 0 2px 7px rgba(40,48,70,0.04);
+  box-shadow: 0 2px 7px rgba(40, 48, 70, 0.04);
   transition: background 0.18s;
 }
 
 .checkin-btn:hover {
   background: #176c3a;
+}
+
+.checkin-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  background-color: rgb(185, 184, 184);
+}
+
+/* Minimal responsive adjustments for check-in form */
+@media (max-width: 768px) {
+  /* Stack fields vertically instead of side by side */
+  .checkin-fields-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Reduce form padding for tablets */
+  .checkin-form {
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Compact form for small phones */
+  .checkin-form {
+    padding: 20px 16px;
+  }
+  .checkin-title {
+    font-size: 1.1rem;
+  }
+  .checkin-field label {
+    font-size: 0.95rem;
+  }
+  .checkin-field input,
+  .checkin-field select {
+    font-size: 0.95rem;
+    padding: 8px 14px;
+  }
+  .checkin-btn {
+    font-size: 1rem;
+    padding: 8px 0;
+  }
 }
