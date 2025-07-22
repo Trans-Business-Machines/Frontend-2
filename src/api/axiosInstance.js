@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// define the base url
+// ✅ Base URL for your backend
 export const baseURL = "http://localhost:3000/api";
 
 const axiosInstance = axios.create({
@@ -8,32 +8,39 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Declare a variable to hold the access token
+// ✅ In-memory token (for current session)
 let accessToken = null;
 
-// A function to update the token else where in the program
+// ✅ Load token from localStorage when app starts
+const savedToken = localStorage.getItem("token");
+if (savedToken) {
+  accessToken = savedToken;
+}
+
+// ✅ Function to set token both in memory & localStorage
 export const setAccessToken = (token) => {
   accessToken = token;
+  if (token) {
+    localStorage.setItem("token", token);
+  } else {
+    localStorage.removeItem("token");
+  }
 };
 
-// Intercept all requests to attach the token in the authorization header
+// ✅ Automatically attach token to all outgoing requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    // check if the access token is present
     if (accessToken) {
-      // then we set it in the Authorization header of the request
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-
-    // Always return the config object
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Intercept all responses and  retry if a 404 jwt-expired error is sent back
+// ✅ Handle JWT expiration
 axiosInstance.interceptors.response.use(
-  (res) => res,
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
@@ -51,11 +58,16 @@ axiosInstance.interceptors.response.use(
           { withCredentials: true }
         );
 
-        accessToken = res.data.accessToken;
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // ✅ Save new token in memory + localStorage
+        const newToken = res.data.accessToken;
+        setAccessToken(newToken);
 
+        // ✅ Retry the failed request with the new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
+        // If refresh fails → clear token and reject
+        setAccessToken(null);
         return Promise.reject(refreshErr);
       }
     }

@@ -122,28 +122,36 @@ export default function Login() {
       }
     }
     try {
-      let user
-      if (authMode === "phone") {
-        user = await login({ phone, password })
-      } else {
-        user = await login({ email, password })
-      }
-      if (user?.role === "soldier") {
-        toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />)
-        navigate("/")
-      } else if (user?.role === "host" || user?.role === "receptionist") {
-        toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />)
-        navigate("/host/dashboard")
-      } else if (user?.role === "admin" || user.role === "super admin") {
-        toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />)
-        navigate("/admin/dashboard")
-      }
-    } catch (err) {
-      const message = err.response?.data?.message || "Login failed. Please try again."
-      toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />)
-    } finally {
-      setLoading(false)
-    }
+  let user;
+  if (authMode === "phone") {
+    user = await login({ phone, password });
+  } else {
+    user = await login({ email, password });
+  }
+
+  // If backend returns a token, save it to localStorage
+  if (user?.token) {
+    localStorage.setItem("token", user.token);
+  }
+
+  //  Redirect based on role
+  if (user?.role === "soldier") {
+    toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
+    navigate("/");
+  } else if (user?.role === "host" || user?.role === "receptionist") {
+    toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
+    navigate("/host/dashboard");
+  } else if (user?.role === "admin" || user.role === "super admin") {
+    toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
+    navigate("/admin/dashboard");
+  }
+
+} catch (err) {
+  const message = err.response?.data?.message || "Login failed. Please try again.";
+  toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />);
+} finally {
+  setLoading(false);
+}
   }
 
   // Forgot Password Handlers

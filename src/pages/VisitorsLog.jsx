@@ -1,226 +1,197 @@
-import { useState, useEffect } from "react"
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa6"
-import { capitalize } from "../utils"
-import format from "date-fns/format"
-import axiosInstance from "../api/axiosInstance"
-import "./VisitorsLog.css"
+"use client"
 
-const ITEMS_PER_PAGE = 10
+import { useState, useEffect, useCallback } from "react"
+import "./VisitorsLog.css"
+import axiosInstance from "../api/axiosInstance" // Assuming axiosInstance is available here
+
+const RECORDS_PER_PAGE = 10 // This will be the 'limit' parameter for your API
+
+// Helper function to format ISO date string to "YYYY-MM-DD"
+const formatDate = (isoString) => {
+  if (!isoString) return "N/A"
+  try {
+    const date = new Date(isoString)
+    return date.toISOString().split("T")[0] // Extracts "YYYY-MM-DD"
+  } catch (e) {
+    console.error("Error formatting date:", e)
+    return "Invalid Date"
+  }
+}
+
+// Helper function to format ISO time string to "HH:MM AM/PM"
+const formatTime = (isoString) => {
+  if (!isoString) return "N/A"
+  try {
+    const date = new Date(isoString)
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
+  } catch (e) {
+    console.error("Error formatting time:", e)
+    return "Invalid Time"
+  }
+}
 
 export default function VisitorsLog() {
-  const [allVisits, setAllVisits] = useState([])
-  const [filteredVisits, setFilteredVisits] = useState([])
-  const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({ host: "", purpose: "", visitDate: "" })
-  const [loading, setLoading] = useState(true)
+  const [visits, setVisits] = useState([])
+  const [textSearch, setTextSearch] = useState("")
+  const [dateSearch, setDateSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [hasNextPage, setHasNextPage] = useState(false)
+  const [hasPrevPage, setHasPrevPage] = useState(false)
 
-  useEffect(() => {
-    async function fetchVisits() {
-      try {
-        const res = await axiosInstance.get("/visits?limit=10000")
-        const visits = Array.isArray(res.data.visits) ? res.data.visits : []
-        setAllVisits(visits)
-        setFilteredVisits(visits)
-      } catch (err) {
-        console.error("Error fetching visits:", err)
-      } finally {
-        setLoading(false)
+  const fetchVisits = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const params = {
+        page: currentPage,
+        limit: RECORDS_PER_PAGE,
       }
+
+      // Add search parameters if they exist
+      if (textSearch) {
+        // Assuming your backend can search across multiple fields with a single 'search' param
+        params.search = textSearch
+      }
+      if (dateSearch) {
+        // Assuming your backend filters by 'visit_date' using a 'date' param
+        params.date = dateSearch
+      }
+
+      console.log("Fetching visits with params:", params)
+      const response = await axiosInstance.get("http://localhost:3000/api/visits", { params })
+
+      const { visits: fetchedVisits, hasNext, hasPrev } = response.data
+
+      // Map the fetched data to match your table's expected structure
+      const mappedVisits = fetchedVisits.map((visit) => ({
+        name: `${visit.firstname || ""} ${visit.lastname || ""}`.trim(),
+        phone: visit.phone || "N/A",
+        purpose: visit.purpose || "N/A",
+        host: `${visit.host?.firstname || ""} ${visit.host?.lastname || ""}`.trim(),
+        dateIn: formatDate(visit.visit_date), // Use visit_date for Date In
+        timeIn: formatTime(visit.time_in), // Use time_in for Time In
+        timeOut: visit.time_out ? formatTime(visit.time_out) : "-", // Changed from "N/A" to "-"
+      }))
+
+      setVisits(mappedVisits)
+      setHasNextPage(hasNext)
+      setHasPrevPage(hasPrev)
+    } catch (err) {
+      console.error("Failed to fetch visits:", err)
+      setError("Failed to load visitor records. Please try again.")
+      setVisits([]) // Clear visits on error
+      setHasNextPage(false)
+      setHasPrevPage(false)
+    } finally {
+      setIsLoading(false)
     }
+  }, [currentPage, textSearch, dateSearch])
+
+  // Fetch data on component mount and when dependencies change
+  useEffect(() => {
     fetchVisits()
-  }, [])
+  }, [fetchVisits])
 
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+  }
+
+  // Reset page to 1 when search terms change
   useEffect(() => {
-    let results = Array.isArray(allVisits) ? [...allVisits] : []
+    setCurrentPage(1)
+  }, [textSearch, dateSearch])
 
-    if (filters.host.trim()) {
-      const searchHost = filters.host.toLowerCase()
-      results = results.filter((v) => {
-        const fullName = `${v.host?.firstname || ''} ${v.host?.lastname || ''}`.toLowerCase()
-        return fullName.includes(searchHost)
-      })
-    }
-
-    if (filters.purpose.trim()) {
-      const searchPurpose = filters.purpose.toLowerCase()
-      results = results.filter((v) => v.purpose?.toLowerCase().includes(searchPurpose))
-    }
-
-    if (filters.visitDate) {
-      results = results.filter((v) => {
-        const visitDate = new Date(v.visit_date)
-        const formatted = `${visitDate.getFullYear()}-${String(
-          visitDate.getMonth() + 1
-        ).padStart(2, "0")}-${String(visitDate.getDate()).padStart(2, "0")}`
-        return formatted === filters.visitDate
-      })
-    }
-
-    setFilteredVisits(results)
-    setPage((prev) => {
-      const totalPages = Math.max(1, Math.ceil(results.length / ITEMS_PER_PAGE))
-      return prev > totalPages ? totalPages : 1
-    })
-  }, [filters, allVisits])
-
-  const totalPages = Math.max(1, Math.ceil(filteredVisits.length / ITEMS_PER_PAGE))
-  const startIndex = (page - 1) * ITEMS_PER_PAGE
-  const currentPageVisits = filteredVisits.slice(startIndex, startIndex + ITEMS_PER_PAGE)
-
-  useEffect(() => {
-    console.log("Pagination state:", {
-      page,
-      totalPages,
-      filteredVisitsLength: filteredVisits.length,
-      currentPageVisitsLength: currentPageVisits.length,
-      startIndex,
-    })
-  }, [page, filteredVisits.length, totalPages, currentPageVisits.length, startIndex])
-
-  const nextPage = () => {
-    console.log("Next button clicked, current page:", page, "totalPages:", totalPages)
-    if (page < totalPages) {
-      setPage(page + 1)
-      console.log("Moving to page:", page + 1)
-    } else {
-      console.log("Cannot move to next page, already at last page")
-    }
+  if (isLoading) {
+    return (
+      <div className="visitors-log-container">
+        <div className="visitors-log-header">
+          <h1 className="visitors-log-title">Visitors Log</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px", color: "#555" }}>
+          Loading visitor records...
+        </div>
+      </div>
+    )
   }
 
-  const prevPage = () => {
-    console.log("Prev button clicked, current page:", page)
-    if (page > 1) {
-      setPage(page - 1)
-      console.log("Moving to page:", page - 1)
-    }
+  if (error) {
+    return (
+      <div className="visitors-log-container">
+        <div className="visitors-log-header">
+          <h1 className="visitors-log-title">Visitors Log</h1>
+        </div>
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px", color: "red" }}>{error}</div>
+      </div>
+    )
   }
-
-  const goToPage = (num) => {
-    console.log("Go to page:", num)
-    if (num >= 1 && num <= totalPages) {
-      setPage(num)
-    }
-  }
-
-  const getPageNumbers = () => {
-    const pages = []
-    const maxVisible = 5
-    let start = Math.max(1, page - Math.floor(maxVisible / 2))
-    let end = Math.min(totalPages, start + maxVisible - 1)
-
-    if (end - start < maxVisible - 1) {
-      start = Math.max(1, end - maxVisible + 1)
-    }
-    for (let i = start; i <= end; i++) pages.push(i)
-    return pages
-  }
-
-  if (loading) return <p>Loading visitor log...</p>
 
   return (
-    <div className="main-content">
-      <div className="visitorslog-header-center">
-        <h2>Visitors Log</h2>
-        <p>View and filter all visitor activity records</p>
+    <div className="visitors-log-container">
+      <div className="visitors-log-header">
+        <h1 className="visitors-log-title">Visitors Log</h1>
       </div>
 
-      <div className="visitorslog-filters-row">
+      <div className="visitors-log-search-row">
+        <input
+          type="text"
+          placeholder="Search by Name, Phone, Purpose, Host"
+          value={textSearch}
+          onChange={(e) => setTextSearch(e.target.value)}
+        />
         <input
           type="date"
-          value={filters.visitDate}
-          onChange={(e) => setFilters((prev) => ({ ...prev, visitDate: e.target.value }))}
-        />
-        <input
-          type="text"
-          placeholder="Search Host"
-          value={filters.host}
-          onChange={(e) => setFilters((prev) => ({ ...prev, host: e.target.value }))}
-        />
-        <input
-          type="text"
-          placeholder="Search Purpose"
-          value={filters.purpose}
-          onChange={(e) => setFilters((prev) => ({ ...prev, purpose: e.target.value }))}
+          placeholder="Search by Date"
+          value={dateSearch}
+          onChange={(e) => setDateSearch(e.target.value)}
         />
       </div>
 
-      <div className="visitorslog-table-section">
-        <table className="visitorslog-table">
-          <thead>
+      <table className="visitors-log-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Purpose</th>
+            <th>Host</th>
+            <th>Date In</th>
+            <th>Time In</th>
+            <th>Time Out</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visits.length === 0 ? (
             <tr>
-              <th>Name</th>
-              <th>ID Number</th>
-              <th>Host</th>
-              <th>Purpose</th>
-              <th>Time In</th>
-              <th>Time Out</th>
-              <th>Date</th>
+              <td colSpan={7} className="no-records-message">
+                No records found.
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {currentPageVisits.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: "center", color: "#888" }}>
-                  No records found.
-                </td>
+          ) : (
+            visits.map((visitor, index) => (
+              <tr key={index}>
+                <td>{visitor.name}</td>
+                <td>{visitor.phone}</td>
+                <td>{visitor.purpose}</td>
+                <td>{visitor.host}</td>
+                <td>{visitor.dateIn}</td>
+                <td>{visitor.timeIn}</td>
+                <td>{visitor.timeOut}</td>
               </tr>
-            ) : (
-              currentPageVisits.map((v) => (
-                <tr key={v._id}>
-                  <td>{v.firstname} {v.lastname}</td>
-                  <td>{v.national_id}</td>
-                  <td>{v.host?.firstname} {v.host?.lastname}</td>
-                  <td style={{ textTransform: "capitalize" }}>{capitalize(v.purpose)}</td>
-                  <td>{format(new Date(v.time_in), "hh:mm a")}</td>
-                  <td>{v.time_out ? format(new Date(v.time_out), "hh:mm a") : "-"}</td>
-                  <td>{format(new Date(v.visit_date), "MMMM do, yyyy")}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+            ))
+          )}
+        </tbody>
+      </table>
 
-        {filteredVisits.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              marginTop: "20px",
-              justifyContent: "center",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <button onClick={prevPage} disabled={page === 1}>
-              <FaChevronLeft /> Prev
-            </button>
-
-            {getPageNumbers().map((num) => (
-              <button
-                key={num}
-                onClick={() => goToPage(num)}
-                style={{
-                  background: num === page ? "#219150" : "#fff",
-                  color: num === page ? "#fff" : "#000",
-                  border: "1px solid #ccc",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                {num}
-              </button>
-            ))}
-
-            <button onClick={nextPage} disabled={page >= totalPages}>
-              Next <FaChevronRight />
-            </button>
-
-            <span style={{ marginLeft: "1rem", color: "#555" }}>
-              Page {page} of {totalPages}
-            </span>
-          </div>
-        )}
+      <div className="visitors-log-pagination">
+        <button onClick={() => handlePageChange(currentPage - 1)} disabled={!hasPrevPage}>
+          Previous
+        </button>
+        <button className="active">{currentPage}</button>
+        <button onClick={() => handlePageChange(currentPage + 1)} disabled={!hasNextPage}>
+          Next
+        </button>
       </div>
     </div>
   )

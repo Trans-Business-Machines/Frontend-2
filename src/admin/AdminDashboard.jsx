@@ -39,12 +39,16 @@ export default function AdminDashboard() {
     return <div>Loading visitors and stats...</div>;
   }
 
-  // Handle case where data might not be loaded yet
   if (!data || !stats) {
     return <div>Loading dashboard data...</div>;
   }
 
   const adminName = "Jessica";
+
+  //  Map backend values correctly
+  const totalVisitors = stats.visitCount ?? 0;
+  const activeVisitors = stats.activeVisitors ?? 0;
+  const checkedOutVisitors = stats.checkedOutVisitors ?? 0;
 
   return (
     <div className="admin-dashboard">
@@ -68,9 +72,8 @@ export default function AdminDashboard() {
         <div className="admin-dashboard-card">
           <div className="admin-dashboard-card-label">Total Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.totalVisitors || 0}</span>
+            <span className="admin-dashboard-card-value">{totalVisitors}</span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
-              {/* Icon */}
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
                   <path fill="#fff" d="M16.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5c0-2.485 2.015-4.5 4.5-4.5Z"/>
@@ -86,7 +89,7 @@ export default function AdminDashboard() {
         <div className="admin-dashboard-card">
           <div className="admin-dashboard-card-label">Active Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.activeVisitors || 0}</span>
+            <span className="admin-dashboard-card-value">{activeVisitors}</span>
             <span className="admin-dashboard-card-icon" style={{ background: "#e8f7f2" }}>
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
@@ -104,7 +107,7 @@ export default function AdminDashboard() {
           <div className="admin-dashboard-card-label">Checked Out</div>
           <div className="admin-dashboard-card-content">
             <span className="admin-dashboard-card-value">
-              <strong>{stats.checkedOutVisitors || 0}</strong>
+              <strong>{checkedOutVisitors}</strong>
             </span>
             <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">

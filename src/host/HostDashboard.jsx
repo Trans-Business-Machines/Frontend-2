@@ -53,7 +53,7 @@ export default function HostDashboard() {
           `/visits/host/${user.userId}?today=false`
         );
 
-        // ✅ Extract hostLogs safely
+        // Extract hostLogs safely
         const logs = res.data?.hostLogs || [];
         setVisits(logs);
       } catch (err) {
@@ -68,7 +68,7 @@ export default function HostDashboard() {
     }
   }, [user?.userId]);
 
-  // ✅ Chunk the visits into groups of 4 for pagination
+  //  Chunk the visits into groups of 4 for pagination
   const visitChunks = useMemo(() => chunkArray(visits, 4), [visits]);
 
   return (

@@ -1,3 +1,170 @@
+/*  Main wrapper centered */
+.host-notifications-wrapper {
+  background: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center everything horizontally */
+  justify-content: flex-start; /* keep normal flow vertically */
+  width: 100%;
+  padding: 0 20px; /* equal padding on both sides */
+  box-sizing: border-box;
+  text-align: center; /* center titles and texts */
+}
+
+/* Title centered */
+.host-notifications-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #246d5a;
+  margin-top: 38px;
+  text-align: center;
+  width: 100%;
+}
+
+/*  Filter Row centered */
+.host-notifications-filter-row {
+  margin-top: 22px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center; /* center horizontally */
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 700px;
+  flex-wrap: wrap; /* allow wrapping on smaller screens */
+}
+
+/*  Search field centered */
+.host-notifications-date-filter {
+  flex: 1;
+  min-width: 250px; /* prevent too small width */
+  max-width: 400px;
+  padding: 10px 22px;
+  font-size: 1.09rem;
+  border-radius: 22px;
+  border: 1px solid #b8e0d4;
+  outline: none;
+  text-align: center;
+}
+
+/*  Filter buttons centered */
+.host-notifications-filter-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/*  Notification List centered */
+.host-notification-list {
+  margin-top: 18px;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center cards */
+}
+
+/*  Empty state message centered */
+.host-notifications-empty {
+  color: #999;
+  font-size: 1.1rem;
+  margin: 28px 0;
+  text-align: center;
+}
+
+/*  Notification cards centered */
+.host-notification-card {
+  background: #fff;
+  border-radius: 11px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  padding: 18px;
+  margin-bottom: 18px;
+  width: 100%;
+  max-width: 600px;
+  transition: box-shadow 0.13s, background 0.13s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center contents inside card */
+  text-align: center;
+}
+
+/*  Message + meta centered */
+.host-notification-msg {
+  font-size: 1.09rem;
+  font-weight: 500;
+  color: #246d5a;
+  margin-bottom: 6px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.host-notification-meta {
+  font-size: 0.97rem;
+  color: #888;
+  text-align: center;
+}
+
+/*  Load more button row centered */
+.host-notification-load-btn-row {
+  text-align: center;
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.host-scrollable-content,
+.host-notification-list {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  overflow-y: auto; /* still scrollable but hidden */
+}
+
+/* For Chrome, Safari, Edge */
+.host-scrollable-content::-webkit-scrollbar,
+.host-notification-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Styling for All and Unread buttons --- */
+.host-notifications-filter-btns button {
+  padding: 8px 30px;
+  border-radius: 20px;
+  border: none;
+  background: #309073;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.04rem;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s;
+  text-align: center;
+}
+
+.host-notifications-filter-btns button.active,
+.host-notifications-filter-btns button:focus {
+  background: #246d5a;
+}
+
+.host-notifications-badge {
+  background: #e53935;
+  color: #fff;
+  font-size: 0.92em;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+/* --- Styling for Load More button --- */
 .host-notification-load-btn {
   padding: 9px 52px;
   border-radius: 22px;
@@ -14,166 +181,77 @@
   background: #309073;
   color: #fff;
 }
-.host-notifications-wrapper {
-  padding: 0 32px 0 0;
-  background: #f7f7f7;
-  min-height: calc(100vh - 64px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
-.host-notifications-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #246D5A;
-  margin-top: 38px;
-  text-align: center;
-}
-
-.host-notifications-filter-row {
-  margin-top: 22px;
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
-  width: 100%;
-  max-width: 700px;
-}
-
-.host-notifications-date-filter {
-  flex: 1;
-  padding: 10px 22px;
-  font-size: 1.09rem;
-  border-radius: 22px;
-  border: 1px solid #b8e0d4;
-  outline: none;
-  text-align: center;
-}
-
-.host-notifications-filter-btns {
-  display: flex;
-  gap: 16px;
-}
-.host-notifications-filter-btns button {
-  padding: 8px 30px;
-  border-radius: 20px;
-  border: none;
-  background: #309073;
-  color: #fff;
-  font-weight: 600;
-  font-size: 1.04rem;
-  cursor: pointer;
-  outline: none;
-  transition: background 0.15s;
-  position: relative;
-  text-align: center;
-}
-.host-notifications-filter-btns button.active, 
-.host-notifications-filter-btns button:focus {
-  background: #246D5A;
-}
-.host-notifications-badge {
-  background: #e53935;
-  color: #fff;
-  font-size: 0.92em;
-  min-width: 22px;
-  height: 22px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  margin-left: 8px;
-}
-.host-notification-list {
-  margin-top: 18px;
-  width: 100%;
-  max-width: 700px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.host-notifications-empty {
-  color: #999;
-  font-size: 1.1rem;
-  margin: 28px 0;
-  text-align: center;
-}
-.host-notification-card {
-  background: #fff;
-  border-radius: 11px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.10);
-  padding: 18px 18px 12px 18px;
-  margin-bottom: 18px;
-  width: 100%;
-  max-width: 600px;
-  transition: box-shadow 0.13s, background 0.13s;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  outline: none;
-}
-.host-notification-card.read {
-  opacity: 0.75;
-}
-.host-notification-card.unread {
-  background: #f1fbe9;
-  box-shadow: 0 2px 14px rgba(56,158,107,0.11);
-  border: 2px solid #389e6b;
-}
-.host-notification-card:focus {
-  border: 2px solid #28859B;
-}
-.host-notification-msg {
-  font-size: 1.09rem;
-  font-weight: 500;
-  color: #246D5A;
-  margin-bottom: 6px;
-  text-align: center;
-  width: 100%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-.host-notification-unread-dot {
-  display: inline-block;
-  width: 13px;
-  height: 13px;
-  background: #e53935;
-  border-radius: 50%;
-  margin-left: 8px;
-  vertical-align: middle;
-  border: 2px solid #fff;
-}
-.host-notification-meta {
-  font-size: 0.97rem;
-  color: #888;
-  text-align: center;
-}
-.host-notification-load-btn-row {
-  text-align: center;
-  margin-top: 16px;
-  width: 100%;
-}
-.host-notification-load-btn {
-  padding: 9px 52px;
-  border-radius: 22px;
-  border: 2px solid #309073;
-  background: #fff;
-  color: #309073;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 30px;
-  transition: background 0.15s, color 0.15s;
-  text-align: center;
-}
 .host-notification-load-btn:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  .host-notifications-wrapper {
+    padding: 0 15px; /* Adjust padding for tablets */
+  }
+
+  .host-notifications-title {
+    font-size: 1.8rem;
+  }
+
+  .host-notifications-filter-row {
+    flex-direction: column; /* Stack search and buttons vertically */
+    gap: 15px;
+  }
+
+  .host-notifications-date-filter {
+    width: 100%; /* Make search input full width */
+    max-width: 100%; /* Override previous max-width */
+  }
+
+  .host-notifications-filter-btns {
+    width: 100%; /* Make button container full width */
+  }
+
+  .host-notification-card {
+    padding: 15px;
+  }
+
+  .host-notification-msg {
+    font-size: 1rem;
+  }
+
+  .host-notification-meta {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .host-notifications-wrapper {
+    padding: 0 10px; /* Further reduce padding for small phones */
+  }
+
+  .host-notifications-title {
+    font-size: 1.5rem;
+  }
+
+  .host-notifications-date-filter {
+    padding: 8px 15px;
+    font-size: 0.95rem;
+  }
+
+  .host-notifications-filter-btns button {
+    padding: 7px 25px;
+    font-size: 0.9rem;
+  }
+
+  .host-notification-card {
+    padding: 12px;
+  }
+
+  .host-notification-msg {
+    font-size: 0.95rem;
+  }
+
+  .host-notification-meta {
+    font-size: 0.85rem;
+  }
 }

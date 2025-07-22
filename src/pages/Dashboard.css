@@ -259,3 +259,53 @@
 .soldier-banner-shield {
   display: none !important;
 }
+
+/* Minimal responsive adjustments for dashboard */
+@media (max-width: 1024px) {
+  .soldier-welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+  }
+
+  .soldier-banner-date {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Stack stat cards vertically */
+  .soldier-stat-card-row {
+    flex-direction: column;
+  }
+
+  /* Keep table scrollable */
+  .dashboard-table-section {
+    overflow-x: auto;
+  }
+  .dashboard-table {
+    min-width: 600px; /* prevent breaking layout */
+  }
+}
+
+@media (max-width: 480px) {
+  /* Reduce padding for small screens */
+  .soldier-welcome-banner {
+    padding: 2rem 1rem;
+  }
+
+  .soldier-banner-title {
+    font-size: 1.2rem;
+  }
+
+  .soldier-stat-card {
+    padding: 16px;
+  }
+
+  .dashboard-table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
