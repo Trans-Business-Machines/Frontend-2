@@ -39,9 +39,9 @@ export default function AdminDashboard() {
     return <div>Loading visitors and stats...</div>;
   }
 
-  if (!data || !stats) {
+  /* if (!data || !stats) {
     return <div>Loading dashboard data...</div>;
-  }
+  } */
 
   const adminName = "Jessica";
 
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
           </button>
         </div>
         
-        {!data.visits || data.visits.length === 0 ? (
+        {!data?.visits || data?.visits.length === 0 ? (
           <div style={{ padding: "1rem", textAlign: "center" }}>
             <p style={{ fontWeight: "bold", fontSize: "1.2rem", color: "#285e61" }}>
               No visitors today.
