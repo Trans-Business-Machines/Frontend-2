@@ -1,8 +1,7 @@
-"use client"
+import "./AdminLayout.css"
 import { Outlet, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import logo from "../assets/logo.png"
-import "./AdminLayout.css"
 import { AiOutlineDashboard } from "react-icons/ai"
 import { FaUserCog } from "react-icons/fa"
 import { LuFolderSearch } from "react-icons/lu"
@@ -25,7 +24,7 @@ export default function AdminLayout() {
     if (!user) return "Loading..."
 
     // Handle different possible user object structures
-    const role = user.role || user.userRole || user.type || "User"
+    const role = user.role || "User"
 
     // Capitalize first letter of role
     return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()

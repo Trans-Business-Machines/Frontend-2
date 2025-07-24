@@ -1,27 +1,17 @@
-"use client";
-
+import "./AdminUsers.css";
 import { useState } from "react";
+import { format } from "date-fns";
+import { toast } from "react-hot-toast";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import Snackbar from "../components/Snackbar";
 import useSWR from "swr";
-import axiosInstance from "../api/axiosInstance"; // ✅ only import ONCE
-import "./AdminUsers.css"; // Import the CSS file
+import axiosInstance from "../api/axiosInstance";
 
-const VISITORS_PER_PAGE = 10;
-
-function formatDateForTable(dateStr) {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB"); // dd/mm/yyyy
-}
-
-function formatTime(timeStr) {
-  if (!timeStr) return "";
-  const date = new Date(timeStr);
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
+//  Fetch visitors directly from backend
+const fetchVisitors = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
 export default function AdminVisitorLog() {
   const [search, setSearch] = useState("");
@@ -29,14 +19,8 @@ export default function AdminVisitorLog() {
   const [filterDate, setFilterDate] = useState("");
   const [page, setPage] = useState(1);
 
-  //  Fetch visitors directly from backend
-  const fetchVisitors = async (url) => {
-    const res = await axiosInstance.get(url);
-    return res.data;
-  };
-
   const { data, error, isLoading } = useSWR(
-    `/visits?page=${page}&limit=${VISITORS_PER_PAGE}`,
+    `/visits?page=${page}`,
     fetchVisitors
   );
 
@@ -101,14 +85,16 @@ export default function AdminVisitorLog() {
   // Export PDF function with axiosInstance
   const handleExportData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("You are not logged in. Please login to export reports.");
-        return;
+      const today = new Date();
+      if (today.getDate() < 20) {
+        return toast.custom(
+          <Snackbar
+            type="error"
+            message="Date has to more than 20"
+            icon={FaXmark}
+          />
+        );
       }
-
-      // Attach token dynamically if needed
-      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       const response = await axiosInstance.get("/report", {
         responseType: "blob", // for file downloads
@@ -126,27 +112,15 @@ export default function AdminVisitorLog() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      toast.custom(
+        <Snackbar type="success" message="Report downloaded" icon={FaCheck} />
+      );
     } catch (error) {
       console.error("Export error:", error);
-
       let errorMessage = "Failed to export visitors data.";
-      if (error.response) {
-        const { status, data } = error.response;
-        if (status === 401) {
-          errorMessage = "Authentication failed. Please log in again.";
-        } else if (status === 403) {
-          errorMessage =
-            "Forbidden: You do not have permission to generate this report.";
-        } else if (status >= 500) {
-          errorMessage = "Server error. Please try again later.";
-        } else if (data) {
-          errorMessage += ` Details: ${JSON.stringify(data).substring(
-            0,
-            100
-          )}...`;
-        }
-      }
-      alert(errorMessage);
+      toast.custom(
+        <Snackbar type="error" message={errorMessage} icon={FaXmark} />
+      );
     }
   };
 
@@ -171,9 +145,7 @@ export default function AdminVisitorLog() {
         <div className="admin-users-header">
           <div className="admin-users-title">Visitor Log</div>
         </div>
-        <div
-          style={{ textAlign: "center", padding: "20px", color: "red" }}
-        >
+        <div style={{ textAlign: "center", padding: "20px", color: "red" }}>
           Error loading visitors: {error.message}
         </div>
       </div>
@@ -227,6 +199,7 @@ export default function AdminVisitorLog() {
             <th>Time In</th>
             <th>Time Out</th>
             <th>Status</th>
+            <th>Checkin soldier</th>
           </tr>
         </thead>
         <tbody>
@@ -238,20 +211,19 @@ export default function AdminVisitorLog() {
             </tr>
           )}
           {filteredVisitors.map((v) => {
-            const fullName = `${v.firstname || ""} ${v.lastname || ""}`.trim();
-            const hostName =
-              v.host && typeof v.host === "object"
-                ? `${v.host.firstname || ""} ${v.host.lastname || ""}`.trim()
-                : v.host || "";
             return (
               <tr key={v._id}>
-                <td>{fullName}</td>
+                <td>
+                  {v.firstname} {v.lastname}
+                </td>
                 <td>{v.national_id || ""}</td>
                 <td>{v.phone || ""}</td>
-                <td>{hostName}</td>
-                <td>{formatDateForTable(v.visit_date)}</td>
-                <td>{formatTime(v.time_in)}</td>
-                <td>{formatTime(v.time_out) || "-"}</td>
+                <td>
+                  {v.host.firstname} {v.host.lastname}
+                </td>
+                <td>{format(new Date(v.visit_date), "MMMM do, yyyy")}</td>
+                <td>{format(new Date(v.time_in), "hh:mm a")}</td>
+                <td>{format(new Date(v.time_out), "hh:mm a") || "-"}</td>
                 <td>
                   <span
                     className={
@@ -266,6 +238,9 @@ export default function AdminVisitorLog() {
                   >
                     {v.status}
                   </span>
+                </td>
+                <td>
+                  {v.checkin_officer.firstname} {v.checkin_officer.lastname}
                 </td>
               </tr>
             );

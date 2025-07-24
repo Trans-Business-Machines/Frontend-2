@@ -1,26 +1,25 @@
-"use client"
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import "./AdminAddUser.css"
-import axiosInstance from "../api/axiosInstance"
-import { capitalize } from "../utils/index"
-import useSWRMutation from "swr/mutation"
-import Snackbar from "../components/Snackbar"
-import { FaCheck, FaXmark } from "react-icons/fa6"
-import toast from "react-hot-toast"
+import "./AdminAddUser.css";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { capitalize } from "../utils/index";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import axiosInstance from "../api/axiosInstance";
+import useSWRMutation from "swr/mutation";
+import Snackbar from "../components/Snackbar";
+import toast from "react-hot-toast";
 
 const registerUser = async (url, { arg }) => {
-  const { body } = arg
-  const response = await axiosInstance.post(url, body)
-  return response.data
-}
+  const { body } = arg;
+  const response = await axiosInstance.post(url, body);
+  return response.data;
+};
 
-const getRoles = () => {
-  return axiosInstance.get("/users/roles")
-}
+const getRoles =  () => {
+  return axiosInstance.get("/users/roles");
+};
 
 export default function AdminAddUser() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     firstname: "",
     lastname: "",
@@ -28,7 +27,7 @@ export default function AdminAddUser() {
     phone: "",
     role: "",
     password: "",
-  })
+  });
 
   // Individual field errors
   const [errors, setErrors] = useState({
@@ -38,153 +37,154 @@ export default function AdminAddUser() {
     phone: "",
     role: "",
     password: "",
-  })
+  });
 
-  const [error, setError] = useState("")
-  const [roles, setRoles] = useState([])
-  const [existingEmails, setExistingEmails] = useState([])
+  const [error, setError] = useState("");
+  const [roles, setRoles] = useState([]);
+  const [existingEmails, setExistingEmails] = useState([]);
 
   useEffect(() => {
     async function getAppRoles() {
       try {
-        const [response] = await Promise.all([getRoles()])
-        setRoles(response.data.roles)
+        const [response] = await Promise.all([getRoles()]);
+        setRoles(response.data.roles);
       } catch (error) {
-        console.error("Error fetching roles:", error)
-        setError("Failed to load roles. Please try again later.")
+        console.error("Error fetching roles:", error);
+        setError("Failed to load roles. Please try again later.");
       }
     }
-    getAppRoles()
-  }, [])
+    getAppRoles();
+  }, []);
 
   // Fetch existing emails for duplicate check
   useEffect(() => {
     const fetchExistingEmails = async () => {
       try {
-        const response = await axiosInstance.get("/users")
-        let userData = []
+        const response = await axiosInstance.get("/users");
+        let userData = [];
         if (Array.isArray(response.data)) {
-          userData = response.data
+          userData = response.data;
         } else if (response.data.users && Array.isArray(response.data.users)) {
-          userData = response.data.users
+          userData = response.data.users;
         } else if (response.data.data && Array.isArray(response.data.data)) {
-          userData = response.data.data
+          userData = response.data.data;
         }
-        const emails = userData.map((user) => user.email.toLowerCase())
-        setExistingEmails(emails)
+        const emails = userData.map((user) => user.email.toLowerCase());
+        setExistingEmails(emails);
       } catch (error) {
-        console.error("Failed to fetch existing emails:", error)
+        console.error("Failed to fetch existing emails:", error);
       }
-    }
-    fetchExistingEmails()
-  }, [])
+    };
+    fetchExistingEmails();
+  }, []);
 
   // Validation functions
   const validateFirstName = (name) => {
     if (!name.trim()) {
-      return "First name is required."
+      return "First name is required.";
     }
     if (!/^[A-Za-z\s]+$/.test(name)) {
-      return "Only letters are allowed."
+      return "Only letters are allowed.";
     }
-    return ""
-  }
+    return "";
+  };
 
   const validateLastName = (name) => {
     if (!name.trim()) {
-      return "Last name is required."
+      return "Last name is required.";
     }
     if (!/^[A-Za-z\s]+$/.test(name)) {
-      return "Only letters are allowed."
+      return "Only letters are allowed.";
     }
-    return ""
-  }
+    return "";
+  };
 
   const validateEmail = (email) => {
     if (!email.trim()) {
-      return "Email is required."
+      return "Email is required.";
     }
     if (!email.includes("@gmail.com")) {
-      return "Invalid email format."
+      return "Invalid email format.";
     }
     if (existingEmails.includes(email.toLowerCase())) {
-      return "This email is already in use."
+      return "This email is already in use.";
     }
-    return ""
-  }
+    return "";
+  };
 
   const validatePhone = (phone) => {
     if (!phone.trim()) {
-      return "Phone number is required."
+      return "Phone number is required.";
     }
-    const digitsOnly = phone.replace(/\D/g, "")
+    const digitsOnly = phone.replace(/\D/g, "");
     if (digitsOnly.length !== 10) {
-      return "Phone number must be exactly 10 digits"
+      return "Phone number must be exactly 10 digits";
     }
-    return ""
-  }
+    return "";
+  };
 
   const validateRole = (role) => {
     if (!role) {
-      return "Please select a role."
+      return "Please select a role.";
     }
-    return ""
-  }
+    return "";
+  };
 
   const validatePassword = (password) => {
     if (!password.trim()) {
-      return "Password is required."
+      return "Password is required.";
     }
-    return ""
-  }
+    return "";
+  };
 
-  const { trigger } = useSWRMutation("/auth/register", registerUser)
+  const { trigger } = useSWRMutation("/auth/register", registerUser);
 
   function handleChange(e) {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
     // Handle phone input - only allow digits
     if (name === "phone") {
-      const digitsOnly = value.replace(/\D/g, "").slice(0, 10)
-      setForm({ ...form, [name]: digitsOnly })
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+      setForm({ ...form, [name]: digitsOnly });
     } else {
-      setForm({ ...form, [name]: value })
+      setForm({ ...form, [name]: value });
     }
 
-    setError("")
+    setError("");
 
     // Real-time validation
-    let fieldError = ""
-    const valueToValidate = name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value
+    let fieldError = "";
+    const valueToValidate =
+      name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value;
 
     switch (name) {
       case "firstname":
-        fieldError = validateFirstName(valueToValidate)
-        break
+        fieldError = validateFirstName(valueToValidate);
+        break;
       case "lastname":
-        fieldError = validateLastName(valueToValidate)
-        break
+        fieldError = validateLastName(valueToValidate);
+        break;
       case "email":
-        fieldError = validateEmail(valueToValidate)
-        break
+        fieldError = validateEmail(valueToValidate);
+        break;
       case "phone":
-        fieldError = validatePhone(valueToValidate)
-        break
+        fieldError = validatePhone(valueToValidate);
+        break;
       case "role":
-        fieldError = validateRole(valueToValidate)
-        break
+        fieldError = validateRole(valueToValidate);
+        break;
       case "password":
-        fieldError = validatePassword(valueToValidate)
-        break
+        fieldError = validatePassword(valueToValidate);
+        break;
       default:
-        break
+        break;
     }
 
     // Update individual field error
     setErrors((prev) => ({
       ...prev,
       [name]: fieldError,
-    }))
+    }));
   }
 
   // Validate all fields
@@ -196,11 +196,11 @@ export default function AdminAddUser() {
       phone: validatePhone(form.phone),
       role: validateRole(form.role),
       password: validatePassword(form.password),
-    }
+    };
 
-    setErrors(newErrors)
-    return Object.values(newErrors).every((error) => error === "")
-  }
+    setErrors(newErrors);
+    return Object.values(newErrors).every((error) => error === "");
+  };
 
   function clearform() {
     setForm({
@@ -210,7 +210,7 @@ export default function AdminAddUser() {
       phone: "",
       role: "",
       password: "",
-    })
+    });
     setErrors({
       firstname: "",
       lastname: "",
@@ -218,15 +218,15 @@ export default function AdminAddUser() {
       phone: "",
       role: "",
       password: "",
-    })
-    setError("")
+    });
+    setError("");
   }
 
   async function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
     try {
@@ -239,40 +239,50 @@ export default function AdminAddUser() {
           role: form.role.trim(),
           password: form.password.trim(),
         },
-      })
+      });
       if (result.success) {
-        clearform()
-        toast.custom(<Snackbar icon={FaCheck} message={result.message} type="success" />)
+        clearform();
+        toast.custom(
+          <Snackbar icon={FaCheck} message={result.message} type="success" />
+        );
       }
-      navigate("/admin/users")
+      navigate("/admin/users");
     } catch (error) {
-      console.log("Error submitting form:", error)
+      console.log("Error submitting form:", error);
 
       // Handle specific API errors
       if (error.response?.status === 400) {
-        const apiError = error.response.data
+        const apiError = error.response.data;
         if (apiError.message?.includes("email")) {
           setErrors((prev) => ({
             ...prev,
             email: "This email is already in use.",
-          }))
+          }));
         } else {
-          setError("Failed to create user. Please check your input and try again.")
+          setError(
+            "Failed to create user. Please check your input and try again."
+          );
         }
       } else {
-        setError("Failed to create user. Please try again later.")
+        setError("Failed to create user. Please try again later.");
       }
 
       toast.custom(
-        <Snackbar icon={FaXmark} message={error.response?.data?.message || "Failed to create user"} type="error" />,
-      )
+        <Snackbar
+          icon={FaXmark}
+          message={error.response?.data?.message || "Failed to create user"}
+          type="error"
+        />
+      );
     }
   }
 
   return (
     <div className="admin-add-user">
       <div className="admin-add-user-title">Add New User</div>
-      <div className="admin-add-user-desc">Fill in the form below to create a new system user.</div>
+      <div className="admin-add-user-desc">
+        Fill in the form below to create a new system user.
+      </div>
       <form className="admin-add-user-form" onSubmit={handleSubmit}>
         <div className="form-row">
           <div className="form-field">
@@ -283,7 +293,9 @@ export default function AdminAddUser() {
               onChange={handleChange}
               className={errors.firstname ? "error" : ""}
             />
-            {errors.firstname && <div className="field-error">{errors.firstname}</div>}
+            {errors.firstname && (
+              <div className="field-error">{errors.firstname}</div>
+            )}
           </div>
           <div className="form-field">
             <input
@@ -293,7 +305,9 @@ export default function AdminAddUser() {
               onChange={handleChange}
               className={errors.lastname ? "error" : ""}
             />
-            {errors.lastname && <div className="field-error">{errors.lastname}</div>}
+            {errors.lastname && (
+              <div className="field-error">{errors.lastname}</div>
+            )}
           </div>
         </div>
 
@@ -335,7 +349,9 @@ export default function AdminAddUser() {
               onChange={handleChange}
               className={errors.password ? "error" : ""}
             />
-            {errors.password && <div className="field-error">{errors.password}</div>}
+            {errors.password && (
+              <div className="field-error">{errors.password}</div>
+            )}
           </div>
         </div>
 
@@ -348,7 +364,12 @@ export default function AdminAddUser() {
 
         <div className="form-row-single">
           <div className="form-field">
-            <select name="role" value={form.role} onChange={handleChange} className={errors.role ? "error" : ""}>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className={errors.role ? "error" : ""}
+            >
               <option value="" disabled>
                 Select a role
               </option>
@@ -366,11 +387,15 @@ export default function AdminAddUser() {
           <button type="submit" className="submit-btn">
             Submit
           </button>
-          <button type="button" className="cancel-btn" onClick={() => navigate("/admin/users")}>
+          <button
+            type="button"
+            className="cancel-btn"
+            onClick={() => navigate("/admin/users")}
+          >
             Cancel
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

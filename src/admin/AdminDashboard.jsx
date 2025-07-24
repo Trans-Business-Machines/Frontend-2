@@ -1,5 +1,7 @@
-import useSWR from "swr";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import useSWR from "swr";
 import Table from "../components/Table";
 import axiosInstance from "../api/axiosInstance";
 import "./AdminDashboard.css";
@@ -14,33 +16,28 @@ const getStats = async (url) => {
   return res.data;
 };
 
-function getFormattedDate() {
-  const date = new Date();
-  return date
-    .toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    })
-    .replace(/ /g, "-");
-}
-
 export default function AdminDashboard() {
+  const [page, setPage] = useState(1);
   const navigate = useNavigate();
+
+  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
 
   // Fetch only the first page with 10 records for dashboard
   const { data, isLoading } = useSWR(
-    `/visits?page=1&limit=10`,
+    `/visits/today?page=${page}`,
     getTodaysVisitors
   );
-  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
+
+  function nextPage() {
+    setPage((prevPage) => prevPage + 1);
+  }
+
+  function prevPage() {
+    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
+  }
 
   if (isLoading || statsLoading) {
     return <div>Loading visitors and stats...</div>;
-  }
-
-  if (!data || !stats) {
-    return <div>Loading dashboard data...</div>;
   }
 
   //  Map backend values correctly
@@ -60,7 +57,9 @@ export default function AdminDashboard() {
             Here's an overview of today&apos;s activities
           </div>
         </div>
-        <div className="admin-dashboard-date-pill">{getFormattedDate()}</div>
+        <div className="admin-dashboard-date-pill">
+          {format(new Date(), "PPP")}
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -175,7 +174,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        {!data?.visits || data?.visits.length === 0 ? (
+        {!data.visits || data?.visits.length === 0 ? (
           <div style={{ padding: "1rem", textAlign: "center" }}>
             <p
               style={{
@@ -188,7 +187,38 @@ export default function AdminDashboard() {
             </p>
           </div>
         ) : (
-          <Table visitors={data.visits} />
+          <>
+            <Table visitors={data.visits} />
+
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                marginTop: "20px",
+                marginLeft: "auto",
+                justifyContent: "right",
+                alignItems: "center",
+                width: "40%",
+                maxWidth: "400px",
+              }}
+            >
+              <button
+                className="pagination-button"
+                onClick={prevPage}
+                disabled={!data.hasPrev}
+              >
+                <FaChevronLeft size={14} />
+              </button>
+              <button className="current-page-btn">{page}</button>
+              <button
+                className="pagination-button"
+                onClick={nextPage}
+                disabled={!data.hasNext}
+              >
+                <FaChevronRight size={14} />
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
