@@ -6,10 +6,9 @@ import axiosInstance, {
   setAccessToken as setAxiosToken,
 } from "../api/axiosInstance";
 import axios from "axios";
-
 import { jwtDecode } from "jwt-decode";
-
 import navigate from "../utils";
+import Loading from "../components/Loading";
 
 const AuthContext = createContext();
 
@@ -17,9 +16,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  console.log(user)
-  console.log(token)
 
   /*
    Refresh the access token when the app loads to get a new access token
@@ -89,7 +85,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, loading }}>
-      {loading ? <div>Verifying user info...</div> : children}
+      {loading ? <Loading /> : children}
     </AuthContext.Provider>
   );
 }

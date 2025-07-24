@@ -2,3 +2,8 @@
     margin: 0;
     box-sizing: border-box;
 }
+
+.bg-blue-green-gradient {
+    background: linear-gradient(135deg, #285E61, #2F855A);
+    color: #fff;
+}

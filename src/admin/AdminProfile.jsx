@@ -1,23 +1,23 @@
-"use client"
-import { useNavigate } from "react-router-dom"
-import useSWR from "swr"
-import { format } from "date-fns"
-import { useAuth } from "../context/AuthContext"
-import axiosInstance from "../api/axiosInstance"
-import "./AdminProfile.css"
+import "./AdminProfile.css";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { useAuth } from "../context/AuthContext";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 
 const getProfile = async (url) => {
-  const { data } = await axiosInstance.get(url)
-  return data
-}
+  const { data } = await axiosInstance.get(url);
+  return data;
+};
 
 export default function AdminProfile() {
-  const { user } = useAuth() // fetch the logged-in user's ID
-  const navigate = useNavigate()
+  const { user } = useAuth(); // fetch the logged-in user's ID
+  const navigate = useNavigate();
 
-  const { data: profile, isLoading } = useSWR(user?.userId ? `/users/${user.userId}` : null, getProfile)
-
-  console.log(user)
+  const { data: profile, isLoading } = useSWR(
+    user?.userId ? `/users/${user.userId}` : null,
+    getProfile
+  );
 
   return (
     <section>
@@ -31,9 +31,21 @@ export default function AdminProfile() {
             <div className="profile-avatar">
               <svg width="64" height="64" fill="none">
                 <circle cx="32" cy="32" r="32" fill="#E8E8E8" />
-                <circle cx="32" cy="27" r="16" fill="#fff" stroke="#aaa" strokeWidth="2" />
+                <circle
+                  cx="32"
+                  cy="27"
+                  r="16"
+                  fill="#fff"
+                  stroke="#aaa"
+                  strokeWidth="2"
+                />
                 <circle cx="32" cy="27" r="10" fill="#E8E8E8" />
-                <path d="M14 56c0-7 9-12 18-12s18 5 18 12" fill="#fff" stroke="#aaa" strokeWidth="2" />
+                <path
+                  d="M14 56c0-7 9-12 18-12s18 5 18 12"
+                  fill="#fff"
+                  stroke="#aaa"
+                  strokeWidth="2"
+                />
               </svg>
             </div>
             <h3 className="profile-title">Your Profile</h3>
@@ -45,8 +57,21 @@ export default function AdminProfile() {
               <div className="profile-row">
                 <span className="profile-icon">
                   <svg width="18" height="18" fill="none">
-                    <rect x="2.5" y="5.5" width="13" height="7" rx="1" stroke="#888" strokeWidth="1.5" />
-                    <path d="M6 8h6M6 10h4" stroke="#888" strokeWidth="1.2" strokeLinecap="round" />
+                    <rect
+                      x="2.5"
+                      y="5.5"
+                      width="13"
+                      height="7"
+                      rx="1"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M6 8h6M6 10h4"
+                      stroke="#888"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </span>
                 <span className="profile-label">User ID</span>
@@ -55,8 +80,18 @@ export default function AdminProfile() {
               <div className="profile-row">
                 <span className="profile-icon">
                   <svg width="18" height="18" fill="none">
-                    <circle cx="9" cy="6" r="3.5" stroke="#888" strokeWidth="1.5" />
-                    <path d="M2 15c0-2.5 3-4 7-4s7 1.5 7 4" stroke="#888" strokeWidth="1.5" />
+                    <circle
+                      cx="9"
+                      cy="6"
+                      r="3.5"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M2 15c0-2.5 3-4 7-4s7 1.5 7 4"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
                   </svg>
                 </span>
                 <span className="profile-label">Full Name</span>
@@ -67,8 +102,21 @@ export default function AdminProfile() {
               <div className="profile-row">
                 <span className="profile-icon">
                   <svg width="18" height="18" fill="none">
-                    <rect x="2.5" y="4.5" width="13" height="9" rx="2" stroke="#888" strokeWidth="1.5" />
-                    <path d="M4.5 6.5l5.5 3 5.5-3" stroke="#888" strokeWidth="1.5" strokeLinecap="round" />
+                    <rect
+                      x="2.5"
+                      y="4.5"
+                      width="13"
+                      height="9"
+                      rx="2"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M4.5 6.5l5.5 3 5.5-3"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </span>
                 <span className="profile-label">Email Address</span>
@@ -77,7 +125,15 @@ export default function AdminProfile() {
               <div className="profile-row">
                 <span className="profile-icon">
                   <svg width="18" height="18" fill="none">
-                    <rect x="5" y="2" width="8" height="14" rx="2" stroke="#888" strokeWidth="1.5" />
+                    <rect
+                      x="5"
+                      y="2"
+                      width="8"
+                      height="14"
+                      rx="2"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
                     <circle cx="9" cy="14" r="0.8" fill="#888" />
                   </svg>
                 </span>
@@ -87,20 +143,36 @@ export default function AdminProfile() {
               <div className="profile-row">
                 <span className="profile-icon">
                   <svg width="18" height="18" fill="none">
-                    <rect x="3.5" y="2.5" width="11" height="13" rx="2" stroke="#888" strokeWidth="1.5" />
-                    <path d="M7 6h4M7 9h4M7 12h2" stroke="#888" strokeWidth="1.2" strokeLinecap="round" />
+                    <rect
+                      x="3.5"
+                      y="2.5"
+                      width="11"
+                      height="13"
+                      rx="2"
+                      stroke="#888"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M7 6h4M7 9h4M7 12h2"
+                      stroke="#888"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </span>
                 <span className="profile-label">Role</span>
                 <span className="profile-value">{profile.role}</span>
               </div>
             </div>
-            <button className="profile-change-btn" onClick={() => navigate("/admin/profile/change-password")}>
+            <button
+              className="profile-change-btn"
+              onClick={() => navigate("/admin/profile/change-password")}
+            >
               Change Password
             </button>
           </div>
         </div>
       )}
     </section>
-  )
+  );
 }

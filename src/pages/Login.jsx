@@ -1,317 +1,360 @@
-"use client"
+"use client";
 
-import "./Login.css"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { toast } from "react-hot-toast"
-import { FaXmark, FaCheck } from "react-icons/fa6"
-import Snackbar from "../components/Snackbar"
-import axiosInstance from "../api/axiosInstance" // Ensure this is imported
+import "./Login.css";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
+import { FaXmark, FaCheck } from "react-icons/fa6";
+import Snackbar from "../components/Snackbar";
+import axiosInstance from "../api/axiosInstance"; // Ensure this is imported
 
 function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isLikelyEmail(value) {
-  return value.includes("@")
+  return value.includes("@");
 }
 
 function isValidPhone(phone) {
-  return /^(\+?\d{7,})$/.test(phone) && !isLikelyEmail(phone)
+  return /^(\+?\d{7,})$/.test(phone) && !isLikelyEmail(phone);
 }
 
 // New helper for password validation
 function isValidPassword(password) {
-  return password.length >= 6 // Simple validation, can be enhanced
+  return password.length >= 6; // Simple validation, can be enhanced
 }
 
 // New helper for OTP validation
 function isValidOTP(otp) {
-  return /^\d{6}$/.test(otp) // Assuming 6-digit OTP
+  return /^\d{6}$/.test(otp); // Assuming 6-digit OTP
 }
 
 function isValidName(name) {
-  return /^[a-zA-Z\s]+$/.test(name) // Allows letters and spaces
+  return /^[a-zA-Z\s]+$/.test(name); // Allows letters and spaces
 }
 
 function isValidGmail(email) {
-  return /^[^\s@]+@gmail\.com$/.test(email)
+  return /^[^\s@]+@gmail\.com$/.test(email);
 }
 
 function isValidTenDigitPhone(phone) {
-  return /^\d{10}$/.test(phone) // Exactly 10 digits
+  return /^\d{10}$/.test(phone); // Exactly 10 digits
 }
 
 export default function Login() {
-  const [authMode, setAuthMode] = useState("email")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [errorMsg, setErrorMsg] = useState("")
-  const { login } = useAuth()
-  const navigate = useNavigate()
+  const [authMode, setAuthMode] = useState("email");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   // Forgot Password States
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
-  const [forgotPasswordStep, setForgotPasswordStep] = useState("email") // 'email', 'otp', 'newPassword'
-  const [forgotEmail, setForgotEmail] = useState("")
-  const [otp, setOtp] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false)
-  const [forgotPasswordError, setForgotPasswordError] = useState("")
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("")
-  const [resetToken, setResetToken] = useState("")
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState("email"); // 'email', 'otp', 'newPassword'
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [forgotPasswordError, setForgotPasswordError] = useState("");
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("");
+  const [resetToken, setResetToken] = useState("");
 
   // Contact Admin States
-  const [showContactAdminModal, setShowContactAdminModal] = useState(false)
+  const [showContactAdminModal, setShowContactAdminModal] = useState(false);
   const [contactAdminForm, setContactAdminForm] = useState({
     firstname: "",
     lastname: "",
     email: "",
     role: "",
     phone: "",
-  })
+  });
   const [contactAdminErrors, setContactAdminErrors] = useState({
     firstname: "",
     lastname: "",
     email: "",
     phone: "",
     role: "",
-  })
-  const [contactAdminLoading, setContactAdminLoading] = useState(false)
-  const [contactAdminError, setContactAdminError] = useState("") // General error for API failures
-  const [contactAdminSuccess, setContactAdminSuccess] = useState("")
+  });
+  const [contactAdminLoading, setContactAdminLoading] = useState(false);
+  const [contactAdminError, setContactAdminError] = useState(""); // General error for API failures
+  const [contactAdminSuccess, setContactAdminSuccess] = useState("");
 
   const handleAuthMode = (mode) => {
-    setAuthMode(mode)
-    setErrorMsg("")
-    setPassword("")
-    if (mode === "phone") setEmail("")
-    else setPhone("")
-  }
+    setAuthMode(mode);
+    setErrorMsg("");
+    setPassword("");
+    if (mode === "phone") setEmail("");
+    else setPhone("");
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrorMsg("")
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
     if (authMode === "phone") {
       if (!phone.trim() || email.trim()) {
-        setErrorMsg("Please enter your phone number only.")
-        setLoading(false)
-        return
+        setErrorMsg("Please enter your phone number only.");
+        setLoading(false);
+        return;
       }
       if (!isValidPhone(phone)) {
-        setErrorMsg("Please enter a valid phone number (digits only).")
-        setLoading(false)
-        return
+        setErrorMsg("Please enter a valid phone number (digits only).");
+        setLoading(false);
+        return;
       }
     } else {
       if (!email.trim() || phone.trim()) {
-        setErrorMsg("Please enter your email only.")
-        setLoading(false)
-        return
+        setErrorMsg("Please enter your email only.");
+        setLoading(false);
+        return;
       }
       if (!isValidEmail(email)) {
-        setErrorMsg("Please enter a valid email address.")
-        setLoading(false)
-        return
+        setErrorMsg("Please enter a valid email address.");
+        setLoading(false);
+        return;
       }
     }
     try {
-  let user;
-  if (authMode === "phone") {
-    user = await login({ phone, password });
-  } else {
-    user = await login({ email, password });
-  }
+      let user;
+      if (authMode === "phone") {
+        user = await login({ phone, password });
+      } else {
+        user = await login({ email, password });
+      }
 
-  //  Redirect based on role
-  if (user?.role === "soldier") {
-    toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
-    navigate("/");
-  } else if (user?.role === "host" || user?.role === "receptionist") {
-    toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
-    navigate("/host/dashboard");
-  } else if (user?.role === "admin" || user.role === "super admin") {
-    toast.custom(<Snackbar type="success" message="Login successful!" icon={FaCheck} />);
-    navigate("/admin/dashboard");
-  }
-
-} catch (err) {
-  const message = err.response?.data?.message || "Login failed. Please try again.";
-  toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />);
-} finally {
-  setLoading(false);
-}
-  }
+      //  Redirect based on role
+      if (user?.role === "soldier") {
+        toast.custom(
+          <Snackbar type="success" message="Login successful!" icon={FaCheck} />
+        );
+        navigate("/");
+      } else if (user?.role === "host" || user?.role === "receptionist") {
+        toast.custom(
+          <Snackbar type="success" message="Login successful!" icon={FaCheck} />
+        );
+        navigate("/host/dashboard");
+      } else if (user?.role === "admin" || user.role === "super admin") {
+        toast.custom(
+          <Snackbar type="success" message="Login successful!" icon={FaCheck} />
+        );
+        navigate("/admin/dashboard");
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Login failed. Please try again.";
+      toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Forgot Password Handlers
   const handleForgotPasswordEmailSubmit = async (e) => {
-    e.preventDefault()
-    setForgotPasswordLoading(true)
-    setForgotPasswordError("")
-    setForgotPasswordSuccess("")
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordError("");
+    setForgotPasswordSuccess("");
     if (!isValidEmail(forgotEmail)) {
-      setForgotPasswordError("Please enter a valid email address.")
-      setForgotPasswordLoading(false)
-      return
+      setForgotPasswordError("Please enter a valid email address.");
+      setForgotPasswordLoading(false);
+      return;
     }
     try {
       // Corrected API endpoint for sending OTP
       const response = await axiosInstance.post("/auth/forgot-password", {
         email: forgotEmail,
-      })
-      setForgotPasswordSuccess(response.data.message || "OTP sent to your email.")
-      setForgotPasswordStep("otp")
+      });
+      setForgotPasswordSuccess(
+        response.data.message || "OTP sent to your email."
+      );
+      setForgotPasswordStep("otp");
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to send OTP. Please try again."
-      setForgotPasswordError(message)
+      const message =
+        err.response?.data?.message || "Failed to send OTP. Please try again.";
+      setForgotPasswordError(message);
     } finally {
-      setForgotPasswordLoading(false)
+      setForgotPasswordLoading(false);
     }
-  }
+  };
 
   const handleVerifyOtpSubmit = async (e) => {
-    e.preventDefault()
-    setForgotPasswordLoading(true)
-    setForgotPasswordError("")
-    setForgotPasswordSuccess("")
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordError("");
+    setForgotPasswordSuccess("");
     if (!isValidOTP(otp)) {
-      setForgotPasswordError("Please enter a valid 6-digit OTP.")
-      setForgotPasswordLoading(false)
-      return
+      setForgotPasswordError("Please enter a valid 6-digit OTP.");
+      setForgotPasswordLoading(false);
+      return;
     }
     try {
-      const {  data } = await axiosInstance.post("/auth/verify-otp", {
+      const { data } = await axiosInstance.post("/auth/verify-otp", {
         email: forgotEmail,
         otp,
-      })
-      setForgotPasswordSuccess("OTP verified successfully.")
-      setResetToken(data?.resetToken)
-      setForgotPasswordStep("newPassword")
+      });
+      setForgotPasswordSuccess("OTP verified successfully.");
+      setResetToken(data?.resetToken);
+      setForgotPasswordStep("newPassword");
     } catch (err) {
-      const message = err.response?.data?.message || "OTP verification failed. Please try again."
-      setForgotPasswordError(message)
+      const message =
+        err.response?.data?.message ||
+        "OTP verification failed. Please try again.";
+      setForgotPasswordError(message);
     } finally {
-      setForgotPasswordLoading(false)
+      setForgotPasswordLoading(false);
     }
-  }
+  };
 
   const handleNewPasswordSubmit = async (e) => {
-    e.preventDefault()
-    setForgotPasswordLoading(true)
-    setForgotPasswordError("")
-    setForgotPasswordSuccess("")
+    e.preventDefault();
+    setForgotPasswordLoading(true);
+    setForgotPasswordError("");
+    setForgotPasswordSuccess("");
     if (!isValidPassword(newPassword)) {
-      setForgotPasswordError("Password must be at least 6 characters long.")
-      setForgotPasswordLoading(false)
-      return
+      setForgotPasswordError("Password must be at least 6 characters long.");
+      setForgotPasswordLoading(false);
+      return;
     }
     if (newPassword !== confirmPassword) {
-      setForgotPasswordError("Passwords do not match.")
-      setForgotPasswordLoading(false)
-      return
+      setForgotPasswordError("Passwords do not match.");
+      setForgotPasswordLoading(false);
+      return;
     }
     try {
       const response = await axiosInstance.post("/auth/reset-password", {
-        password:confirmPassword,
-        resetToken
-      })
-      setForgotPasswordSuccess(response.data.message || "Password updated successfully!")
-      toast.custom(<Snackbar type="success" message="Password updated successfully!" icon={FaCheck} />)
-      setShowForgotPasswordModal(false)
+        password: confirmPassword,
+        resetToken,
+      });
+      setForgotPasswordSuccess(
+        response.data.message || "Password updated successfully!"
+      );
+      toast.custom(
+        <Snackbar
+          type="success"
+          message="Password updated successfully!"
+          icon={FaCheck}
+        />
+      );
+      setShowForgotPasswordModal(false);
       // Optionally clear states or redirect
-      setForgotEmail("")
-      setOtp("")
-      setNewPassword("")
-      setConfirmPassword("")
-      setForgotPasswordStep("email")
+      setForgotEmail("");
+      setOtp("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setForgotPasswordStep("email");
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to update password. Please try again."
-      setForgotPasswordError(message)
+      const message =
+        err.response?.data?.message ||
+        "Failed to update password. Please try again.";
+      setForgotPasswordError(message);
     } finally {
-      setForgotPasswordLoading(false)
+      setForgotPasswordLoading(false);
     }
-  }
+  };
 
   const handleContactAdminSubmit = async (e) => {
-    e.preventDefault()
-    setContactAdminLoading(true)
-    setContactAdminError("") // Clear general error
-    setContactAdminSuccess("")
+    e.preventDefault();
+    setContactAdminLoading(true);
+    setContactAdminError(""); // Clear general error
+    setContactAdminSuccess("");
 
-    const errors = {}
-    let isValid = true
+    const errors = {};
+    let isValid = true;
 
     // Validate First Name
     if (contactAdminForm.firstname.trim() === "") {
-      errors.firstname = "This field is required."
-      isValid = false
+      errors.firstname = "This field is required.";
+      isValid = false;
     } else if (!isValidName(contactAdminForm.firstname)) {
-      errors.firstname = "Please enter a valid name without numbers or special characters."
-      isValid = false
+      errors.firstname =
+        "Please enter a valid name without numbers or special characters.";
+      isValid = false;
     }
 
     // Validate Last Name
     if (contactAdminForm.lastname.trim() === "") {
-      errors.lastname = "This field is required."
-      isValid = false
+      errors.lastname = "This field is required.";
+      isValid = false;
     } else if (!isValidName(contactAdminForm.lastname)) {
-      errors.lastname = "Please enter a valid name without numbers or special characters."
-      isValid = false
+      errors.lastname =
+        "Please enter a valid name without numbers or special characters.";
+      isValid = false;
     }
 
     // Validate Email
     if (contactAdminForm.email.trim() === "") {
-      errors.email = "This field is required."
-      isValid = false
+      errors.email = "This field is required.";
+      isValid = false;
     } else if (!isValidGmail(contactAdminForm.email)) {
-      errors.email = "Please enter a valid email address (e.g., user@gmail.com)."
-      isValid = false
+      errors.email =
+        "Please enter a valid email address (e.g., user@gmail.com).";
+      isValid = false;
     }
 
     // Validate Phone
     if (contactAdminForm.phone.trim() === "") {
-      errors.phone = "This field is required."
-      isValid = false
+      errors.phone = "This field is required.";
+      isValid = false;
     } else if (!isValidTenDigitPhone(contactAdminForm.phone)) {
-      errors.phone = "Phone number must have 10 digits."
-      isValid = false
+      errors.phone = "Phone number must have 10 digits.";
+      isValid = false;
     }
 
     // Validate Role
     if (contactAdminForm.role.trim() === "") {
-      errors.role = "This field is required."
-      isValid = false
+      errors.role = "This field is required.";
+      isValid = false;
     }
 
-    setContactAdminErrors(errors) // Set all collected errors
+    setContactAdminErrors(errors); // Set all collected errors
 
     if (!isValid) {
-      setContactAdminLoading(false)
-      return
+      setContactAdminLoading(false);
+      return;
     }
 
-    console.log("Sending Contact Admin Form Data:", contactAdminForm)
+    console.log("Sending Contact Admin Form Data:", contactAdminForm);
 
     try {
-      const response = await axiosInstance.post("http:///contact-admin", contactAdminForm)
-      setContactAdminSuccess(response.data.message || "Your request has been sent to the admin.")
-      toast.custom(<Snackbar type="success" message="Request sent successfully!" icon={FaCheck} />)
-      setShowContactAdminModal(false)
+      const response = await axiosInstance.post(
+        "/contact-admin",
+        contactAdminForm
+      );
+      setContactAdminSuccess(
+        response.data.message || "Your request has been sent to the admin."
+      );
+      toast.custom(
+        <Snackbar
+          type="success"
+          message="Request sent successfully!"
+          icon={FaCheck}
+        />
+      );
+      setShowContactAdminModal(false);
       // Clear form
-      setContactAdminForm({ firstname: "", lastname: "", email: "", role: "", phone: "" })
+      setContactAdminForm({
+        firstname: "",
+        lastname: "",
+        email: "",
+        role: "",
+        phone: "",
+      });
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to send request. Please try again."
-      setContactAdminError(message) // Use general error for API failures
+      const message =
+        err.response?.data?.message ||
+        "Failed to send request. Please try again.";
+      setContactAdminError(message); // Use general error for API failures
     } finally {
-      setContactAdminLoading(false)
+      setContactAdminLoading(false);
     }
-  }
+  };
 
   return (
     <div className="login-bg-split">
@@ -337,7 +380,11 @@ export default function Login() {
         </div>
       </div>
       <div className="login-split-right">
-        <form className="login-form-box" onSubmit={handleSubmit} autoComplete="off">
+        <form
+          className="login-form-box"
+          onSubmit={handleSubmit}
+          autoComplete="off"
+        >
           <h2 className="login-welcome">Welcome Back</h2>
           <div className="login-card-subtitle" style={{ marginBottom: 20 }}>
             Please sign in to your account
@@ -380,7 +427,11 @@ export default function Login() {
                       stroke="#aaa"
                       strokeWidth="1.5"
                     />
-                    <path d="M16 4l-7 6.5L2 4" stroke="#aaa" strokeWidth="1.5" />
+                    <path
+                      d="M16 4l-7 6.5L2 4"
+                      stroke="#aaa"
+                      strokeWidth="1.5"
+                    />
                   </svg>
                 </span>
               </div>
@@ -431,8 +482,17 @@ export default function Login() {
                 {showPassword ? (
                   // Eye-off SVG
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                    <path d="M3 3l18 18" stroke="#888" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M10.5 10.5a2 2 0 1 1 2.5 2.5" stroke="#888" strokeWidth="2" />
+                    <path
+                      d="M3 3l18 18"
+                      stroke="#888"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M10.5 10.5a2 2 0 1 1 2.5 2.5"
+                      stroke="#888"
+                      strokeWidth="2"
+                    />
                     <path
                       d="M17.94 17.94A10.55 10.55 0 0 1 12 19C7 19 2.73 15.11 1 12a14.26 14.26 0 0 1 4.17-5.15m3.11-1.74A9.92 9.92 0 0 1 12 5c5 0 9.27 3.89 11 7a14.47 14.47 0 0 1-4.23 5.29"
                       stroke="#888"
@@ -443,8 +503,21 @@ export default function Login() {
                 ) : (
                   // Eye SVG
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                    <ellipse cx="12" cy="12" rx="10" ry="7" stroke="#888" strokeWidth="2" />
-                    <circle cx="12" cy="12" r="3" stroke="#888" strokeWidth="2" />
+                    <ellipse
+                      cx="12"
+                      cy="12"
+                      rx="10"
+                      ry="7"
+                      stroke="#888"
+                      strokeWidth="2"
+                    />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="3"
+                      stroke="#888"
+                      strokeWidth="2"
+                    />
                   </svg>
                 )}
               </span>
@@ -454,25 +527,39 @@ export default function Login() {
             <a
               href="#"
               onClick={(e) => {
-                e.preventDefault()
-                setShowForgotPasswordModal(true)
-                setForgotPasswordStep("email")
-                setForgotPasswordError("")
-                setForgotPasswordSuccess("")
+                e.preventDefault();
+                setShowForgotPasswordModal(true);
+                setForgotPasswordStep("email");
+                setForgotPasswordError("");
+                setForgotPasswordSuccess("");
               }}
             >
               Forgot password?
             </a>
           </div>
-          <button type="submit" disabled={loading} className="login-card-submit-btn login-submit-btn-split">
+          <button
+            type="submit"
+            disabled={loading}
+            className="login-card-submit-btn login-submit-btn-split"
+          >
             {loading ? (
               <>
                 <span className="login-btn-spinner"></span> Signing in...
               </>
             ) : (
               <>
-                <svg height="15" width="15" viewBox="0 0 20 20" style={{ marginRight: 7, verticalAlign: "-2px" }}>
-                  <path d="M10 2a8 8 0 1 1 0 16A8 8 0 0 1 10 2zm1 4v4l3 3" fill="none" stroke="#fff" strokeWidth="2" />
+                <svg
+                  height="15"
+                  width="15"
+                  viewBox="0 0 20 20"
+                  style={{ marginRight: 7, verticalAlign: "-2px" }}
+                >
+                  <path
+                    d="M10 2a8 8 0 1 1 0 16A8 8 0 0 1 10 2zm1 4v4l3 3"
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth="2"
+                  />
                 </svg>
                 Sign in
               </>
@@ -484,29 +571,40 @@ export default function Login() {
             <a
               href="#"
               onClick={(e) => {
-                e.preventDefault()
-                setShowContactAdminModal(true)
-                setContactAdminError("")
-                setContactAdminSuccess("")
+                e.preventDefault();
+                setShowContactAdminModal(true);
+                setContactAdminError("");
+                setContactAdminSuccess("");
               }}
             >
               Contact Admin
             </a>
           </div>
         </form>
-        <div className="login-split-footer">© 2024 Visitor Management System. All rights reserved.</div>
+        <div className="login-split-footer">
+          © 2024 Visitor Management System. All rights reserved.
+        </div>
       </div>
 
       {/* Forgot Password Modal */}
       {showForgotPasswordModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button className="close-button" onClick={() => setShowForgotPasswordModal(false)}>
+            <button
+              className="close-button"
+              onClick={() => setShowForgotPasswordModal(false)}
+            >
               <FaXmark />
             </button>
             <h3>Forgot Password</h3>
-            {forgotPasswordError && <div className="login-error-message">{forgotPasswordError}</div>}
-            {forgotPasswordSuccess && <div className="login-success-message">{forgotPasswordSuccess}</div>}
+            {forgotPasswordError && (
+              <div className="login-error-message">{forgotPasswordError}</div>
+            )}
+            {forgotPasswordSuccess && (
+              <div className="login-success-message">
+                {forgotPasswordSuccess}
+              </div>
+            )}
 
             {forgotPasswordStep === "email" && (
               <form onSubmit={handleForgotPasswordEmailSubmit}>
@@ -529,12 +627,20 @@ export default function Login() {
                           stroke="#aaa"
                           strokeWidth="1.5"
                         />
-                        <path d="M16 4l-7 6.5L2 4" stroke="#aaa" strokeWidth="1.5" />
+                        <path
+                          d="M16 4l-7 6.5L2 4"
+                          stroke="#aaa"
+                          strokeWidth="1.5"
+                        />
                       </svg>
                     </span>
                   </div>
                 </div>
-                <button type="submit" className="login-card-submit-btn" disabled={forgotPasswordLoading}>
+                <button
+                  type="submit"
+                  className="login-card-submit-btn"
+                  disabled={forgotPasswordLoading}
+                >
                   {forgotPasswordLoading ? (
                     <>
                       <span className="login-btn-spinner"></span> Sending OTP...
@@ -563,7 +669,12 @@ export default function Login() {
                     />
                     <span className="login-input-icon">
                       {/* Icon for OTP, e.g., a key or lock */}
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           d="M12 17.5v-5"
                           stroke="#aaa"
@@ -589,7 +700,11 @@ export default function Login() {
                     </span>
                   </div>
                 </div>
-                <button type="submit" className="login-card-submit-btn" disabled={forgotPasswordLoading}>
+                <button
+                  type="submit"
+                  className="login-card-submit-btn"
+                  disabled={forgotPasswordLoading}
+                >
                   {forgotPasswordLoading ? (
                     <>
                       <span className="login-btn-spinner"></span> Verifying...
@@ -620,12 +735,28 @@ export default function Login() {
                       onClick={() => setShowPassword((v) => !v)}
                       style={{ cursor: "pointer" }}
                       tabIndex={0}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                     >
                       {showPassword ? (
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                          <path d="M3 3l18 18" stroke="#888" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M10.5 10.5a2 2 0 1 1 2.5 2.5" stroke="#888" strokeWidth="2" />
+                        <svg
+                          width="18"
+                          height="18"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 3l18 18"
+                            stroke="#888"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M10.5 10.5a2 2 0 1 1 2.5 2.5"
+                            stroke="#888"
+                            strokeWidth="2"
+                          />
                           <path
                             d="M17.94 17.94A10.55 10.55 0 0 1 12 19C7 19 2.73 15.11 1 12a14.26 14.26 0 0 1 4.17-5.15m3.11-1.74A9.92 9.92 0 0 1 12 5c5 0 9.27 3.89 11 7a14.47 14.47 0 0 1-4.23 5.29"
                             stroke="#888"
@@ -634,9 +765,27 @@ export default function Login() {
                           />
                         </svg>
                       ) : (
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                          <ellipse cx="12" cy="12" rx="10" ry="7" stroke="#888" strokeWidth="2" />
-                          <circle cx="12" cy="12" r="3" stroke="#888" strokeWidth="2" />
+                        <svg
+                          width="18"
+                          height="18"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <ellipse
+                            cx="12"
+                            cy="12"
+                            rx="10"
+                            ry="7"
+                            stroke="#888"
+                            strokeWidth="2"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="3"
+                            stroke="#888"
+                            strokeWidth="2"
+                          />
                         </svg>
                       )}
                     </span>
@@ -658,12 +807,28 @@ export default function Login() {
                       onClick={() => setShowPassword((v) => !v)}
                       style={{ cursor: "pointer" }}
                       tabIndex={0}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                     >
                       {showPassword ? (
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                          <path d="M3 3l18 18" stroke="#888" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M10.5 10.5a2 2 0 1 1 2.5 2.5" stroke="#888" strokeWidth="2" />
+                        <svg
+                          width="18"
+                          height="18"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 3l18 18"
+                            stroke="#888"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M10.5 10.5a2 2 0 1 1 2.5 2.5"
+                            stroke="#888"
+                            strokeWidth="2"
+                          />
                           <path
                             d="M17.94 17.94A10.55 10.55 0 0 1 12 19C7 19 2.73 15.11 1 12a14.26 14.26 0 0 1 4.17-5.15m3.11-1.74A9.92 9.92 0 0 1 12 5c5 0 9.27 3.89 11 7a14.47 14.47 0 0 1-4.23 5.29"
                             stroke="#888"
@@ -672,18 +837,41 @@ export default function Login() {
                           />
                         </svg>
                       ) : (
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                          <ellipse cx="12" cy="12" rx="10" ry="7" stroke="#888" strokeWidth="2" />
-                          <circle cx="12" cy="12" r="3" stroke="#888" strokeWidth="2" />
+                        <svg
+                          width="18"
+                          height="18"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <ellipse
+                            cx="12"
+                            cy="12"
+                            rx="10"
+                            ry="7"
+                            stroke="#888"
+                            strokeWidth="2"
+                          />
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="3"
+                            stroke="#888"
+                            strokeWidth="2"
+                          />
                         </svg>
                       )}
                     </span>
                   </div>
                 </div>
-                <button type="submit" className="login-card-submit-btn" disabled={forgotPasswordLoading}>
+                <button
+                  type="submit"
+                  className="login-card-submit-btn"
+                  disabled={forgotPasswordLoading}
+                >
                   {forgotPasswordLoading ? (
                     <>
-                      <span className="login-btn-spinner"></span> Updating Password...
+                      <span className="login-btn-spinner"></span> Updating
+                      Password...
                     </>
                   ) : (
                     "Update Password"
@@ -699,12 +887,19 @@ export default function Login() {
       {showContactAdminModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button className="close-button" onClick={() => setShowContactAdminModal(false)}>
+            <button
+              className="close-button"
+              onClick={() => setShowContactAdminModal(false)}
+            >
               <FaXmark />
             </button>
             <h3>Request Account Access</h3>
-            {contactAdminError && <div className="login-error-message">{contactAdminError}</div>}
-            {contactAdminSuccess && <div className="login-success-message">{contactAdminSuccess}</div>}
+            {contactAdminError && (
+              <div className="login-error-message">{contactAdminError}</div>
+            )}
+            {contactAdminSuccess && (
+              <div className="login-success-message">{contactAdminSuccess}</div>
+            )}
 
             <form onSubmit={handleContactAdminSubmit}>
               <div className="login-field">
@@ -714,17 +909,27 @@ export default function Login() {
                   type="text"
                   value={contactAdminForm.firstname}
                   onChange={(e) => {
-                    const value = e.target.value
-                    setContactAdminForm({ ...contactAdminForm, firstname: value })
+                    const value = e.target.value;
+                    setContactAdminForm({
+                      ...contactAdminForm,
+                      firstname: value,
+                    });
                     if (value.trim() === "") {
-                      setContactAdminErrors((prev) => ({ ...prev, firstname: "This field is required." }))
+                      setContactAdminErrors((prev) => ({
+                        ...prev,
+                        firstname: "This field is required.",
+                      }));
                     } else if (!isValidName(value)) {
                       setContactAdminErrors((prev) => ({
                         ...prev,
-                        firstname: "Please enter a valid name without numbers or special characters.",
-                      }))
+                        firstname:
+                          "Please enter a valid name without numbers or special characters.",
+                      }));
                     } else {
-                      setContactAdminErrors((prev) => ({ ...prev, firstname: "" }))
+                      setContactAdminErrors((prev) => ({
+                        ...prev,
+                        firstname: "",
+                      }));
                     }
                   }}
                   placeholder="Enter your first name"
@@ -732,7 +937,9 @@ export default function Login() {
                   autoFocus
                 />
                 {contactAdminErrors.firstname && (
-                  <div className="input-error-message">{contactAdminErrors.firstname}</div>
+                  <div className="input-error-message">
+                    {contactAdminErrors.firstname}
+                  </div>
                 )}
               </div>
               <div className="login-field">
@@ -742,24 +949,36 @@ export default function Login() {
                   type="text"
                   value={contactAdminForm.lastname}
                   onChange={(e) => {
-                    const value = e.target.value
-                    setContactAdminForm({ ...contactAdminForm, lastname: value })
+                    const value = e.target.value;
+                    setContactAdminForm({
+                      ...contactAdminForm,
+                      lastname: value,
+                    });
                     if (value.trim() === "") {
-                      setContactAdminErrors((prev) => ({ ...prev, lastname: "This field is required." }))
+                      setContactAdminErrors((prev) => ({
+                        ...prev,
+                        lastname: "This field is required.",
+                      }));
                     } else if (!isValidName(value)) {
                       setContactAdminErrors((prev) => ({
                         ...prev,
-                        lastname: "Please enter a valid name without numbers or special characters.",
-                      }))
+                        lastname:
+                          "Please enter a valid name without numbers or special characters.",
+                      }));
                     } else {
-                      setContactAdminErrors((prev) => ({ ...prev, lastname: "" }))
+                      setContactAdminErrors((prev) => ({
+                        ...prev,
+                        lastname: "",
+                      }));
                     }
                   }}
                   placeholder="Enter your last name"
                   required
                 />
                 {contactAdminErrors.lastname && (
-                  <div className="input-error-message">{contactAdminErrors.lastname}</div>
+                  <div className="input-error-message">
+                    {contactAdminErrors.lastname}
+                  </div>
                 )}
               </div>
               <div className="login-field">
@@ -770,17 +989,27 @@ export default function Login() {
                     type="email"
                     value={contactAdminForm.email}
                     onChange={(e) => {
-                      const value = e.target.value
-                      setContactAdminForm({ ...contactAdminForm, email: value })
+                      const value = e.target.value;
+                      setContactAdminForm({
+                        ...contactAdminForm,
+                        email: value,
+                      });
                       if (value.trim() === "") {
-                        setContactAdminErrors((prev) => ({ ...prev, email: "This field is required." }))
+                        setContactAdminErrors((prev) => ({
+                          ...prev,
+                          email: "This field is required.",
+                        }));
                       } else if (!isValidGmail(value)) {
                         setContactAdminErrors((prev) => ({
                           ...prev,
-                          email: "Please enter a valid email address (e.g., user@gmail.com).",
-                        }))
+                          email:
+                            "Please enter a valid email address (e.g., user@gmail.com).",
+                        }));
                       } else {
-                        setContactAdminErrors((prev) => ({ ...prev, email: "" }))
+                        setContactAdminErrors((prev) => ({
+                          ...prev,
+                          email: "",
+                        }));
                       }
                     }}
                     placeholder="Enter your email"
@@ -793,11 +1022,19 @@ export default function Login() {
                         stroke="#aaa"
                         strokeWidth="1.5"
                       />
-                      <path d="M16 4l-7 6.5L2 4" stroke="#aaa" strokeWidth="1.5" />
+                      <path
+                        d="M16 4l-7 6.5L2 4"
+                        stroke="#aaa"
+                        strokeWidth="1.5"
+                      />
                     </svg>
                   </span>
                 </div>
-                {contactAdminErrors.email && <div className="input-error-message">{contactAdminErrors.email}</div>}
+                {contactAdminErrors.email && (
+                  <div className="input-error-message">
+                    {contactAdminErrors.email}
+                  </div>
+                )}
               </div>
               <div className="login-field">
                 <label htmlFor="contact-phone">Phone Number</label>
@@ -807,14 +1044,26 @@ export default function Login() {
                     type="tel"
                     value={contactAdminForm.phone}
                     onChange={(e) => {
-                      const value = e.target.value
-                      setContactAdminForm({ ...contactAdminForm, phone: value })
+                      const value = e.target.value;
+                      setContactAdminForm({
+                        ...contactAdminForm,
+                        phone: value,
+                      });
                       if (value.trim() === "") {
-                        setContactAdminErrors((prev) => ({ ...prev, phone: "This field is required." }))
+                        setContactAdminErrors((prev) => ({
+                          ...prev,
+                          phone: "This field is required.",
+                        }));
                       } else if (!isValidTenDigitPhone(value)) {
-                        setContactAdminErrors((prev) => ({ ...prev, phone: "Phone number must have 10 digits." }))
+                        setContactAdminErrors((prev) => ({
+                          ...prev,
+                          phone: "Phone number must have 10 digits.",
+                        }));
                       } else {
-                        setContactAdminErrors((prev) => ({ ...prev, phone: "" }))
+                        setContactAdminErrors((prev) => ({
+                          ...prev,
+                          phone: "",
+                        }));
                       }
                     }}
                     placeholder="Enter your phone number"
@@ -830,7 +1079,11 @@ export default function Login() {
                     </svg>
                   </span>
                 </div>
-                {contactAdminErrors.phone && <div className="input-error-message">{contactAdminErrors.phone}</div>}
+                {contactAdminErrors.phone && (
+                  <div className="input-error-message">
+                    {contactAdminErrors.phone}
+                  </div>
+                )}
               </div>
               <div className="login-field">
                 <label htmlFor="contact-role">Role</label>
@@ -839,23 +1092,35 @@ export default function Login() {
                   type="text"
                   value={contactAdminForm.role}
                   onChange={(e) => {
-                    const value = e.target.value
-                    setContactAdminForm({ ...contactAdminForm, role: value })
+                    const value = e.target.value;
+                    setContactAdminForm({ ...contactAdminForm, role: value });
                     if (value.trim() === "") {
-                      setContactAdminErrors((prev) => ({ ...prev, role: "This field is required." }))
+                      setContactAdminErrors((prev) => ({
+                        ...prev,
+                        role: "This field is required.",
+                      }));
                     } else {
-                      setContactAdminErrors((prev) => ({ ...prev, role: "" }))
+                      setContactAdminErrors((prev) => ({ ...prev, role: "" }));
                     }
                   }}
                   placeholder="e.g., Soldier, Host, Receptionist"
                   required
                 />
-                {contactAdminErrors.role && <div className="input-error-message">{contactAdminErrors.role}</div>}
+                {contactAdminErrors.role && (
+                  <div className="input-error-message">
+                    {contactAdminErrors.role}
+                  </div>
+                )}
               </div>
-              <button type="submit" className="login-card-submit-btn" disabled={contactAdminLoading}>
+              <button
+                type="submit"
+                className="login-card-submit-btn"
+                disabled={contactAdminLoading}
+              >
                 {contactAdminLoading ? (
                   <>
-                    <span className="login-btn-spinner"></span> Sending Request...
+                    <span className="login-btn-spinner"></span> Sending
+                    Request...
                   </>
                 ) : (
                   "Send Request"
@@ -866,5 +1131,5 @@ export default function Login() {
         </div>
       )}
     </div>
-  )
+  );
 }
