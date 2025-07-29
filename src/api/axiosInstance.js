@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 // In-memory token (for current session)
 let accessToken = null;
 
-//  Function to set token both in memory & localStorage
+//  Function to set token both in memory 
 export const setAccessToken = (token) => {
   accessToken = token;
 };
@@ -21,6 +21,8 @@ axiosInstance.interceptors.request.use(
   (config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    } else {
+      window.location.href = "/login"
     }
     return config;
   },
