@@ -253,12 +253,14 @@ body,
   .login-bg-split {
     flex-direction: column;
   }
+
   .login-split-left,
   .login-split-right {
     width: 100%;
     height: 50%;
     justify-content: center;
   }
+
   .login-split-footer {
     margin-top: 24px;
     font-size: 0.85rem;
@@ -271,12 +273,15 @@ body,
   .login-form-box {
     padding: 0 10px;
   }
+
   .login-title-main {
     font-size: 1.4rem;
   }
+
   .login-welcome {
     font-size: 1.2rem;
   }
+
   .login-quote-main {
     font-size: 0.9rem;
   }
@@ -289,7 +294,8 @@ body,
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
+  background-color: rgba(0, 0, 0, 0.6);
+  /* Slightly darker overlay */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -303,14 +309,16 @@ body,
   border-radius: 10px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
   width: 90%;
-  max-width: 450px; /* Slightly wider for better form layout */
+  max-width: 450px;
+  /* Slightly wider for better form layout */
   position: relative;
   animation: slideIn 0.3s ease-out;
 }
 
 .modal-content h3 {
   margin-top: 0;
-  margin-bottom: 25px; /* More space below title */
+  margin-bottom: 25px;
+  /* More space below title */
   text-align: center;
   color: #333;
   font-size: 1.5rem;
@@ -323,7 +331,8 @@ body,
   right: 15px;
   background: none;
   border: none;
-  font-size: 28px; /* Larger close icon */
+  font-size: 28px;
+  /* Larger close icon */
   cursor: pointer;
   color: #888;
   transition: color 0.2s ease;
@@ -334,11 +343,13 @@ body,
 }
 
 .modal-content .login-field {
-  margin-bottom: 20px; /* Consistent spacing */
+  margin-bottom: 20px;
+  /* Consistent spacing */
 }
 
 .modal-content .login-field label {
-  font-weight: 500; /* Match existing label weight */
+  font-weight: 500;
+  /* Match existing label weight */
   color: #444;
 }
 
@@ -346,9 +357,11 @@ body,
 .modal-content input[type="text"],
 .modal-content input[type="email"],
 .modal-content input[type="tel"],
+.modal-content select,
 .modal-content input[type="password"] {
   width: 100%;
-  padding: 12px 15px; /* Slightly more padding */
+  padding: 12px 15px;
+  /* Slightly more padding */
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1rem;
@@ -360,10 +373,13 @@ body,
 .modal-content input[type="text"]:focus,
 .modal-content input[type="email"]:focus,
 .modal-content input[type="tel"]:focus,
+.modal-content select:focus,
 .modal-content input[type="password"]:focus {
   outline: none;
-  border-color: #2f855a; /* Match theme color */
-  box-shadow: 0 0 0 3px rgba(47, 133, 90, 0.2); /* Subtle focus ring */
+  border-color: #2f855a;
+  /* Match theme color */
+  box-shadow: 0 0 0 3px rgba(47, 133, 90, 0.2);
+  /* Subtle focus ring */
 }
 
 .modal-content textarea {
@@ -374,7 +390,8 @@ body,
   font-size: 1rem;
   resize: vertical;
   box-sizing: border-box;
-  min-height: 80px; /* Minimum height for textarea */
+  min-height: 80px;
+  /* Minimum height for textarea */
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -385,17 +402,20 @@ body,
 }
 
 .modal-content .login-card-submit-btn {
-  padding: 14px; /* Slightly larger button */
+  padding: 14px;
+  /* Slightly larger button */
   font-size: 1.05rem;
   font-weight: 600;
 }
 
 .modal-content .login-error-message {
-  margin-bottom: 20px; /* Consistent spacing */
+  margin-bottom: 20px;
+  /* Consistent spacing */
 }
 
 .modal-content .login-success-message {
-  color: #2f855a; /* Match theme color */
+  color: #2f855a;
+  /* Match theme color */
   background-color: #e0f2e9;
   border: 1px solid #c6e1c7;
   padding: 12px;
@@ -410,6 +430,7 @@ body,
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -420,6 +441,7 @@ body,
     transform: translateY(-20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -432,10 +454,12 @@ body,
     padding: 20px;
     max-width: 95%;
   }
+
   .modal-content h3 {
     font-size: 1.3rem;
     margin-bottom: 20px;
   }
+
   .modal-content .login-card-submit-btn {
     padding: 12px;
     font-size: 1rem;
@@ -443,10 +467,12 @@ body,
 }
 
 .input-error-message {
-  color: #d32f2f; /* A common red for errors */
+  color: #d32f2f;
+  /* A common red for errors */
   font-size: 0.85rem;
   margin-top: 5px;
-  margin-left: 2px; /* Align with input padding */
+  margin-left: 2px;
+  /* Align with input padding */
 }
 
 /* --- EXISTING CODE REMAINS UNCHANGED --- */
@@ -454,6 +480,7 @@ body,
 
 /*  Additional minimal responsive support */
 @media (max-width: 768px) {
+
   /* Ensure form doesn’t overflow */
   .login-form-box {
     max-width: 90%;
@@ -461,13 +488,16 @@ body,
 }
 
 @media (max-width: 375px) {
+
   /* Handle very small phones */
   .login-title-main {
     font-size: 1.3rem;
   }
+
   .login-welcome {
     font-size: 1.1rem;
   }
+
   .login-tab-toggle {
     flex-wrap: wrap;
     gap: 8px;
@@ -475,10 +505,10 @@ body,
 }
 
 @media (max-height: 500px) {
+
   /* Ensure modal is scrollable on very short screens */
   .modal-content {
     max-height: 90vh;
     overflow-y: auto;
   }
 }
-
