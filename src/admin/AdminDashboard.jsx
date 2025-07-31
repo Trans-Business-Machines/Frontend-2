@@ -1,48 +1,49 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import useSWR from "swr";
+import Table from "../components/Table";
+import axiosInstance from "../api/axiosInstance";
 import "./AdminDashboard.css";
 
-const mockData = [
-  { type: "Visitor", name: "Angela Moss", email: "angela@company.com", action: "Checked in" },
-  { type: "User", name: "John Doe", email: "john@company.com", action: "Deleted" },
-  { type: "Visitor", name: "Lucy Smith", email: "lucy@company.com", action: "Checked in" },
-  { type: "User", name: "Paul Black", email: "paul@company.com", action: "Added" },
-  { type: "Visitor", name: "Carl Evans", email: "carl@company.com", action: "Checked out" },
-  { type: "User", name: "Ava Brown", email: "ava@company.com", action: "Added" },
-  { type: "Visitor", name: "Bella Frost", email: "bella@company.com", action: "Checked in" },
-  { type: "User", name: "Liam Lee", email: "liam@company.com", action: "Added" },
-  { type: "Visitor", name: "Kim Hunt", email: "kim@company.com", action: "Checked in" },
-  { type: "User", name: "Zara Blue", email: "zara@company.com", action: "Added" },
-  { type: "Visitor", name: "Noah Gill", email: "noah@company.com", action: "Checked out" },
-  { type: "Visitor", name: "Rita Moss", email: "rita@company.com", action: "Checked in" },
-  { type: "Visitor", name: "Steve Nash", email: "steve@company.com", action: "Checked out" },
-];
-
-const ROWS_PER_PAGE = 6;
-
-const stats = {
-  totalUsers: mockData.filter(d => d.type === "User").length,
-  todaysTotalVisitors: mockData.filter(d => d.type === "Visitor").length,
-  checkedIn: mockData.filter(d => d.action === "Checked in").length,
-  checkedOut: mockData.filter(d => d.action === "Checked out").length,
+const getTodaysVisitors = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
 };
 
-function getFormattedDate() {
-  const date = new Date();
-  return date
-    .toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric"
-    })
-    .replace(/ /g, "-");
-}
+const getStats = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
 export default function AdminDashboard() {
   const [page, setPage] = useState(1);
-  const totalPages = Math.ceil(mockData.length / ROWS_PER_PAGE);
-  const rowsToDisplay = mockData.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+  const navigate = useNavigate();
 
-  const adminName = "Jessica";
+  const { data: stats, isLoading: statsLoading } = useSWR("/stats", getStats);
+
+  // Fetch only the first page with 10 records for dashboard
+  const { data, isLoading } = useSWR(
+    `/visits/today?page=${page}`,
+    getTodaysVisitors
+  );
+
+  function nextPage() {
+    setPage((prevPage) => prevPage + 1);
+  }
+
+  function prevPage() {
+    setPage((prevPage) => (prevPage > 1 ? prevPage - 1 : 1));
+  }
+
+  if (isLoading || statsLoading) {
+    return <div>Loading visitors and stats...</div>;
+  }
+
+  //  Map backend values correctly
+  const totalVisitors = stats.visitCount ?? 0;
+  const activeVisitors = stats.activeVisitors ?? 0;
+  const checkedOutVisitors = stats.checkedOutVisitors ?? 0;
 
   return (
     <div className="admin-dashboard">
@@ -50,31 +51,39 @@ export default function AdminDashboard() {
       <div className="admin-dashboard-welcome-card">
         <div>
           <div className="admin-dashboard-welcome-title">
-            Welcome to your dashboard {adminName}
+            Welcome to your dashboard
           </div>
           <div className="admin-dashboard-welcome-sub">
-            Here’s an overview of today&apos;s activities
+            Here's an overview of today&apos;s activities
           </div>
         </div>
         <div className="admin-dashboard-date-pill">
-          {getFormattedDate()}
+          {format(new Date(), "PPP")}
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="admin-dashboard-cards-row">
         <div className="admin-dashboard-card">
-          <div className="admin-dashboard-card-label">Total Users</div>
+          <div className="admin-dashboard-card-label">Total Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.totalUsers}</span>
-            <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
-              {/* Icon */}
+            <span className="admin-dashboard-card-value">{totalVisitors}</span>
+            <span
+              className="admin-dashboard-card-icon"
+              style={{ background: "#219150" }}
+            >
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
-                  <path fill="#fff" d="M16.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5c0-2.485 2.015-4.5 4.5-4.5Z"/>
-                  <circle cx="16.5" cy="9" r="2.5" fill="#fff"/>
-                  <path fill="#fff" d="M7.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5C2 15.015 4.015 13 7.5 13Z"/>
-                  <circle cx="7.5" cy="9" r="2.5" fill="#fff"/>
+                  <path
+                    fill="#fff"
+                    d="M16.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5c0-2.485 2.015-4.5 4.5-4.5Z"
+                  />
+                  <circle cx="16.5" cy="9" r="2.5" fill="#fff" />
+                  <path
+                    fill="#fff"
+                    d="M7.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5C2 15.015 4.015 13 7.5 13Z"
+                  />
+                  <circle cx="7.5" cy="9" r="2.5" fill="#fff" />
                 </g>
               </svg>
             </span>
@@ -82,16 +91,25 @@ export default function AdminDashboard() {
         </div>
 
         <div className="admin-dashboard-card">
-          <div className="admin-dashboard-card-label">Today's Total Visitors</div>
+          <div className="admin-dashboard-card-label">Active Visitors</div>
           <div className="admin-dashboard-card-content">
-            <span className="admin-dashboard-card-value">{stats.todaysTotalVisitors}</span>
-            <span className="admin-dashboard-card-icon" style={{ background: "#e8f7f2" }}>
+            <span className="admin-dashboard-card-value">{activeVisitors}</span>
+            <span
+              className="admin-dashboard-card-icon"
+              style={{ background: "#e8f7f2" }}
+            >
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
-                  <path fill="#219150" d="M16.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5c0-2.485 2.015-4.5 4.5-4.5Z"/>
-                  <circle cx="16.5" cy="9" r="2.5" fill="#219150"/>
-                  <path fill="#219150" d="M7.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5C2 15.015 4.015 13 7.5 13Z"/>
-                  <circle cx="7.5" cy="9" r="2.5" fill="#219150"/>
+                  <path
+                    fill="#219150"
+                    d="M16.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5c0-2.485 2.015-4.5 4.5-4.5Z"
+                  />
+                  <circle cx="16.5" cy="9" r="2.5" fill="#219150" />
+                  <path
+                    fill="#219150"
+                    d="M7.5 13c2.485 0 4.5 2.015 4.5 4.5V21h-2v-3.5a2.5 2.5 0 0 0-5 0V21h-2v-3.5C2 15.015 4.015 13 7.5 13Z"
+                  />
+                  <circle cx="7.5" cy="9" r="2.5" fill="#219150" />
                 </g>
               </svg>
             </span>
@@ -99,16 +117,26 @@ export default function AdminDashboard() {
         </div>
 
         <div className="admin-dashboard-card">
-          <div className="admin-dashboard-card-label">Checked In / Checked Out</div>
+          <div className="admin-dashboard-card-label">Checked Out</div>
           <div className="admin-dashboard-card-content">
             <span className="admin-dashboard-card-value">
-              <strong>{stats.checkedIn}</strong> / <strong>{stats.checkedOut}</strong>
+              <strong>{checkedOutVisitors}</strong>
             </span>
-            <span className="admin-dashboard-card-icon" style={{ background: "#219150" }}>
+            <span
+              className="admin-dashboard-card-icon"
+              style={{ background: "#219150" }}
+            >
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
                 <g>
-                  <circle cx="12" cy="8" r="4" fill="#fff"/>
-                  <rect x="6" y="14" width="12" height="7" rx="3.5" fill="#fff"/>
+                  <circle cx="12" cy="8" r="4" fill="#fff" />
+                  <rect
+                    x="6"
+                    y="14"
+                    width="12"
+                    height="7"
+                    rx="3.5"
+                    fill="#fff"
+                  />
                 </g>
               </svg>
             </span>
@@ -116,43 +144,82 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Activity Table */}
+      {/* Recent Activity Table */}
       <div className="admin-dashboard-table-section">
-        <table className="admin-dashboard-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rowsToDisplay.map((row, idx) => (
-              <tr key={row.email + row.action + idx}>
-                <td>{row.type}</td>
-                <td>{row.name}</td>
-                <td>{row.email}</td>
-                <td>{row.action}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* Pagination */}
-        <div className="admin-dashboard-pagination">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{"<"}</button>
-          {[...Array(totalPages)].map((_, idx) => (
-            <button
-              key={idx}
-              className={page === idx + 1 ? "active" : ""}
-              onClick={() => setPage(idx + 1)}
-            >
-              {idx + 1}
-            </button>
-          ))}
-          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{">"}</button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: "600" }}>
+            Recent Visitors
+          </h3>
+          <button
+            onClick={() => navigate("/admin/visitor-log")}
+            style={{
+              background: "#219150",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.375rem",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+            }}
+          >
+            View More
+          </button>
         </div>
+
+        {!data.visits || data?.visits.length === 0 ? (
+          <div style={{ padding: "1rem", textAlign: "center" }}>
+            <p
+              style={{
+                fontWeight: "bold",
+                fontSize: "1.2rem",
+                color: "#285e61",
+              }}
+            >
+              No visitors today.
+            </p>
+          </div>
+        ) : (
+          <>
+            <Table visitors={data.visits} />
+
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                marginTop: "20px",
+                marginLeft: "auto",
+                justifyContent: "right",
+                alignItems: "center",
+                width: "40%",
+                maxWidth: "400px",
+              }}
+            >
+              <button
+                className="pagination-button"
+                onClick={prevPage}
+                disabled={!data.hasPrev}
+              >
+                <FaChevronLeft size={14} />
+              </button>
+              <button className="current-page-btn">{page}</button>
+              <button
+                className="pagination-button"
+                onClick={nextPage}
+                disabled={!data.hasNext}
+              >
+                <FaChevronRight size={14} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

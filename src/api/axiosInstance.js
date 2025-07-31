@@ -1,39 +1,35 @@
 import axios from "axios";
 
-// define the base url
-export const baseURL = "http://localhost:3000/api";
+// Base URL for your backend
+export const baseURL = "https://vms-yj7f.onrender.com/api";
 
 const axiosInstance = axios.create({
   baseURL,
   withCredentials: true,
 });
 
-// Declare a variable to hold the access token
+// In-memory token (for current session)
 let accessToken = null;
 
-// A function to update the token else where in the program
+//  Function to set token both in memory 
 export const setAccessToken = (token) => {
   accessToken = token;
 };
 
-// Intercept all requests to attach the token in the authorization header
+// Automatically attach token to all outgoing requests
 axiosInstance.interceptors.request.use(
   (config) => {
-    // check if the access token is present
     if (accessToken) {
-      // then we set it in the Authorization header of the request
       config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    // Always return the config object
+    } 
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Intercept all responses and  retry if a 404 jwt-expired error is sent back
+//  Handle JWT expiration
 axiosInstance.interceptors.response.use(
-  (res) => res,
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
@@ -51,11 +47,15 @@ axiosInstance.interceptors.response.use(
           { withCredentials: true }
         );
 
-        accessToken = res.data.accessToken;
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Save new token in memory 
+        const newToken = res.data.accessToken;
+        setAccessToken(newToken);
 
+        // Retry the failed request with the new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshErr) {
+        setAccessToken(null);
         return Promise.reject(refreshErr);
       }
     }

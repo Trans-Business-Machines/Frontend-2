@@ -29,6 +29,30 @@ export default function HostNotifications() {
   const [type, setType] = useState("all");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // Fetch notifications from backend
+  const fetchNotifications = async () => {
+    try {
+      const res = await axiosInstance.get(`/notifications?type=all`);
+      const backendNotifications = res.data?.result?.notifications || [];
+      setNotifications(
+        backendNotifications.map((n) => ({
+          ...n,
+          isUnread: !n.isRead, // backend uses isRead, frontend expects isUnread
+          meta: `${n.title} | ${new Date(n.createdAt).toLocaleString()}`,
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const { data: allnotifications } = useSWR(
     `/notifications/?type=${type}&page=${page}`,
@@ -68,7 +92,6 @@ export default function HostNotifications() {
         return n;
       }
     });
-
     return notifications;
   }, [unreadnotifications, search]);
 
@@ -79,11 +102,12 @@ export default function HostNotifications() {
   function prevPage() {
     setPage((page) => Math.max(page - 1, 1));
   }
-
   return (
     <div className="host-scrollable-content">
       <div className="host-notifications-wrapper">
         <div className="host-notifications-title">Your Notifications</div>
+
+        {/* Search + Filter Row */}
         <div className="host-notifications-filter-row">
           <input
             type="text"
@@ -107,6 +131,7 @@ export default function HostNotifications() {
             </button>
           </div>
         </div>
+
         <div style={{ width: "80%" }}>
           {type === "all" ? (
             <AllNotifications

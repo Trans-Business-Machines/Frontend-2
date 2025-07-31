@@ -1,100 +1,183 @@
-import React, { useState } from "react";
-import "./AdminUsers.css"; // reuse styles for table, search, pagination
+import "./AdminUsers.css";
+import { useState } from "react";
+import { format } from "date-fns";
+import { toast } from "react-hot-toast";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import Snackbar from "../components/Snackbar";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 
-const mockVisitors = [
-  { name: "Alice Smith", idNumber: "38291034", phone: "0712345001", host: "Angela Moss", date: "2025-06-01", time: "Morning", purpose: "Meeting", status: "Checked In" },
-  { name: "Bob John", idNumber: "57820013", phone: "0712345002", host: "Paul Black", date: "2025-06-01", time: "Afternoon", purpose: "Delivery", status: "Checked Out" },
-  { name: "Carol White", idNumber: "41678390", phone: "0712345003", host: "Emma White", date: "2025-06-01", time: "Evening", purpose: "Interview", status: "Checked In" },
-  // ... add other visitors here ...
-];
-
-const VISITORS_PER_PAGE = 10;
-
-function formatDateForTable(dateStr) {
-  if (!dateStr) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, m, d] = dateStr.split("-");
-    return `${d}-${m}-${y}`;
-  }
-  return dateStr;
-}
+//  Fetch visitors directly from backend
+const fetchVisitors = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
 export default function AdminVisitorLog() {
-  const [visitors] = useState(mockVisitors);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [filterTime, setFilterTime] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [filterHost, setFilterHost] = useState("");
-  const [filterPurpose, setFilterPurpose] = useState("");
   const [page, setPage] = useState(1);
 
+  const { data, error, isLoading } = useSWR(
+    `/visits?page=${page}`,
+    fetchVisitors
+  );
+
+  // Default values
+  let visitors = [];
+  let totalPages = 1;
+  let currentPage = page;
+  if (data) {
+    visitors = data.visits || [];
+    totalPages = data.totalPages || 1;
+    currentPage = data.currentPage || page;
+  }
+
+  //  Filter visitors for current page
   const filteredVisitors = visitors.filter((v) => {
-    const match =
-      v.name.toLowerCase().includes(search.toLowerCase()) ||
-      v.phone.includes(search) ||
-      v.idNumber.includes(search) ||
-      v.host.toLowerCase().includes(search.toLowerCase()) ||
-      formatDateForTable(v.date).includes(search);
-    const statusMatch = filterStatus === "" || v.status === filterStatus;
-    const timeMatch = filterTime === "" || v.time === filterTime;
-    const dateMatch = !filterDate || v.date === filterDate;
-    const hostMatch = filterHost === "" || v.host === filterHost;
-    const purposeMatch = filterPurpose === "" || v.purpose === filterPurpose;
-    return match && statusMatch && timeMatch && dateMatch && hostMatch && purposeMatch;
+    const searchTerm = search.toLowerCase();
+    const fullName = `${v.firstname || ""} ${v.lastname || ""}`.trim();
+    const hostName =
+      v.host && typeof v.host === "object"
+        ? `${v.host.firstname || ""} ${v.host.lastname || ""}`.trim()
+        : v.host || "";
+
+    const searchMatch =
+      !search ||
+      fullName.toLowerCase().includes(searchTerm) ||
+      (v.phone || "").toLowerCase().includes(searchTerm) ||
+      (v.national_id || "").toLowerCase().includes(searchTerm) ||
+      hostName.toLowerCase().includes(searchTerm) ||
+      (v.purpose || "").toLowerCase().includes(searchTerm);
+
+    const statusMatch =
+      !filterStatus || v.status.toLowerCase() === filterStatus.toLowerCase();
+
+    const dateMatch =
+      !filterDate ||
+      new Date(v.visit_date).toISOString().split("T")[0] === filterDate;
+
+    return searchMatch && statusMatch && dateMatch;
   });
 
-  const totalPages = Math.ceil(filteredVisitors.length / VISITORS_PER_PAGE);
-  const visitorsToDisplay = filteredVisitors.slice((page - 1) * VISITORS_PER_PAGE, page * VISITORS_PER_PAGE);
-
-  function handleSearchChange(e) {
+  const handleSearchChange = (e) => {
     setSearch(e.target.value);
     setPage(1);
-  }
-  function handleFilterStatus(e) {
+  };
+
+  const handleFilterStatus = (e) => {
     setFilterStatus(e.target.value);
     setPage(1);
-  }
-  function handleFilterTime(e) {
-    setFilterTime(e.target.value);
-    setPage(1);
-  }
-  function handleFilterDate(e) {
+  };
+
+  const handleFilterDate = (e) => {
     setFilterDate(e.target.value);
     setPage(1);
-  }
-  function handleFilterHost(e) {
-    setFilterHost(e.target.value);
-    setPage(1);
-  }
-  function handleFilterPurpose(e) {
-    setFilterPurpose(e.target.value);
-    setPage(1);
+  };
+
+  const goToPage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  // Export PDF function with axiosInstance
+  const handleExportData = async () => {
+    try {
+      const today = new Date();
+      if (today.getDate() < 20) {
+        return toast.custom(
+          <Snackbar
+            type="error"
+            message="Date has to more than 20"
+            icon={FaXmark}
+          />
+        );
+      }
+
+      const response = await axiosInstance.get("/report", {
+        responseType: "blob", // for file downloads
+      });
+
+      //  Create downloadable file
+      const blob = new Blob([response.data], {
+        type: "application/octet-stream",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "monthly-visitor-report.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.custom(
+        <Snackbar type="success" message="Report downloaded" icon={FaCheck} />
+      );
+    } catch (error) {
+      console.error("Export error:", error);
+      let errorMessage = "Failed to export visitors data.";
+      toast.custom(
+        <Snackbar type="error" message={errorMessage} icon={FaXmark} />
+      );
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="admin-users">
+        <div className="admin-users-header">
+          <div className="admin-users-title">Visitor Log</div>
+        </div>
+        <div style={{ textAlign: "center", padding: "20px" }}>
+          Loading visitors...
+        </div>
+      </div>
+    );
   }
 
+  //  Error state
+  if (error) {
+    return (
+      <div className="admin-users">
+        <div className="admin-users-header">
+          <div className="admin-users-title">Visitor Log</div>
+        </div>
+        <div style={{ textAlign: "center", padding: "20px", color: "red" }}>
+          Error loading visitors: {error.message}
+        </div>
+      </div>
+    );
+  }
+
+  //  Render main UI
   return (
     <div className="admin-users">
       <div className="admin-users-header">
         <div className="admin-users-title">Visitor Log</div>
       </div>
 
-      <div className="admin-users-search" style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}>
+      {/* Search & Filters */}
+      <div
+        className="admin-users-search"
+        style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}
+      >
         <input
-          placeholder="Search by name, phone, id number, host, date"
+          placeholder="Search by name, phone, ID number, host, or purpose"
           value={search}
           onChange={handleSearchChange}
-          style={{ flex: 1, minWidth: 200 }}
+          style={{ flex: 1, minWidth: 300 }}
         />
-        <select value={filterStatus} onChange={handleFilterStatus} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
+        <select
+          value={filterStatus}
+          onChange={handleFilterStatus}
+          style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}
+        >
           <option value="">All Statuses</option>
-          <option value="Checked In">Checked In</option>
-          <option value="Checked Out">Checked Out</option>
-        </select>
-        <select value={filterTime} onChange={handleFilterTime} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
-          <option value="">All Times</option>
-          <option value="Morning">Morning</option>
-          <option value="Afternoon">Afternoon</option>
-          <option value="Evening">Evening</option>
+          <option value="checked-in">Checked In</option>
+          <option value="checked-out">Checked Out</option>
         </select>
         <input
           type="date"
@@ -102,68 +185,92 @@ export default function AdminVisitorLog() {
           onChange={handleFilterDate}
           style={{ minWidth: 140, padding: "11px 16px", borderRadius: 20 }}
         />
-        <select value={filterHost} onChange={handleFilterHost} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
-          <option value="">All Hosts</option>
-          {/* Optional: Add dynamic host options */}
-        </select>
-        <select value={filterPurpose} onChange={handleFilterPurpose} style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}>
-          <option value="">All Purposes</option>
-          {/* Optional: Add dynamic purpose options */}
-        </select>
       </div>
 
+      {/* Table */}
       <table className="admin-users-table">
         <thead>
           <tr>
             <th>Name</th>
-            <th>Id Number</th>
+            <th>ID Number</th>
             <th>Phone</th>
             <th>Host</th>
             <th>Date</th>
-            <th>Time</th>
-            <th>Purpose</th>
+            <th>Time In</th>
+            <th>Time Out</th>
             <th>Status</th>
+            <th>Checkin soldier</th>
           </tr>
         </thead>
         <tbody>
-          {visitorsToDisplay.length === 0 && (
+          {filteredVisitors.length === 0 && (
             <tr>
-              <td colSpan={8} style={{ textAlign: "center" }}>No visitors found.</td>
-            </tr>
-          )}
-          {visitorsToDisplay.map((visitor, idx) => (
-            <tr key={idx}>
-              <td>{visitor.name}</td>
-              <td>{visitor.idNumber}</td>
-              <td>{visitor.phone}</td>
-              <td>{visitor.host}</td>
-              <td>{formatDateForTable(visitor.date)}</td>
-              <td>{visitor.time}</td>
-              <td>{visitor.purpose}</td>
-              <td>
-                <span
-                  className={visitor.status === "Checked In" ? "status-active" : "status-inactive"}
-                  style={{ whiteSpace: "nowrap", display: "inline-block" }}
-                >
-                  {visitor.status}
-                </span>
+              <td colSpan={8} style={{ textAlign: "center" }}>
+                No visitors found.
               </td>
             </tr>
-          ))}
+          )}
+          {filteredVisitors.map((v) => {
+            return (
+              <tr key={v._id}>
+                <td>
+                  {v.firstname} {v.lastname}
+                </td>
+                <td>{v.national_id || ""}</td>
+                <td>{v.phone || ""}</td>
+                <td>
+                  {v.host.firstname} {v.host.lastname}
+                </td>
+                <td>{format(new Date(v.visit_date), "MMMM do, yyyy")}</td>
+                <td>{format(new Date(v.time_in), "hh:mm a")}</td>
+                <td>{format(new Date(v.time_out), "hh:mm a") || "-"}</td>
+                <td>
+                  <span
+                    className={
+                      v.status === "checked-in"
+                        ? "status-active"
+                        : "status-inactive"
+                    }
+                    style={{
+                      whiteSpace: "nowrap",
+                      display: "inline-block",
+                    }}
+                  >
+                    {v.status}
+                  </span>
+                </td>
+                <td>
+                  {v.checkin_officer.firstname} {v.checkin_officer.lastname}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
+      {/* Pagination */}
       <div className="admin-users-pagination">
-        <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+        <button
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
           {"<"}
         </button>
-        {[...Array(totalPages)].map((_, idx) => (
-          <button key={idx + 1} onClick={() => setPage(idx + 1)} className={page === idx + 1 ? "active" : ""}>
-            {idx + 1}
-          </button>
-        ))}
-        <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+        <span style={{ margin: "0 10px" }}>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
           {">"}
+        </button>
+      </div>
+
+      {/* Export button */}
+      <div className="export-btn-container">
+        <button className="export-btn" onClick={handleExportData}>
+          Export Data
         </button>
       </div>
     </div>

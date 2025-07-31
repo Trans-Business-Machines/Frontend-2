@@ -1,36 +1,64 @@
-import React from "react";
+import "./AdminLayout.css";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
-import "./AdminLayout.css";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { FaUserCog } from "react-icons/fa";
 import { LuFolderSearch } from "react-icons/lu";
 import { HiOutlineLogout } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
+import { capitalize } from "../utils/index";
+import { FaCheck } from "react-icons/fa6";
+import Snackbar from "../components/Snackbar";
+import toast from "react-hot-toast";
 
-export default function AdminLayout({ adminName = "Admin Fulgence" }) {
+export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  const userRole = user?.role || "user";
 
   const menu = [
-    { label: "Dashboard", icon: <AiOutlineDashboard />, path: "/admin/dashboard" },
+    {
+      label: "Dashboard",
+      icon: <AiOutlineDashboard />,
+      path: "/admin",
+    },
     { label: "User Management", icon: <FaUserCog />, path: "/admin/users" },
-    { label: "Visitor Log", icon: <LuFolderSearch />, path: "/admin/visitor-log" },
+    {
+      label: "Visitor Log",
+      icon: <LuFolderSearch />,
+      path: "/admin/visitor-log",
+    },
   ];
+
+  // sign out function
+  const signOut = async () => {
+    await logout();
+    toast.custom(
+      <Snackbar type="success" message="Logged out" icon={FaCheck} />
+    );
+    navigate("/");
+  };
 
   return (
     <div className="admin-root-layout">
       <aside className="admin-sidebar">
         <div className="admin-logo">
-          <img src={logo} alt="VMS Logo" className="admin-logo-img" />
+          <img
+            src={logo || "/placeholder.svg"}
+            alt="VMS Logo"
+            className="admin-logo-img"
+          />
         </div>
         <nav>
-          {menu.map(item => (
+          {menu.map((item) => (
             <div
               key={item.label}
-              className={`admin-sidebar-link ${location.pathname.startsWith(item.path) ? "active" : ""}`}
+              className={`admin-sidebar-link ${
+                location.pathname.startsWith(item.path) ? "active" : ""
+              }`}
               onClick={() => navigate(item.path)}
             >
               <span className="admin-sidebar-icon">{item.icon}</span>
@@ -38,14 +66,10 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
             </div>
           ))}
         </nav>
-        <button
-          className="admin-logout-btn"
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
-        >
-          <span style={{ fontSize: 20, marginRight: 8 }}><HiOutlineLogout /></span>
+        <button className="admin-logout-btn" onClick={signOut}>
+          <span style={{ fontSize: 20, marginRight: 8 }}>
+            <HiOutlineLogout />
+          </span>
           Log Out
         </button>
       </aside>
@@ -53,7 +77,10 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
         <header className="admin-header">
           <div></div>
           <div className="admin-header-title">
-            {menu.find(item => location.pathname.startsWith(item.path))?.label}
+            {
+              menu.find((item) => location.pathname.startsWith(item.path))
+                ?.label
+            }
           </div>
           <div
             className="admin-header-profile"
@@ -61,8 +88,14 @@ export default function AdminLayout({ adminName = "Admin Fulgence" }) {
             onClick={() => navigate("/admin/profile")}
             title="View Profile"
           >
-            <span role="img" aria-label="admin" style={{ fontSize: 24, marginRight: 10 }}><CgProfile /></span>
-            {adminName}
+            <span
+              role="img"
+              aria-label="admin"
+              style={{ fontSize: 24, marginRight: 10 }}
+            >
+              <CgProfile />
+            </span>
+            {capitalize(userRole)}
           </div>
         </header>
         <div className="admin-content-panel">

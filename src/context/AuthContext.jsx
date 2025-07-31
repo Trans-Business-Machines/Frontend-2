@@ -10,6 +10,7 @@ import axiosInstance, {
   setAccessToken as setAxiosToken,
 } from "../api/axiosInstance";
 
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -38,7 +39,7 @@ export function AuthProvider({ children }) {
         setUser(decodedUser);
       } catch (error) {
         await logout();
-        navigate("/login");
+        navigate("/");
       } finally {
         setLoading(false);
       }

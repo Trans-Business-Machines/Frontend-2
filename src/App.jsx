@@ -25,21 +25,40 @@ import AdminProfile from "./admin/AdminProfile";
 // Soldier Layout import
 import SoldierLayout from "./pages/SoldierLayout";
 
-function PrivateRoute({ children }) {
+// Unauthorized Component inmport
+import Unauthorized from "./pages/Unauthorized";
+
+function PrivateRoute({ children, allowedRoles = [] }) {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+
+  // if there is no user go back to login
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Protection Routes based on user role
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // Otherwise return the children
+  return children;
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      {/* The Login page is the home page */}
+      <Route path="/" element={<Login />} />
 
-      {/* Soldier (default) routes - now wrapped in SoldierLayout */}
+      {/* Set up the unauthorized page */}
+      <Route path="/unauthorized" element={<Unauthorized />} />
+
+      {/* Soldier Routes */}
       <Route
-        path="/"
+        path="/soldier"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["soldier"]}>
             <SoldierLayout />
           </PrivateRoute>
         }
@@ -56,12 +75,12 @@ export default function App() {
       <Route
         path="/host"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["host", "receptionist"]}>
             <HostLayout />
           </PrivateRoute>
         }
       >
-        <Route path="dashboard" element={<HostDashboard />} />
+        <Route index element={<HostDashboard />} />
         <Route path="notifications" element={<HostNotifications />} />
         <Route path="availability" element={<HostAvailability />} />
         <Route path="history" element={<HostHistory />} />
@@ -73,12 +92,12 @@ export default function App() {
       <Route
         path="/admin"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["super admin", "admin"]}>
             <AdminLayout />
           </PrivateRoute>
         }
       >
-        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route index  element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="users/new" element={<AdminAddUser />} />
         <Route path="visitor-log" element={<AdminVisitorLog />} />

@@ -27,7 +27,7 @@ function Loading() {
             color: "white",
           }}
         >
-          Verifying user...
+          Verifying user ...
         </p>
         <SpinnerDotted size={100} thickness={100} speed={100} color="#ffffff" />
       </div>

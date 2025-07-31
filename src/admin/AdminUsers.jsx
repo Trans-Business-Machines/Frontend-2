@@ -1,149 +1,400 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import "./AdminUsers.css";
+import { useState, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaUserEdit } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
-import "./AdminUsers.css";
+import useSWR from "swr";
+import { capitalize } from "../utils/index";
+import { FaChevronRight, FaChevronLeft, FaXmark } from "react-icons/fa6";
+import axiosInstance from "../api/axiosInstance";
+import toast from "react-hot-toast";
+import Snackbar from "../components/Snackbar";
 
-const mockUsers = [
-  { id: 1, name: "Angela Moss", email: "angela@company.com", phone: "0712345001", role: "Admin", status: "Active" },
-  { id: 2, name: "John Doe", email: "john@company.com", phone: "0712345002", role: "Soldier", status: "Inactive" },
-  { id: 3, name: "Emma White", email: "emma@company.com", phone: "0712345003", role: "Host", status: "Active" },
-  { id: 4, name: "Paul Black", email: "paul@company.com", phone: "0712345004", role: "Host", status: "Active" },
-  { id: 5, name: "Sam Green", email: "sam@company.com", phone: "0712345005", role: "Soldier", status: "Inactive" },
-  { id: 6, name: "Zara Blue", email: "zara@company.com", phone: "0712345006", role: "Host", status: "Active" },
-  { id: 7, name: "Ava Brown", email: "ava@company.com", phone: "0712345007", role: "Admin", status: "Active" },
-  { id: 8, name: "Liam Lee", email: "liam@company.com", phone: "0712345008", role: "Host", status: "Active" },
-  { id: 9, name: "Mia White", email: "mia@company.com", phone: "0712345009", role: "Soldier", status: "Inactive" },
-  { id: 10, name: "Ethan Clark", email: "ethan@company.com", phone: "0712345010", role: "Host", status: "Active" },
-  { id: 11, name: "Olivia King", email: "olivia@company.com", phone: "0712345011", role: "Admin", status: "Active" },
-  { id: 12, name: "Noah Scott", email: "noah@company.com", phone: "0712345012", role: "Host", status: "Active" },
-  { id: 13, name: "Sophia Adams", email: "sophia@company.com", phone: "0712345013", role: "Soldier", status: "Inactive" },
-  { id: 14, name: "Mason Ward", email: "mason@company.com", phone: "0712345014", role: "Host", status: "Active" },
-  { id: 15, name: "Isabella Bell", email: "isabella@company.com", phone: "0712345015", role: "Admin", status: "Active" },
-  { id: 16, name: "Lucas Evans", email: "lucas@company.com", phone: "0712345016", role: "Host", status: "Active" },
-  { id: 17, name: "Mila Turner", email: "mila@company.com", phone: "0712345017", role: "Soldier", status: "Inactive" },
-  { id: 18, name: "James Harris", email: "james@company.com", phone: "0712345018", role: "Host", status: "Active" }
-];
+// Fetcher function for roles
+const getRoles = async () => {
+  const response = await axiosInstance.get("/users/roles");
+  return response.data.roles;
+};
 
-const USERS_PER_PAGE = 5;
+// Fetcher function to get users (e.g admin, hosts, soldiers....)
+const getUsers = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState(mockUsers);
+  // Get all the roles for this user from the backend
+  const { data: roles = [], isLoading } = useSWR("/users/roles", getRoles);
+
+  // state to track the current page
+  const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+
   const [editIdx, setEditIdx] = useState(null);
   const [editUser, setEditUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
-  const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.phone.includes(search) ||
-    ("" + u.id).includes(search)
+  // Get the user data for the current page
+  const { data: userData = [], mutate } = useSWR(
+    `/users?page=${currentPage}`,
+    getUsers
   );
 
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
-  const usersToDisplay = filteredUsers.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE);
+  const filtedUsers = useMemo(() => {
+    let appUsers = userData?.users || [];
 
-  function handleEdit(idx) {
-    setEditIdx(idx);
-    setEditUser({ ...filteredUsers[idx] });
+    // if there is no search return appUsers
+    if (!search) return appUsers;
+
+    const term = search.toLowerCase();
+
+    appUsers = appUsers?.filter(
+      ({ _id: id, firstname, lastname, email, phone }) =>
+        id.includes(term) ||
+        firstname.includes(term) ||
+        lastname.includes(term) ||
+        email.includes(term) ||
+        phone.includes(term)
+    );
+
+    return appUsers;
+  }, [userData, search]);
+
+  function handleEdit(user) {
+    const userIndex = filtedUsers.findIndex((u) => u._id === user._id);
+    setEditIdx(userIndex);
+    setEditUser({ ...user });
   }
 
-  function handleEditSave() {
-    const realIdx = users.findIndex(u => u.id === filteredUsers[editIdx].id);
-    const updated = [...users];
-    updated[realIdx] = { ...editUser, id: Number(editUser.id) };
-    setUsers(updated);
-    setEditUser(null);
+  function cancelEdit() {
     setEditIdx(null);
+    setEditUser(null);
   }
 
-  function handleDelete(idx) {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      const realIdx = users.findIndex(u => u.id === filteredUsers[idx].id);
-      setUsers(users => users.filter((_, i) => i !== realIdx));
-      if ((filteredUsers.length - 1) % USERS_PER_PAGE === 0 && page > 1) {
-        setPage(page - 1);
-      }
+  async function saveEdit() {
+    if (
+      !editUser.firstname ||
+      !editUser.lastname ||
+      !editUser.email ||
+      !editUser.phone
+    )
+      return;
+
+    setIsSaving(true);
+    try {
+      // Try to call the api endpoint to update the user
+      await axiosInstance.patch(`/users/${editUser._id}`, {
+        firstname: editUser.firstname,
+        lastname: editUser.lastname,
+        email: editUser.email,
+        phone: editUser.phone,
+        role: editUser.role,
+      });
+
+      // call mutate ti update cache and UI
+      mutate();
+
+      setEditIdx(null);
+      setEditUser(null);
+    } catch (error) {
+      // show the error
+      const message = error?.response.data.message || "Failed to update user!";
+      toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />);
+    } finally {
+      setIsSaving(false);
     }
   }
+
+  function confirmDelete(user) {
+    setUserToDelete(user);
+  }
+
+  function cancelDelete() {
+    setUserToDelete(null);
+  }
+
+  async function deleteUserConfirmed() {
+    try {
+      // Try to  call API to delete user
+      await axiosInstance.delete(`/users/${userToDelete._id}`);
+
+      // Set userToDelete to null
+      setUserToDelete(null);
+
+      // Call mutate the data in cache and UI
+      mutate();
+    } catch (error) {
+      const message = error?.response.data?.message || "Failed to delete user";
+      toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />);
+    }
+  }
+
+  const handleAddUser = () => {
+    navigate("/admin/users/new", {
+      state: { returnTo: "/admin/users", refreshUsers: true },
+    });
+  };
 
   return (
     <div className="admin-users">
       <div className="admin-users-header">
         <div className="admin-users-title">Manage System Users</div>
-        <button className="admin-add-user-btn" onClick={() => navigate("/admin/users/new")}>+ Add New User</button>
+        <button className="admin-add-user-btn" onClick={handleAddUser}>
+          + Add New User
+        </button>
       </div>
 
       <div className="admin-users-search">
         <input
-          placeholder="Enter ID, name, email or phone"
+          placeholder="Search by User ID, Name, Email, or Phone"
           value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          style={{
+            width: "55%",
+          }}
         />
       </div>
 
-      <table className="admin-users-table">
-        <thead>
-          <tr>
-            <th>Id Number</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usersToDisplay.length === 0 ? (
-            <tr><td colSpan={7} style={{ textAlign: "center" }}>No users found.</td></tr>
-          ) : usersToDisplay.map((user, idx) => (
-            <tr key={user.id}>
-              <td>{user.id}</td>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>{user.phone}</td>
-              <td>{user.role}</td>
-              <td>
-                <span className={user.status === "Active" ? "status-active" : "status-inactive"}>
-                  {user.status}
-                </span>
-              </td>
-              <td>
-                <span className="action-icon" title="Edit" onClick={() => handleEdit(idx)}><FaUserEdit color="green" /></span>
-                <span className="action-icon" title="Delete" onClick={() => handleDelete(idx)}><AiFillDelete color="red" /></span>
-              </td>
+      {isLoading ? (
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px" }}>
+          Loading all users...
+        </div>
+      ) : (
+        <table className="admin-users-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtedUsers?.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: "center" }}>
+                  {filtedUsers.length === 0
+                    ? "No users found."
+                    : "No users to display on this page."}
+                </td>
+              </tr>
+            )}
+            {filtedUsers?.map((user, idx) => (
+              <tr key={user._id}>
+                <td>{user._id}</td>
+                <td>
+                  {editIdx === idx ? (
+                    <div style={{ display: "flex", gap: "5px" }}>
+                      <input
+                        type="text"
+                        value={editUser.firstname}
+                        onChange={(e) =>
+                          setEditUser({
+                            ...editUser,
+                            firstname: e.target.value,
+                          })
+                        }
+                        style={{
+                          width: "80px",
+                          padding: "4px",
+                          border: "1px solid #ccc",
+                          borderRadius: "3px",
+                        }}
+                        disabled={isSaving}
+                      />
+                      <input
+                        type="text"
+                        value={editUser.lastname}
+                        onChange={(e) =>
+                          setEditUser({ ...editUser, lastname: e.target.value })
+                        }
+                        style={{
+                          width: "80px",
+                          padding: "4px",
+                          border: "1px solid #ccc",
+                          borderRadius: "3px",
+                        }}
+                        disabled={isSaving}
+                      />
+                    </div>
+                  ) : (
+                    `${user.firstname} ${user.lastname}`
+                  )}
+                </td>
+                <td>
+                  {editIdx === idx ? (
+                    <input
+                      type="email"
+                      value={editUser.email}
+                      onChange={(e) =>
+                        setEditUser({ ...editUser, email: e.target.value })
+                      }
+                      style={{
+                        width: "150px",
+                        padding: "4px",
+                        border: "1px solid #ccc",
+                        borderRadius: "3px",
+                      }}
+                      disabled={isSaving}
+                    />
+                  ) : (
+                    user.email
+                  )}
+                </td>
+                <td>
+                  {editIdx === idx ? (
+                    <input
+                      type="text"
+                      value={editUser.phone}
+                      onChange={(e) =>
+                        setEditUser({ ...editUser, phone: e.target.value })
+                      }
+                      style={{
+                        width: "100px",
+                        padding: "4px",
+                        border: "1px solid #ccc",
+                        borderRadius: "3px",
+                      }}
+                      disabled={isSaving}
+                    />
+                  ) : (
+                    user.phone
+                  )}
+                </td>
+                <td>
+                  {editIdx === idx ? (
+                    <select
+                      value={editUser.role}
+                      onChange={(e) =>
+                        setEditUser({ ...editUser, role: e.target.value })
+                      }
+                      style={{
+                        width: "100px",
+                        padding: "4px",
+                        border: "1px solid #ccc",
+                        borderRadius: "3px",
+                      }}
+                      disabled={isSaving}
+                    >
+                      {roles?.map((role, idx) => (
+                        <option key={idx} value={role}>
+                          {capitalize(role)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    user.role
+                  )}
+                </td>
+                <td>
+                  {editIdx === idx ? (
+                    <div style={{ display: "flex", gap: "5px" }}>
+                      <button
+                        onClick={saveEdit}
+                        disabled={isSaving}
+                        style={{
+                          backgroundColor: isSaving ? "#ccc" : "#4CAF50",
+                          color: "white",
+                          border: "none",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          cursor: isSaving ? "not-allowed" : "pointer",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {isSaving ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        disabled={isSaving}
+                        style={{
+                          backgroundColor: "#f44336",
+                          color: "white",
+                          border: "none",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          cursor: isSaving ? "not-allowed" : "pointer",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span
+                        className="action-icon"
+                        title="Edit"
+                        onClick={() => handleEdit(user)}
+                      >
+                        <FaUserEdit color="green" />
+                      </span>
+                      <span
+                        className="action-icon"
+                        title="Delete"
+                        onClick={() => confirmDelete(user)}
+                      >
+                        <AiFillDelete color="red" />
+                      </span>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       <div className="admin-users-pagination">
-        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{"<"}</button>
-        {[...Array(totalPages)].map((_, idx) => (
-          <button key={idx + 1} onClick={() => setPage(idx + 1)} className={page === idx + 1 ? "active" : ""}>
-            {idx + 1}
-          </button>
-        ))}
-        <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{">"}</button>
+        <button
+          onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+          className="pagination-button"
+          disabled={!userData?.hasPrev}
+        >
+          <FaChevronLeft />
+        </button>
+        <button className="active">{currentPage}</button>
+        <button
+          className="pagination-button"
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={!userData?.hasNext}
+        >
+          <FaChevronRight />
+        </button>
       </div>
 
-      {editUser && (
+      {userToDelete && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal">
-            <h3>Edit User</h3>
-            <div className="modal-field"><label>Id Number</label><input type="text" value={editUser.id} onChange={e => setEditUser({ ...editUser, id: e.target.value })} /></div>
-            <div className="modal-field"><label>Name</label><input value={editUser.name} onChange={e => setEditUser({ ...editUser, name: e.target.value })} /></div>
-            <div className="modal-field"><label>Email</label><input value={editUser.email} onChange={e => setEditUser({ ...editUser, email: e.target.value })} /></div>
-            <div className="modal-field"><label>Phone</label><input value={editUser.phone} onChange={e => setEditUser({ ...editUser, phone: e.target.value })} /></div>
-            <div className="modal-field"><label>Role</label><input value={editUser.role} onChange={e => setEditUser({ ...editUser, role: e.target.value })} /></div>
-            <div className="modal-field"><label>Status</label><input value={editUser.status} onChange={e => setEditUser({ ...editUser, status: e.target.value })} /></div>
-
+            <h3>Delete user?</h3>
+            <p>
+              Are you sure you want to delete
+              <strong>
+                {userToDelete.firstname} {userToDelete.lastname}
+              </strong>
+              ?
+            </p>
             <div className="modal-actions">
-              <button onClick={handleEditSave} className="modal-save-btn">Save</button>
-              <button onClick={() => { setEditUser(null); setEditIdx(null); }} className="modal-cancel-btn">Cancel</button>
+              <button onClick={cancelDelete} className="modal-cancel-btn">
+                Cancel
+              </button>
+              <button
+                onClick={deleteUserConfirmed}
+                className="modal-save-btn"
+                style={{ backgroundColor: "#F45B47" }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

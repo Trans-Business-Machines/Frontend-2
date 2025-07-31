@@ -5,77 +5,69 @@
 }
 
 .soldier-sidebar {
-  background: #234E52;
+  background: #285E61;
   color: #fff;
-  width: 220px;
+  width: 230px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   padding-top: 28px;
-  min-width: 180px;
+  min-width: 200px;
 }
 
 .soldier-logo {
-  font-size: 2rem;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0 28px 0;
 }
 
 .soldier-logo-img {
-  width: 120px;
+  width: 220px;
   height: auto;
+  object-fit: contain;
 }
 
 .soldier-sidebar-link {
-  padding: 13px 24px;
+  display: flex;
+  align-items: center;
+  padding: 12px 40px;
   cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 14px;
   font-size: 1rem;
   border-left: 4px solid transparent;
-  gap: 11px;
 }
 
 .soldier-sidebar-link.active,
-.soldier-sidebar-link:hover {
-  background: #2C7A7B;
+.host-sidebar-link:hover {
+  background: #2F855A;
   border-left: 4px solid #fff;
 }
 
 .soldier-sidebar-icon {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
-}
-
-.soldier-logo {
-  font-size: 2rem;
-  font-weight: 700;
-  padding-left: 4px;
-  margin-bottom: 38px;
-}
-
-.soldier-logo-img {
-  width: 220px;
-  height: auto;
 }
 
 .soldier-logout-btn {
-  width: 90%;
-  margin: 0 auto;
+  margin: auto 0 30px 32px;
+  padding: 9px 30px;
+  border: none;
+  background: #38a169;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 12px 0;
-  background: #308d66;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1.25rem;
-  margin-top: auto;
-  margin-bottom: 2.5rem;
+  transition: background 0.2s;
 }
 
 .soldier-logout-btn:hover {
-  background: #38a378;
-  transition: background 0.3s ease-in-out;
+  background: #308d67;
 }
 
 .soldier-main-panel {
@@ -93,21 +85,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 36px 0 16px;
-  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
+  box-shadow: 0 2px 8px rgba(34,34,34,0.03);
   font-size: 1.14rem;
 }
 
 .soldier-header-title {
   font-weight: 600;
-  color: #234E52;
-  font-size: 1.13rem;
+  color: #235c56;
+  font-size: 1.15rem;
 }
 
 .soldier-header-profile {
   display: flex;
   align-items: center;
   font-weight: 500;
-  color: #234E52;
+  color: #235c56;
   font-size: 1rem;
 }
 
@@ -115,4 +107,58 @@
   flex: 1;
   padding: 36px;
   overflow-y: auto;
+}
+
+.soldier-notification-badge {
+  vertical-align: middle;
+  margin-left: 5px;
+}
+
+/* ✅ Keep sidebar fixed and visible on all devices */
+.soldier-root-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.soldier-sidebar {
+  position: fixed;         /* Sidebar stays fixed */
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  overflow-y: auto;        /* Scroll if content is long */
+  z-index: 1000;
+}
+
+.soldier-main-panel {
+  margin-left: 230px;      /* Same width as sidebar */
+  flex: 1;
+  overflow-y: auto;
+}
+
+/*  Make sure main content adjusts with sidebar width */
+@media (max-width: 768px) {
+  .soldier-sidebar {
+    width: 200px;          /* Slightly smaller sidebar on tablets */
+  }
+  .soldier-main-panel {
+    margin-left: 200px;    /* Match new width */
+  }
+}
+
+@media (max-width: 480px) {
+  .soldier-sidebar {
+    width: 180px;          /* Smaller on mobile */
+  }
+  .soldier-main-panel {
+    margin-left: 180px;    /* Match mobile width */
+  }
+  .soldier-logo-img {
+    width: 140px;          /* Shrink logo on mobile */
+  }
+  .soldier-sidebar-link {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
 }
