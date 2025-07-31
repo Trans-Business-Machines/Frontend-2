@@ -1,12 +1,33 @@
-import React, { useState, useEffect } from "react";
-import axiosInstance from "../api/axiosInstance";
 import "./HostNotifications.css";
-import { useAuth } from "../context/AuthContext";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
+import axiosInstance from "../api/axiosInstance";
+import AllNotifications from "../components/AllNotifications";
+import UnreadNotifications from "../components/UnreadNotifications";
+
+const getAllNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+const getUnreadNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+const updateNotification = async (url, { arg }) => {
+  const { notificationId, userId } = arg;
+
+  url = url.replace(":id", notificationId);
+  const body = { userId };
+  const res = await axiosInstance.patch(url, body);
+  return res.data;
+};
 
 export default function HostNotifications() {
-  const { user } = useAuth(); // to get the host ID
-  const [notifications, setNotifications] = useState([]);
-  const [filter, setFilter] = useState("all");
+  const [type, setType] = useState("all");
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -33,35 +54,54 @@ export default function HostNotifications() {
     fetchNotifications();
   }, []);
 
-  //  Mark one notification as read (permanent)
-  const markAsRead = async (id) => {
-    try {
-      await axiosInstance.patch(`/notifications/${id}`, {
-        userId: user?.userId, //  required by backend to verify ownership
-      });
+  const { data: allnotifications } = useSWR(
+    `/notifications/?type=${type}&page=${page}`,
+    getAllNotifications
+  );
 
-      // Update local state immediately
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isUnread: false } : n))
-      );
-    } catch (err) {
-      console.error("Failed to mark notification as read", err);
+  const { data: unreadnotifications } = useSWR(
+    `/notifications/?type=${type}`,
+    getUnreadNotifications
+  );
+
+  const { trigger: update } = useSWRMutation(
+    "/notifications/:id",
+    updateNotification
+  );
+
+  const filtered = useMemo(() => {
+    let notifications = null;
+
+    if (type === "all") {
+      notifications = allnotifications?.result?.notifications;
+    } else if (type === "unread") {
+      notifications = unreadnotifications?.result?.notifications;
     }
-  };
 
-  // Filter + search
-  const filtered = notifications.filter((n) => {
-    const matchesSearch =
-      n.message.toLowerCase().includes(search.toLowerCase()) ||
-      n.meta.toLowerCase().includes(search.toLowerCase()) ||
-      (n.createdAt || "").includes(search);
-    const matchesFilter =
-      filter === "all" || (filter === "unread" && n.isUnread);
-    return matchesSearch && matchesFilter;
-  });
+    let term = search.toLowerCase();
 
-  const unreadCount = notifications.filter((n) => n.isUnread).length;
+    if (!term) {
+      return notifications;
+    }
 
+    notifications = notifications.filter((n) => {
+      if (
+        n.message.toLowerCase().includes(term) ||
+        n.message.toLowerCase().includes(term)
+      ) {
+        return n;
+      }
+    });
+    return notifications;
+  }, [unreadnotifications, search]);
+
+  function nextPage() {
+    setPage((page) => page + 1);
+  }
+
+  function prevPage() {
+    setPage((page) => Math.max(page - 1, 1));
+  }
   return (
     <div className="host-scrollable-content">
       <div className="host-notifications-wrapper">
@@ -72,70 +112,41 @@ export default function HostNotifications() {
           <input
             type="text"
             className="host-notifications-date-filter"
-            placeholder="Search by message or date (e.g. 2025-06-03)"
+            placeholder="Search by purpose or name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="host-notifications-filter-btns">
             <button
-              className={filter === "all" ? "active" : ""}
-              onClick={() => setFilter("all")}
+              className={type === "all" ? "active" : ""}
+              onClick={() => setType("all")}
             >
               All
             </button>
             <button
-              className={filter === "unread" ? "active" : ""}
-              onClick={() => setFilter("unread")}
+              className={type === "unread" ? "active" : ""}
+              onClick={() => setType("unread")}
             >
               Unread
-              {unreadCount > 0 && (
-                <span className="host-notifications-badge">{unreadCount}</span>
-              )}
             </button>
           </div>
         </div>
 
-        {/* Notification List */}
-        <div className="host-notification-list">
-          {loading && <div>Loading notifications...</div>}
-
-          {!loading && filtered.length === 0 && (
-            <div className="host-notifications-empty">
-              No notifications found.
-            </div>
+        <div style={{ width: "80%" }}>
+          {type === "all" ? (
+            <AllNotifications
+              notifications={filtered || []}
+              hasNext={allnotifications?.result?.hasNext}
+              hasPrev={allnotifications?.result?.hasPrev}
+              next={nextPage}
+              prev={prevPage}
+            />
+          ) : (
+            <UnreadNotifications
+              notifications={filtered || []}
+              update={update}
+            />
           )}
-
-          {!loading &&
-            filtered.map((n) => (
-              <div
-                className={
-                  "host-notification-card" +
-                  (n.isUnread ? " unread" : " read")
-                }
-                key={n._id}
-                onClick={() => n.isUnread && markAsRead(n._id)}
-                tabIndex={0}
-                title={n.isUnread ? "Mark as read" : "Already read"}
-              >
-                <div className="host-notification-msg">
-                  {n.message}
-                  {n.isUnread && (
-                    <span
-                      className="host-notification-unread-dot"
-                      title="Unread"
-                    ></span>
-                  )}
-                </div>
-                <div className="host-notification-meta">{n.meta}</div>
-              </div>
-            ))}
-        </div>
-
-        {/* Load More Placeholder */}
-        <div className="host-notification-load-btn-row">
-          <button className="host-notification-load-btn" disabled>
-            Load More
-          </button>
         </div>
       </div>
     </div>

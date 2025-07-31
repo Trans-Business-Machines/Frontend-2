@@ -1,4 +1,5 @@
 import "./HostLayout.css";
+import logo from "../assets/logo.png";
 import axiosInstance from "../api/axiosInstance";
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -9,54 +10,35 @@ import { SlCalender } from "react-icons/sl";
 import { FaHistory } from "react-icons/fa";
 import { HiOutlineLogout } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
-import logo from "../assets/logo.png";
+import useSWR from "swr";
 import { capitalize } from "../utils";
 import { FaCheck } from "react-icons/fa6";
 import Snackbar from "../components/Snackbar";
 import toast from "react-hot-toast";
 
-export default function HostLayout({ hostName = "Host User" }) {
+// fetcher function for getting unread notifications
+const getUnreadNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+
+export default function HostLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { logout, user } = useAuth();
 
-  const [unreadCount, setUnreadCount] = useState(0);
+  // Get the preloaded notifications
+  const { data: unreadNotifications, isLoading } = useSWR(
+    user ? "/notifications/?type=unread" : null,
+    getUnreadNotifications,
+    {
+      revalidateOnMount: true,
+      revalidateOnReconnect: true,
+    }
+  );
 
-  const userRole = user?.role || "user";
-
-  //  Fetch actual unread notifications count
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const res = await axiosInstance.get("/notifications?type=all");
-        const allNotifications = res.data?.result?.notifications || [];
-        const unread = allNotifications.filter((n) => !n.isRead);
-        setUnreadCount(unread.length);
-      } catch (error) {
-        console.error("Failed to fetch unread notifications:", error);
-      }
-    };
-
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // refresh every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  //  Mark notifications as read when visiting the notifications page
-  useEffect(() => {
-    const markAllAsRead = async () => {
-      if (location.pathname === "/host/notifications") {
-        try {
-          await axiosInstance.post("/notifications/subscribe");
-          setUnreadCount(0); // reset immediately in UI
-        } catch (error) {
-          console.error("Failed to mark notifications as read:", error);
-        }
-      }
-    };
-
-    markAllAsRead();
-  }, [location.pathname]);
+  
 
   const menu = [
     {
@@ -75,25 +57,41 @@ export default function HostLayout({ hostName = "Host User" }) {
             <MdNotificationsActive />
           </span>
           Notifications
-          {unreadCount > 0 && (
+          {isLoading ? (
             <span
-              className="host-notification-badge"
               style={{
-                background: "#e53e3e",
-                color: "#fff",
+                width: "20px",
+                height: "20px",
+                background: "#ccc",
                 borderRadius: "50%",
-                fontSize: 12,
-                marginLeft: 8,
-                padding: "2px 7px",
-                fontWeight: 700,
                 display: "inline-block",
+                marginLeft: 8,
               }}
-            >
-              {unreadCount}
-            </span>
+            ></span>
+          ) : (
+            unreadNotifications?.result?.count > 0 && (
+              <span
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  background: "#e53e3e",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  fontSize: 12,
+                  marginLeft: 8,
+                  fontWeight: 700,
+                  display: "grid",
+                  placeItems: "center",
+                  textAlign: "center",
+                }}
+              >
+                {unreadNotifications.result.count}
+              </span>
+            )
           )}
         </span>
       ),
+      icon: null,
       path: "/host/notifications",
     },
     {
@@ -142,7 +140,7 @@ export default function HostLayout({ hostName = "Host User" }) {
               key={typeof item.label === "string" ? item.label : item.path}
               className={`host-sidebar-link${
                 location.pathname === item.path ? " active" : ""
-              }`}
+              }}
               onClick={() => navigate(item.path)}
             >
               {item.icon && (
@@ -152,6 +150,7 @@ export default function HostLayout({ hostName = "Host User" }) {
             </div>
           ))}
         </nav>
+
         <button className="host-logout-btn" onClick={signOut}>
           <span style={{ fontSize: 20, marginRight: 8 }}>
             <HiOutlineLogout />
@@ -169,7 +168,6 @@ export default function HostLayout({ hostName = "Host User" }) {
               menu.find((item) => location.pathname.startsWith(item.path))
                 ?.label}
           </div>
-
           {/* Topbar notifications count */}
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <div
@@ -177,7 +175,7 @@ export default function HostLayout({ hostName = "Host User" }) {
               onClick={() => navigate("/host/notifications")}
             >
               <MdNotificationsActive size={22} color="#235c56" />
-              {unreadCount > 0 && (
+              {unreadNotifications.result.count > 0 && (
                 <span
                   style={{
                     position: "absolute",
@@ -191,7 +189,7 @@ export default function HostLayout({ hostName = "Host User" }) {
                     fontWeight: 700,
                   }}
                 >
-                  {unreadCount}
+                  {unreadNotifications.result.count}
                 </span>
               )}
             </div>
