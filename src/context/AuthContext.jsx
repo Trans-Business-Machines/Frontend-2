@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
         setUser(decodedUser);
       } catch (error) {
         await logout();
-        navigate("/login");
+        navigate("/");
       } finally {
         setLoading(false);
       }

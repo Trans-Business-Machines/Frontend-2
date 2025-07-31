@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import "./HostLayout.css";
+import axiosInstance from "../api/axiosInstance";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import axiosInstance from "../api/axiosInstance";
-import "./HostLayout.css";
-import logo from "../assets/logo.png";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { MdNotificationsActive } from "react-icons/md";
 import { SlCalender } from "react-icons/sl";
 import { FaHistory } from "react-icons/fa";
 import { HiOutlineLogout } from "react-icons/hi";
 import { CgProfile } from "react-icons/cg";
+import logo from "../assets/logo.png";
+import { capitalize } from "../utils";
+import { FaCheck } from "react-icons/fa6";
+import Snackbar from "../components/Snackbar";
+import toast from "react-hot-toast";
 
 export default function HostLayout({ hostName = "Host User" }) {
   const navigate = useNavigate();
@@ -18,13 +22,15 @@ export default function HostLayout({ hostName = "Host User" }) {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const userRole = user?.role || "user";
+
   //  Fetch actual unread notifications count
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const res = await axiosInstance.get("/notifications?type=all"); 
+        const res = await axiosInstance.get("/notifications?type=all");
         const allNotifications = res.data?.result?.notifications || [];
-        const unread = allNotifications.filter(n => !n.isRead);
+        const unread = allNotifications.filter((n) => !n.isRead);
         setUnreadCount(unread.length);
       } catch (error) {
         console.error("Failed to fetch unread notifications:", error);
@@ -53,10 +59,14 @@ export default function HostLayout({ hostName = "Host User" }) {
   }, [location.pathname]);
 
   const menu = [
-    { 
-      label: "Dashboard", 
-      icon: <span style={{ fontSize: 18 }}><AiOutlineDashboard /></span>, 
-      path: "/host/dashboard" 
+    {
+      label: "Dashboard",
+      icon: (
+        <span style={{ fontSize: 18 }}>
+          <AiOutlineDashboard />
+        </span>
+      ),
+      path: "/host",
     },
     {
       label: (
@@ -84,23 +94,35 @@ export default function HostLayout({ hostName = "Host User" }) {
           )}
         </span>
       ),
-      path: "/host/notifications"
+      path: "/host/notifications",
     },
-    { 
-      label: "Availability", 
-      icon: <span style={{ fontSize: 18 }}><SlCalender /></span>, 
-      path: "/host/availability" 
+    {
+      label: "Availability",
+      icon: (
+        <span style={{ fontSize: 18 }}>
+          <SlCalender />
+        </span>
+      ),
+      path: "/host/availability",
     },
-    { 
-      label: "History", 
-      icon: <span style={{ fontSize: 18 }}><FaHistory /></span>, 
-      path: "/host/history" 
+    {
+      label: "History",
+      icon: (
+        <span style={{ fontSize: 18 }}>
+          <FaHistory />
+        </span>
+      ),
+      path: "/host/history",
     },
   ];
 
-  const capitalizeRole = (role) => {
-    if (!role) return hostName;
-    return role.charAt(0).toUpperCase() + role.slice(1);
+  // sign out function
+  const signOut = async () => {
+    await logout();
+    toast.custom(
+      <Snackbar type="success" message="Logged out" icon={FaCheck} />
+    );
+    navigate("/");
   };
 
   return (
@@ -108,28 +130,32 @@ export default function HostLayout({ hostName = "Host User" }) {
       {/* Sidebar */}
       <aside className="host-sidebar">
         <div className="host-logo">
-          <img src={logo || "/placeholder.svg"} alt="Logo" className="host-logo-img" />
+          <img
+            src={logo || "/placeholder.svg"}
+            alt="Logo"
+            className="host-logo-img"
+          />
         </div>
         <nav>
-          {menu.map(item => (
+          {menu.map((item) => (
             <div
               key={typeof item.label === "string" ? item.label : item.path}
-              className={`host-sidebar-link${location.pathname === item.path ? " active" : ""}`}
+              className={`host-sidebar-link${
+                location.pathname === item.path ? " active" : ""
+              }`}
               onClick={() => navigate(item.path)}
             >
-              {item.icon && <span className="host-sidebar-icon">{item.icon}</span>}
+              {item.icon && (
+                <span className="host-sidebar-icon">{item.icon}</span>
+              )}
               <span>{item.label}</span>
             </div>
           ))}
         </nav>
-        <button
-          className="host-logout-btn"
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
-        >
-          <span style={{ fontSize: 20, marginRight: 8 }}><HiOutlineLogout /></span>
+        <button className="host-logout-btn" onClick={signOut}>
+          <span style={{ fontSize: 20, marginRight: 8 }}>
+            <HiOutlineLogout />
+          </span>
           Log Out
         </button>
       </aside>
@@ -139,9 +165,9 @@ export default function HostLayout({ hostName = "Host User" }) {
         <header className="host-header">
           <div></div>
           <div className="host-header-title">
-            {menu.find(item => location.pathname === item.path)?.label ??
-              menu.find(item => location.pathname.startsWith(item.path))?.label
-            }
+            {menu.find((item) => location.pathname === item.path)?.label ??
+              menu.find((item) => location.pathname.startsWith(item.path))
+                ?.label}
           </div>
 
           {/* Topbar notifications count */}
@@ -176,10 +202,14 @@ export default function HostLayout({ hostName = "Host User" }) {
               onClick={() => navigate("/host/profile")}
               title="View Profile"
             >
-              <span role="img" aria-label="host" style={{ fontSize: 24, marginRight: 10 }}>
+              <span
+                role="img"
+                aria-label="host"
+                style={{ fontSize: 24, marginRight: 10 }}
+              >
                 <CgProfile />
               </span>
-              {capitalizeRole(user?.role)}
+              {capitalize(userRole)}
             </div>
           </div>
         </header>

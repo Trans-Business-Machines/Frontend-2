@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaUserEdit } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
-import useSWR, { preload } from "swr";
+import useSWR from "swr";
 import { capitalize } from "../utils/index";
 import { FaChevronRight, FaChevronLeft, FaXmark } from "react-icons/fa6";
 import axiosInstance from "../api/axiosInstance";
@@ -21,9 +21,6 @@ const getUsers = async (url) => {
   const res = await axiosInstance.get(url);
   return res.data;
 };
-
-// prelaod the roles
-preload("/users/roles", getRoles);
 
 export default function AdminUsers() {
   // Get all the roles for this user from the backend
@@ -140,19 +137,6 @@ export default function AdminUsers() {
       state: { returnTo: "/admin/users", refreshUsers: true },
     });
   };
-
-  /*   if (isLoading) {
-    return (
-      <div className="admin-users">
-        <div className="admin-users-header">
-          <div className="admin-users-title">Manage System Users</div>
-        </div>
-        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px" }}>
-          Loading all users...
-        </div>
-      </div>
-    );
-  } */
 
   return (
     <div className="admin-users">

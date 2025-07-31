@@ -7,7 +7,7 @@ export const swrConfig = (navigate) => ({
       err.response?.data?.message === "No refresh token provided.";
 
     if (err.response?.status === 400 && isTokenInvalid) {
-      navigate("/login");
+      navigate("/");
     }
   },
 });
@@ -35,10 +35,6 @@ export default function navigate(to) {
 
 export function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-export function isValidPhone(phone) {
-  return /^(\+?\d{7,})$/.test(phone);
 }
 
 export function isValidTenDigitPhone(phone) {

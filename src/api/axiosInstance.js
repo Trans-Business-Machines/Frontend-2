@@ -21,9 +21,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-    } else {
-      window.location.href = "/login"
-    }
+    } 
     return config;
   },
   (error) => Promise.reject(error)

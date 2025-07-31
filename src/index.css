@@ -7,3 +7,19 @@
     background: linear-gradient(135deg, #285E61, #2F855A);
     color: #fff;
 }
+
+@keyframes bounceIn {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.8);
+    }
+}
+
+.unauthorized-image {
+    animation: bounceIn 4s linear infinite;
+}

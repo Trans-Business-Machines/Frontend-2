@@ -166,7 +166,7 @@ export default function Profile() {
             </div>
             <button
               className="profile-change-btn"
-              onClick={() => navigate("/profile/change-password")}
+              onClick={() => navigate("/soldier/profile/change-password")}
             >
               Change Password
             </button>

@@ -75,7 +75,7 @@ export default function Login() {
     setErrorMsg("");
 
     if (authMode === "phone") {
-      if (!isValidPhone(phone)) {
+      if (!isValidTenDigitPhone(phone)) {
         setErrorMsg("Please enter a valid phone number (digits only).");
         setLoading(false);
         return;
@@ -101,22 +101,20 @@ export default function Login() {
 
       //  Redirect based on role
       if (user?.role === "soldier") {
-        navigate("/");
+        navigate("/soldier");
         toast.custom(
           <Snackbar type="success" message="Login successful!" icon={FaCheck} />
         );
       } else if (user?.role === "host" || user?.role === "receptionist") {
-        navigate("/host/dashboard");
+        navigate("/host");
         toast.custom(
           <Snackbar type="success" message="Login successful!" icon={FaCheck} />
         );
       } else if (user?.role === "admin" || user.role === "super admin") {
-        navigate("/admin/dashboard");
+        navigate("/admin");
         toast.custom(
           <Snackbar type="success" message="Login successful!" icon={FaCheck} />
         );
-      } else {
-        navigate("/login");
       }
     } catch (err) {
       const message =
