@@ -7,7 +7,9 @@ function Unauthorized() {
 
   let redirectPath = "";
 
-  if (user.role === "soldier") {
+  if (!user) {
+    redirectPath = "/";
+  } else if (user.role === "soldier") {
     redirectPath = "/soldier";
   } else if (["host", "receptionist"].includes(user.role)) {
     redirectPath = "/host";
@@ -59,7 +61,7 @@ function Unauthorized() {
           onMouseOver={(e) => (e.target.style.backgroundColor = "#163f6b")}
           onMouseOut={(e) => (e.target.style.backgroundColor = "#1D528E")}
         >
-          Back to Dashboard
+          Back to {!user ? "Login" : "Dashboard"}
         </Link>
       </div>
     </section>

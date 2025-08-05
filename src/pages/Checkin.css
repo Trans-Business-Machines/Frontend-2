@@ -70,7 +70,7 @@
   outline: none;
   margin-bottom: 0;
   transition: border 0.15s;
-  color:black
+  color: black
 }
 
 .checkin-field input:focus,
@@ -117,8 +117,18 @@
   background-color: rgb(185, 184, 184);
 }
 
+.error-message {
+  background-color: #eb2d2d33;
+  color: #f80000;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: .5rem;
+  padding: .45rem;
+}
+
 /* Minimal responsive adjustments for check-in form */
 @media (max-width: 768px) {
+
   /* Stack fields vertically instead of side by side */
   .checkin-fields-row {
     flex-direction: column;
@@ -132,21 +142,26 @@
 }
 
 @media (max-width: 480px) {
+
   /* Compact form for small phones */
   .checkin-form {
     padding: 20px 16px;
   }
+
   .checkin-title {
     font-size: 1.1rem;
   }
+
   .checkin-field label {
     font-size: 0.95rem;
   }
+
   .checkin-field input,
   .checkin-field select {
     font-size: 0.95rem;
     padding: 8px 14px;
   }
+
   .checkin-btn {
     font-size: 1rem;
     padding: 8px 0;

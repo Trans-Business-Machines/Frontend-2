@@ -1,135 +1,57 @@
-"use client"
+import "./VisitorsLog.css";
+import { useState, useMemo } from "react";
+import { format } from "date-fns/format";
+import { capitalize } from "../utils";
+import axiosInstance from "../api/axiosInstance";
+import useSWR from "swr";
 
-import { useState, useEffect, useCallback } from "react"
-import "./VisitorsLog.css"
-import axiosInstance from "../api/axiosInstance" // Assuming axiosInstance is available here
+const getVisitLogs = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
 
-const RECORDS_PER_PAGE = 10 // This will be the 'limit' parameter for your API
+function VisitorsLog() {
+  const [page, setPage] = useState(1);
+  const [textSearch, setTextSearch] = useState("");
+  const [dateSearch, setDateSearch] = useState("");
 
-// Helper function to format ISO date string to "YYYY-MM-DD"
-const formatDate = (isoString) => {
-  if (!isoString) return "N/A"
-  try {
-    const date = new Date(isoString)
-    return date.toISOString().split("T")[0] // Extracts "YYYY-MM-DD"
-  } catch (e) {
-    console.error("Error formatting date:", e)
-    return "Invalid Date"
-  }
-}
+  const { data, isLoading } = useSWR(`/visits?page=${page}`, getVisitLogs);
 
-// Helper function to format ISO time string to "HH:MM AM/PM"
-const formatTime = (isoString) => {
-  if (!isoString) return "N/A"
-  try {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
-  } catch (e) {
-    console.error("Error formatting time:", e)
-    return "Invalid Time"
-  }
-}
+  const filtered = useMemo(() => {
+    const visitors = data?.visits;
 
-export default function VisitorsLog() {
-  const [visits, setVisits] = useState([])
-  const [textSearch, setTextSearch] = useState("")
-  const [dateSearch, setDateSearch] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [hasNextPage, setHasNextPage] = useState(false)
-  const [hasPrevPage, setHasPrevPage] = useState(false)
+    if (textSearch === "" && dateSearch === "") return visitors;
 
-  const fetchVisits = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const params = {
-        page: currentPage,
-        limit: RECORDS_PER_PAGE,
-      }
+    const term = textSearch.trim().toLowerCase();
 
-      // Add search parameters if they exist
-      if (textSearch) {
-        // Assuming your backend can search across multiple fields with a single 'search' param
-        params.search = textSearch
-      }
+    const filteredVisitors = visitors.filter((v) => {
+      let dateToSearch = 0;
+      let visitDate = null;
+
       if (dateSearch) {
-        // Assuming your backend filters by 'visit_date' using a 'date' param
-        params.date = dateSearch
+        dateToSearch = new Date(dateSearch).getTime();
+        visitDate = new Date(v.visit_date).getTime();
       }
 
-      console.log("Fetching visits with params:", params)
-      const response = await axiosInstance.get("/visits", { params })
+      return (
+        v.firstname.toLowerCase().includes(term) ||
+        v.lastname.toLowerCase().includes(term) ||
+        v.purpose.toLowerCase().includes(term) ||
+        v.phone.toLowerCase().includes(term) ||
+        dateToSearch === visitDate
+      );
+    });
 
-      const { visits: fetchedVisits, hasNext, hasPrev } = response.data
+    return filteredVisitors;
+  }, [data, textSearch, dateSearch]);
 
-      // Map the fetched data to match your table's expected structure
-      const mappedVisits = fetchedVisits.map((visit) => ({
-        name: `${visit.firstname || ""} ${visit.lastname || ""}`.trim(),
-        phone: visit.phone || "N/A",
-        purpose: visit.purpose || "N/A",
-        host: `${visit.host?.firstname || ""} ${visit.host?.lastname || ""}`.trim(),
-        dateIn: formatDate(visit.visit_date), // Use visit_date for Date In
-        timeIn: formatTime(visit.time_in), // Use time_in for Time In
-        timeOut: visit.time_out ? formatTime(visit.time_out) : "-", // Changed from "N/A" to "-"
-      }))
-
-      setVisits(mappedVisits)
-      setHasNextPage(hasNext)
-      setHasPrevPage(hasPrev)
-    } catch (err) {
-      console.error("Failed to fetch visits:", err)
-      setError("Failed to load visitor records. Please try again.")
-      setVisits([]) // Clear visits on error
-      setHasNextPage(false)
-      setHasPrevPage(false)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [currentPage, textSearch, dateSearch])
-
-  // Fetch data on component mount and when dependencies change
-  useEffect(() => {
-    fetchVisits()
-  }, [fetchVisits])
-
-  // Handle page change
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage)
-  }
-
-  // Reset page to 1 when search terms change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [textSearch, dateSearch])
-
-  if (isLoading) {
-    return (
-      <div className="visitors-log-container">
-        <div className="visitors-log-header">
-          <h1 className="visitors-log-title">Visitors Log</h1>
-        </div>
-        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px", color: "#555" }}>
-          Loading visitor records...
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="visitors-log-container">
-        <div className="visitors-log-header">
-          <h1 className="visitors-log-title">Visitors Log</h1>
-        </div>
-        <div style={{ textAlign: "center", padding: "50px", fontSize: "16px", color: "red" }}>{error}</div>
-      </div>
-    )
-  }
+  // Function to move back and forth between pages
+  const moveTo = (page) => {
+    setPage(page);
+  };
 
   return (
-    <div className="visitors-log-container">
+    <div>
       <div className="visitors-log-header">
         <h1 className="visitors-log-title">Visitors Log</h1>
       </div>
@@ -137,7 +59,7 @@ export default function VisitorsLog() {
       <div className="visitors-log-search-row">
         <input
           type="text"
-          placeholder="Search by Name, Phone, Purpose, Host"
+          placeholder="Search by Name, Phone, Purpose"
           value={textSearch}
           onChange={(e) => setTextSearch(e.target.value)}
         />
@@ -149,50 +71,107 @@ export default function VisitorsLog() {
         />
       </div>
 
-      <table className="visitors-log-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Purpose</th>
-            <th>Host</th>
-            <th>Date In</th>
-            <th>Time In</th>
-            <th>Time Out</th>
-          </tr>
-        </thead>
-        <tbody>
-          {visits.length === 0 ? (
-            <tr>
-              <td colSpan={7} className="no-records-message">
-                No records found.
-              </td>
-            </tr>
+      {isLoading && !data ? (
+        <section
+          style={{
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              color: "#246D5A",
+              padding: "1.25rem",
+              borderRadius: "8px",
+              background: "#ffffff",
+              fontSize: "1.5rem",
+              fontWeight: "semi-bold",
+            }}
+          >
+            <p>Loading visitor info...</p>
+          </div>
+        </section>
+      ) : (
+        <section>
+          {filtered.length === 0 ? (
+            <article
+              style={{
+                width: "100%",
+              }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  padding: "1.25rem",
+                  borderRadius: "8px",
+                  background: "#ffffff",
+                  fontSize: "1.5rem",
+                  fontWeight: "semi-bold",
+                  color: "#246D5A",
+                }}
+              >
+                <p>No visitors found.</p>
+              </div>
+            </article>
           ) : (
-            visits.map((visitor, index) => (
-              <tr key={index}>
-                <td>{visitor.name}</td>
-                <td>{visitor.phone}</td>
-                <td>{visitor.purpose}</td>
-                <td>{visitor.host}</td>
-                <td>{visitor.dateIn}</td>
-                <td>{visitor.timeIn}</td>
-                <td>{visitor.timeOut}</td>
-              </tr>
-            ))
+            <>
+              <table className="visitors-log-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Purpose</th>
+                    <th>Host</th>
+                    <th>Date In</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((v, index) => (
+                    <tr key={index}>
+                      <td>
+                        {v.firstname} {v.lastname}
+                      </td>
+                      <td>{v.phone}</td>
+                      <td>{capitalize(v.purpose)}</td>
+                      <td>
+                        {v.host.firstname} {v.host.lastname}
+                      </td>
+                      <td>{format(new Date(v.visit_date), "MM/dd/yyyy")}</td>
+                      <td>{format(new Date(v.time_in), "hh:mm a")}</td>
+                      <td>
+                        {v.time_out
+                          ? format(new Date(v.time_out), "hh:mm a")
+                          : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="visitors-log-pagination">
+                <button
+                  className="pagination-button"
+                  onClick={() => moveTo(page - 1)}
+                  disabled={!data?.hasPrev}
+                >
+                  Previous
+                </button>
+                <button className="active">{page}</button>
+                <button
+                  className="pagination-button"
+                  onClick={() => moveTo(page + 1)}
+                  disabled={!data?.hasNext}
+                >
+                  Next
+                </button>
+              </div>
+            </>
           )}
-        </tbody>
-      </table>
-
-      <div className="visitors-log-pagination">
-        <button onClick={() => handlePageChange(currentPage - 1)} disabled={!hasPrevPage}>
-          Previous
-        </button>
-        <button className="active">{currentPage}</button>
-        <button onClick={() => handlePageChange(currentPage + 1)} disabled={!hasNextPage}>
-          Next
-        </button>
-      </div>
+        </section>
+      )}
     </div>
-  )
+  );
 }
+
+export default VisitorsLog;

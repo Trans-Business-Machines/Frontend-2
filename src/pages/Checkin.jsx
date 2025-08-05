@@ -4,6 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
 import { FaCheck, FaXmark } from "react-icons/fa6";
 import { capitalize } from "../utils";
+import {
+  isValidName,
+  isValidNationalId,
+  isValidTenDigitPhone,
+} from "../utils/index";
 import Snackbar from "../components/Snackbar";
 import axiosInstance from "../api/axiosInstance";
 
@@ -25,6 +30,15 @@ export default function Checkin() {
     host: "",
     purpose: "",
   });
+
+  // State to keep track of error
+  const [errors, setErrors] = useState({
+    firstname: "",
+    lastname: "",
+    national_id: "",
+    phone: "",
+  });
+
   const [data, setData] = useState({});
   const [checkingIn, setCheckingIn] = useState(false);
   const { user } = useAuth();
@@ -60,26 +74,87 @@ export default function Checkin() {
 
   // Handle input changes
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    // Validate individual field on change
+    let error = "";
+
+    if (name === "firstname" || name === "lastname") {
+      if (!isValidName(value)) {
+        error = `${capitalize(name)} should only contain letters`;
+      }
+    }
+
+    if (name === "national_id") {
+      if (!isValidNationalId(value)) {
+        error = "National ID should be 8 digits";
+      }
+    }
+
+    if (name === "phone") {
+      if (!isValidTenDigitPhone(value)) {
+        error = "Phone should be 10 digits";
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
+  // Function to validate Form data
+  const validateFormData = (formData) => {
+    const newErrors = {};
+
+    if (!isValidName(formData.firstname)) {
+      newErrors.firstname = "Firstname should only have alphabets";
+    }
+    if (!isValidName(formData.lastname)) {
+      newErrors.lastname = "Lastname should only have alphabets";
+    }
+    if (!isValidNationalId(formData.national_id)) {
+      newErrors.national_id = "National ID should be 8 digits";
+    }
+    if (!isValidTenDigitPhone(formData.phone)) {
+      newErrors.phone = "Phone should be 10 digits";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
+
+  // Handle submission of check in form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCheckingIn(true);
-    try {
-      // IMPORTANT: Trim whitespace from string fields before sending to backend
-      const trimmedForm = {
-        ...form,
-        firstname: form.firstname.trim(),
-        lastname: form.lastname.trim(),
-        national_id: form.national_id.trim(), // Also trim ID if it's strictly numeric
-        phone: form.phone.trim(),             // Also trim phone if it's strictly numeric
-      };
 
+    const trimmedForm = {
+      ...form,
+      firstname: form.firstname.trim(),
+      lastname: form.lastname.trim(),
+      national_id: form.national_id.trim(),
+      phone: form.phone.trim(),
+    };
+
+    const isValid = validateFormData(trimmedForm);
+
+    if (!isValid) {
+      toast.custom(
+        <Snackbar
+          type="error"
+          message="Please fix validation errors before submitting."
+          icon={FaXmark}
+        />
+      );
+      setCheckingIn(false);
+      return;
+    }
+
+    try {
       const res = await axiosInstance.post("/visits/new", {
-        ...trimmedForm, // Use the trimmed form data
+        ...trimmedForm,
         checkin_officer: user.userId,
       });
+
       if (res.data.success) {
         toast.custom(
           <Snackbar
@@ -89,9 +164,10 @@ export default function Checkin() {
           />
         );
         clearForm();
+        setErrors({});
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Check-in failed";
+      const errorMessage = "Check-in failed";
       toast.custom(
         <Snackbar icon={FaXmark} message={errorMessage} type="error" />
       );
@@ -118,6 +194,10 @@ export default function Checkin() {
               onChange={handleChange}
               required
             />
+
+            {errors.firstname && (
+              <p className="error-message">{errors.firstname}</p>
+            )}
           </div>
           <div className="checkin-field">
             <label>
@@ -131,6 +211,9 @@ export default function Checkin() {
               onChange={handleChange}
               required
             />
+            {errors.lastname && (
+              <p className="error-message">{errors.lastname}</p>
+            )}
           </div>
         </div>
         <div className="checkin-field">
@@ -145,6 +228,9 @@ export default function Checkin() {
             onChange={handleChange}
             required
           />
+          {errors.national_id && (
+            <p className="error-message">{errors.national_id}</p>
+          )}
         </div>
         <div className="checkin-field">
           <label>
@@ -158,6 +244,7 @@ export default function Checkin() {
             onChange={handleChange}
             required
           />
+          {errors.phone && <p className="error-message">{errors.phone}</p>}
         </div>
         <div className="checkin-field">
           <label>
@@ -169,6 +256,7 @@ export default function Checkin() {
               name="host"
               value={form.host}
               onChange={handleChange}
+              required
             >
               <option value="" disabled>
                 Select a host
@@ -178,7 +266,7 @@ export default function Checkin() {
                   {capitalize(host.firstname)} {capitalize(host.lastname)}{" "}
                   &nbsp;
                   {host.role === "receptionist" && (
-                    <span>- ({capitalize(host.role)})</span>
+                    <span>-({capitalize(host.role)})</span>
                   )}
                 </option>
               ))}

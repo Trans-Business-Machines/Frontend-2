@@ -363,7 +363,7 @@ export default function Login() {
           onSubmit={handleSubmit}
           autoComplete="off"
         >
-          <h2 className="login-welcome">Welcome Back</h2>
+          <h2 className="login-welcome">Welcome To VMS</h2>
           <div className="login-card-subtitle" style={{ marginBottom: 20 }}>
             Please sign in to your account
           </div>
