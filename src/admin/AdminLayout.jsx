@@ -12,7 +12,7 @@ import { FaCheck } from "react-icons/fa6";
 import Snackbar from "../components/Snackbar";
 import toast from "react-hot-toast";
 
-export default function AdminLayout() {
+function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
@@ -25,7 +25,7 @@ export default function AdminLayout() {
       icon: <AiOutlineDashboard />,
       path: "/admin",
     },
-    { label: "User Management", icon: <FaUserCog />, path: "/admin/users" },
+    { label: "Manage Users", icon: <FaUserCog />, path: "/admin/users" },
     {
       label: "Visitor Log",
       icon: <LuFolderSearch />,
@@ -52,12 +52,19 @@ export default function AdminLayout() {
             className="admin-logo-img"
           />
         </div>
-        <nav>
+        <nav
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            gap: "1rem",
+          }}
+        >
           {menu.map((item) => (
             <div
               key={item.label}
               className={`admin-sidebar-link ${
-                location.pathname.startsWith(item.path) ? "active" : ""
+                location.pathname === item.path ? "active" : ""
               }`}
               onClick={() => navigate(item.path)}
             >
@@ -74,13 +81,10 @@ export default function AdminLayout() {
         </button>
       </aside>
       <main className="admin-main-panel">
+
         <header className="admin-header">
-          <div></div>
           <div className="admin-header-title">
-            {
-              menu.find((item) => location.pathname.startsWith(item.path))
-                ?.label
-            }
+            {menu.find((item) => location.pathname === item.path)?.label}
           </div>
           <div
             className="admin-header-profile"
@@ -98,6 +102,7 @@ export default function AdminLayout() {
             {capitalize(userRole)}
           </div>
         </header>
+
         <div className="admin-content-panel">
           <Outlet />
         </div>
@@ -105,3 +110,5 @@ export default function AdminLayout() {
     </div>
   );
 }
+
+export default AdminLayout;

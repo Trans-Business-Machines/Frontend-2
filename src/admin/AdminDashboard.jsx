@@ -5,6 +5,7 @@ import useSWR from "swr";
 import Table from "../components/Table";
 import axiosInstance from "../api/axiosInstance";
 import "./AdminDashboard.css";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 const getTodaysVisitors = async (url) => {
   const res = await axiosInstance.get(url);
@@ -154,8 +155,15 @@ export default function AdminDashboard() {
             marginBottom: "1rem",
           }}
         >
-          <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: "600" }}>
-            Recent Visitors
+          <h3
+            style={{
+              margin: 0,
+              fontSize: "1.2rem",
+              fontWeight: "600",
+              color: "#285E61",
+            }}
+          >
+            Today&apos;s Visitors
           </h3>
           <button
             onClick={() => navigate("/admin/visitor-log")}

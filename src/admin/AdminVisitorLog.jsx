@@ -1,4 +1,3 @@
-import "./AdminUsers.css";
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
@@ -6,6 +5,7 @@ import { FaCheck, FaXmark } from "react-icons/fa6";
 import Snackbar from "../components/Snackbar";
 import useSWR from "swr";
 import axiosInstance from "../api/axiosInstance";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 //  Fetch visitors directly from backend
 const fetchVisitors = async (url) => {
@@ -86,11 +86,11 @@ export default function AdminVisitorLog() {
   const handleExportData = async () => {
     try {
       const today = new Date();
-      if (today.getDate() < 20) {
+      if (today.getDate() < 28) {
         return toast.custom(
           <Snackbar
             type="error"
-            message="Date has to more than 20"
+            message="Date has to more than 28"
             icon={FaXmark}
           />
         );
@@ -165,7 +165,7 @@ export default function AdminVisitorLog() {
         style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}
       >
         <input
-          placeholder="Search by name, phone, ID number, host, or purpose"
+          placeholder="Search by name, phone, ID, host, or purpose"
           value={search}
           onChange={handleSearchChange}
           style={{ flex: 1, minWidth: 300 }}
@@ -192,14 +192,14 @@ export default function AdminVisitorLog() {
         <thead>
           <tr>
             <th>Name</th>
-            <th>ID Number</th>
+            <th>ID</th>
             <th>Phone</th>
             <th>Host</th>
             <th>Date</th>
             <th>Time In</th>
             <th>Time Out</th>
             <th>Status</th>
-            <th>Checkin soldier</th>
+            <th>Checkin Soldier</th>
           </tr>
         </thead>
         <tbody>
@@ -221,23 +221,13 @@ export default function AdminVisitorLog() {
                 <td>
                   {v.host.firstname} {v.host.lastname}
                 </td>
-                <td>{format(new Date(v.visit_date), "MMMM do, yyyy")}</td>
-                <td>{format(new Date(v.time_in), "hh:mm a")}</td>
-                <td>{format(new Date(v.time_out), "hh:mm a") || "-"}</td>
+                <td>{format(new Date(v.visit_date), "MM/dd/yyyy")}</td>
+                <td>{format(new Date(v.time_in), "h:mm a")}</td>
                 <td>
-                  <span
-                    className={
-                      v.status === "checked-in"
-                        ? "status-active"
-                        : "status-inactive"
-                    }
-                    style={{
-                      whiteSpace: "nowrap",
-                      display: "inline-block",
-                    }}
-                  >
-                    {v.status}
-                  </span>
+                  {v.time_out ? format(new Date(v.time_out), "h:mm a") : "-"}
+                </td>
+                <td>
+                  <span>{v.status.replace("-", " ")}</span>
                 </td>
                 <td>
                   {v.checkin_officer.firstname} {v.checkin_officer.lastname}
@@ -251,19 +241,21 @@ export default function AdminVisitorLog() {
       {/* Pagination */}
       <div className="admin-users-pagination">
         <button
+          className="pagination-button"
           onClick={() => goToPage(currentPage - 1)}
           disabled={currentPage === 1}
         >
-          {"<"}
+          <FaChevronLeft />
         </button>
         <span style={{ margin: "0 10px" }}>
           Page {currentPage} of {totalPages}
         </span>
         <button
+          className="pagination-button"
           onClick={() => goToPage(currentPage + 1)}
           disabled={currentPage === totalPages}
         >
-          {">"}
+          <FaChevronRight />
         </button>
       </div>
 
