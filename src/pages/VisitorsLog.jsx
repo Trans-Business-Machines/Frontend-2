@@ -1,6 +1,6 @@
 import "./VisitorsLog.css";
 import { useState, useMemo } from "react";
-import { format } from "date-fns/format";
+import { format, isSameDay } from "date-fns";
 import { capitalize } from "../utils";
 import axiosInstance from "../api/axiosInstance";
 import useSWR from "swr";
@@ -18,34 +18,30 @@ function VisitorsLog() {
   const { data, isLoading } = useSWR(`/visits?page=${page}`, getVisitLogs);
 
   const filtered = useMemo(() => {
-    const visitors = data?.visits;
+    const visitors = data?.visits || [];
 
-    if (textSearch === "" && dateSearch === "") return visitors;
+    if (!textSearch && !dateSearch) return visitors;
 
     const term = textSearch.trim().toLowerCase();
+    const dateToSearch = dateSearch ? new Date(dateSearch) : null;
 
-    const filteredVisitors = visitors.filter((v) => {
-      let dateToSearch = 0;
-      let visitDate = null;
-
-      if (dateSearch) {
-        dateToSearch = new Date(dateSearch).getTime();
-        visitDate = new Date(v.visit_date).getTime();
-      }
-
-      return (
+    return visitors.filter((v) => {
+      const matchesText =
         v.firstname.toLowerCase().includes(term) ||
         v.lastname.toLowerCase().includes(term) ||
         v.purpose.toLowerCase().includes(term) ||
-        v.phone.toLowerCase().includes(term) ||
-        dateToSearch === visitDate
-      );
-    });
+        v.phone.toLowerCase().includes(term);
 
-    return filteredVisitors;
+      const matchesDate = dateToSearch
+        ? isSameDay(new Date(v.visit_date), dateToSearch)
+        : false;
+
+      if (textSearch && dateSearch) return matchesText && matchesDate;
+      if (textSearch) return matchesText;
+      if (dateSearch) return matchesDate;
+    });
   }, [data, textSearch, dateSearch]);
 
-  // Function to move back and forth between pages
   const moveTo = (page) => {
     setPage(page);
   };
