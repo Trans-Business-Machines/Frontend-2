@@ -41,6 +41,11 @@ export function isValidTenDigitPhone(phone) {
   return /^\d{10}$/.test(phone);
 }
 
+export function isValidNationalId(id) {
+  const regex = /^[0-9]{8}$/
+  return regex.test(id)
+}
+
 // Allows letters and spaces
 export function isValidName(name) {
   return /^[a-zA-Z\s]+$/.test(name);
