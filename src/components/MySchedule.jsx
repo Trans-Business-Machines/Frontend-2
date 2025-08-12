@@ -1,17 +1,29 @@
-import { format } from "date-fns/format";
+import { formatInTimeZone } from "date-fns-tz";
+import { FaRegEdit, FaTrash } from "react-icons/fa";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import { toast } from "react-hot-toast";
+import Snackbar from "./Snackbar";
 
-function MySchedule({ schedule = {} }) {
+function MySchedule({ schedule = {}, openForm, deleteSchedule }) {
   if (!schedule?.start_date || !schedule?.end_date) return null;
 
-  // Since your API stores times as UTC but they were originally local times,
-  // we need to display them as local times without timezone conversion
-  const startUTC = new Date(schedule.start_date);
-  const endUTC = new Date(schedule.end_date);
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  // Convert UTC time to local time by adding the timezone offset
-  const timezoneOffset = startUTC.getTimezoneOffset() * 60000;
-  const startLocal = new Date(startUTC.getTime() + timezoneOffset);
-  const endLocal = new Date(endUTC.getTime() + timezoneOffset);
+  const startLocal = formatInTimeZone(schedule.start_date, timeZone, "PPPp");
+  const endLocal = formatInTimeZone(schedule.end_date, timeZone, "PPPp");
+
+  const handleDelete = async () => {
+    try {
+      await deleteSchedule(); // parent wired deleteSchedule to call trigger + mutate
+      toast.custom(
+        <Snackbar type="success" icon={FaCheck} message="Delete successful." />
+      );
+    } catch (error) {
+      toast.custom(
+        <Snackbar type="error" icon={FaXmark} message="Delete failed!" />
+      );
+    }
+  };
 
   return (
     <article
@@ -29,44 +41,40 @@ function MySchedule({ schedule = {} }) {
     >
       <div style={{ display: "grid", gap: "0.5rem", marginBottom: "1rem" }}>
         <p>
-          <strong>Start Date: </strong>
-          {format(startLocal, "PPPp")}
+          <strong>Start Time: </strong>
+          {startLocal}
         </p>
         <p>
-          <strong>End Date: </strong>
-          {format(endLocal, "PPPp")}
+          <strong>End Time: </strong>
+          {endLocal}
         </p>
       </div>
-
-      <div style={{ width: "max-content", marginLeft: "auto" }}>
+      <div
+        style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem" }}
+      >
         <button
+          className="schedule-btn"
           style={{
-            padding: ".6rem 1.6rem",
-            backgroundColor: "#007bff",
-            color: "#fff",
-            fontWeight: "bold",
             border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            marginRight: "0.5rem",
+            padding: ".6rem 2rem",
+            borderRadius: "8px",
+            background: "#EC5800",
           }}
+          onClick={() => openForm(true, schedule)} // <-- pass schedule up
         >
-          Update
+          <FaRegEdit color="#fff" />
         </button>
         <button
+          className="schedule-btn"
           style={{
-            padding: ".6rem 1.6rem",
-            backgroundColor: "#dc3545",
-            color: "#fff",
-            fontWeight: "bold",
             border: "none",
-            borderRadius: "4px",
-            fontSize: "1rem",
-            cursor: "pointer",
+            padding: ".6rem 2rem",
+            borderRadius: "8px",
+            background: "#ED1B24",
           }}
+          onClick={handleDelete}
         >
-          Delete
+          <FaTrash color="#fff" />
         </button>
       </div>
     </article>
