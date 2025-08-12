@@ -29,30 +29,7 @@ export default function HostNotifications() {
   const [type, setType] = useState("all");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  // Fetch notifications from backend
-  const fetchNotifications = async () => {
-    try {
-      const res = await axiosInstance.get(`/notifications?type=all`);
-      const backendNotifications = res.data?.result?.notifications || [];
-      setNotifications(
-        backendNotifications.map((n) => ({
-          ...n,
-          isUnread: !n.isRead, // backend uses isRead, frontend expects isUnread
-          meta: `${n.title} | ${new Date(n.createdAt).toLocaleString()}`,
-        }))
-      );
-    } catch (error) {
-      console.error("Failed to fetch notifications", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
 
   const { data: allnotifications } = useSWR(
     `/notifications/?type=${type}&page=${page}`,

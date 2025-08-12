@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import useSWR from "swr";
 import axiosInstance from "../api/axiosInstance";
 
-
 const getProfile = async (url) => {
   const { data } = await axiosInstance.get(url);
   return data;
@@ -146,17 +145,15 @@ export default function Profile() {
                   {profile.role}
                 </span>
               </div>
-
             </div>
-           
-          </div>
-          <button
-            className="profile-change-btn"
-            onClick={() => navigate("/host/profile/change-password")}
-          >
-            Change Password
-          </button>
 
+            <button
+              className="profile-change-btn"
+              onClick={() => navigate("/host/profile/change-password")}
+            >
+              Change Password
+            </button>
+          </div>
         </div>
       )}
     </section>

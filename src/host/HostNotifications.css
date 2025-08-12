@@ -3,41 +3,37 @@
   background: #f7f7f7;
   display: flex;
   flex-direction: column;
-  align-items: center; /* center everything horizontally */
-  justify-content: flex-start; /* keep normal flow vertically */
+  align-items: center;
+  justify-content: flex-start;
   width: 100%;
-  padding: 0 20px; /* equal padding on both sides */
+  padding: 0 20px;
   box-sizing: border-box;
-  text-align: center; /* center titles and texts */
+  text-align: center;
 }
 
-/* Title centered */
 .host-notifications-title {
   font-size: 2rem;
   font-weight: 700;
   color: #246d5a;
-  margin-top: 38px;
   text-align: center;
   width: 100%;
 }
 
-/*  Filter Row centered */
 .host-notifications-filter-row {
   margin-top: 22px;
   margin-bottom: 24px;
   display: flex;
-  justify-content: center; /* center horizontally */
+  justify-content: center;
   align-items: center;
   gap: 16px;
   width: 100%;
   max-width: 700px;
-  flex-wrap: wrap; /* allow wrapping on smaller screens */
+  flex-wrap: wrap;
 }
 
-/*  Search field centered */
 .host-notifications-date-filter {
   flex: 1;
-  min-width: 250px; /* prevent too small width */
+  min-width: 250px;
   max-width: 400px;
   padding: 10px 22px;
   font-size: 1.09rem;
@@ -46,11 +42,11 @@
   outline: none;
 }
 
-/*  Filter buttons centered */
 .host-notifications-filter-btns {
   display: flex;
   gap: 16px;
 }
+
 .host-notifications-filter-btns button {
   padding: 8px 30px;
   border-radius: 20px;
@@ -65,11 +61,13 @@
   position: relative;
   text-align: center;
 }
-.host-notifications-filter-btns button.active, 
+
+.host-notifications-filter-btns button.active,
 .host-notifications-filter-btns button:hover,
 .host-notifications-filter-btns button:focus {
   background: #246D5A;
 }
+
 .host-notifications-badge {
   background: #e53935;
   color: #fff;
@@ -83,17 +81,15 @@
   flex-wrap: wrap;
 }
 
-/*  Notification List centered */
 .host-notification-list {
   margin-top: 18px;
   width: 100%;
   max-width: 700px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* center cards */
+  align-items: center;
 }
 
-/*  Empty state message centered */
 .host-notifications-empty {
   color: #999;
   font-size: 1.1rem;
@@ -101,7 +97,6 @@
   text-align: center;
 }
 
-/*  Notification cards centered */
 .host-notification-card {
   background: #fff;
   border-radius: 11px;
@@ -114,11 +109,11 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  align-items: center; /* center contents inside card */
+  align-items: center;
+  /* center contents inside card */
   text-align: center;
 }
 
-/*  Message + meta centered */
 .host-notification-msg {
   font-size: 1.09rem;
   font-weight: 500;
@@ -137,19 +132,20 @@
   text-align: center;
 }
 
-/*  Load more button row centered */
 .host-notification-load-btn-row {
   text-align: center;
   margin-top: 16px;
   width: 100%;
 }
 
-/* Hide scrollbar while keeping scroll functionality */
 .host-scrollable-content,
 .host-notification-list {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
-  overflow-y: auto; /* still scrollable but hidden */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+  overflow-y: auto;
+  /* still scrollable but hidden */
 }
 
 /* For Chrome, Safari, Edge */
@@ -219,14 +215,16 @@
 
 /* Unread notifications: highlighted background + bold text */
 .host-notification-card.unread {
-  background: #e8f5e9; /* light green background */
+  background: #e8f5e9;
+  /* light green background */
   box-shadow: 0 2px 8px rgba(0, 128, 0, 0.15);
   border-left: 4px solid #309073;
 }
 
 .host-notification-card.unread .host-notification-msg {
   font-weight: 700;
-  color: #1b5e20; /* darker green for emphasis */
+  color: #1b5e20;
+  /* darker green for emphasis */
 }
 
 /* Read notifications: subtle, normal text */
@@ -245,7 +243,8 @@
 .host-notification-unread-dot {
   width: 10px;
   height: 10px;
-  background: #e53935; /* red dot for unread */
+  background: #e53935;
+  /* red dot for unread */
   border-radius: 50%;
   display: inline-block;
 }
@@ -254,7 +253,8 @@
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
   .host-notifications-wrapper {
-    padding: 0 15px; /* Adjust padding for tablets */
+    padding: 0 15px;
+    /* Adjust padding for tablets */
   }
 
   .host-notifications-title {
@@ -262,17 +262,21 @@
   }
 
   .host-notifications-filter-row {
-    flex-direction: column; /* Stack search and buttons vertically */
+    flex-direction: column;
+    /* Stack search and buttons vertically */
     gap: 15px;
   }
 
   .host-notifications-date-filter {
-    width: 100%; /* Make search input full width */
-    max-width: 100%; /* Override previous max-width */
+    width: 100%;
+    /* Make search input full width */
+    max-width: 100%;
+    /* Override previous max-width */
   }
 
   .host-notifications-filter-btns {
-    width: 100%; /* Make button container full width */
+    width: 100%;
+    /* Make button container full width */
   }
 
   .host-notification-card {
@@ -290,7 +294,8 @@
 
 @media (max-width: 480px) {
   .host-notifications-wrapper {
-    padding: 0 10px; /* Further reduce padding for small phones */
+    padding: 0 10px;
+    /* Further reduce padding for small phones */
   }
 
   .host-notifications-title {

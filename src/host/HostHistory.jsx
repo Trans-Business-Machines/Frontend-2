@@ -1,8 +1,10 @@
+import "./HostHistory.css";
 import { useState } from "react";
 import useSWR from "swr";
-import "./HostHistory.css";
 import axiosInstance from "../api/axiosInstance";
 import { useAuth } from "../context/AuthContext";
+import { capitalize } from "../utils/index";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 
 // Helper to format time
 function formatTime(isoString) {
@@ -59,10 +61,12 @@ export default function HostHistory() {
 
   const { user } = useAuth();
 
-  const { data: hostsData, error, isLoading: loading } = useSWR(
+  const { data: hostsData, isLoading: loading } = useSWR(
     `/visits/host/${user.userId}?today=false`,
     fetcher
   );
+
+  console.log(hostsData);
 
   //  Extract the actual host logs array safely
   const hosts = Array.isArray(hostsData)
@@ -92,7 +96,6 @@ export default function HostHistory() {
 
   // Paginate
   const paginated = sorted.slice((page - 1) * perPage, page * perPage);
-  const pageCount = Math.ceil(filtered.length / perPage);
 
   return (
     <div className="host-history-page">
@@ -102,16 +105,21 @@ export default function HostHistory() {
       </p>
 
       {loading && (
-        <p style={{ textAlign: "center", color: "#666" }}>Loading data...</p>
+        <div
+          style={{
+            background: "white",
+            padding: "1.5rem",
+            width: "100%",
+            borderRadius: "8px",
+            fontSize: "1.15rem",
+            color: "#285E61",
+            fontWeight: "500",
+          }}
+        >
+          <p style={{ textAlign: "center" }}>Loading visits data...</p>
+        </div>
       )}
-      {error && (
-        <p style={{ textAlign: "center", color: "red" }}>
-          Error: {error.message}{" "}
-          {error.status ? `(Status: ${error.status})` : ""}
-        </p>
-      )}
-
-      {!loading && !error && (
+      {!loading && hostsData && (
         <>
           {/* Search + Filters */}
           <input
@@ -120,29 +128,50 @@ export default function HostHistory() {
             placeholder="Search by visitor, id or date (dd-mm-yyyy)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            style={{
+              marginBlock: "1.5rem",
+            }}
           />
           <div className="host-history-filter-row">
-            <label>Date</label>
-            <select
-              value={dateSort}
-              onChange={(e) => setDateSort(e.target.value)}
-            >
-              <option>Ascending</option>
-              <option>Descending</option>
-            </select>
+            <div>
+              <label>Date</label>
+              <select
+                value={dateSort}
+                onChange={(e) => setDateSort(e.target.value)}
+                style={{
+                  border: "1px solid black",
+                  borderRadius: "6px",
+                  padding: "0.3rem 0",
+                  background: "white",
+                  marginLeft: "0.65rem",
+                }}
+              >
+                <option>Ascending</option>
+                <option>Descending</option>
+              </select>
+            </div>
 
-            <label>Purpose</label>
-            <select
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
-            >
-              <option value="">All</option>
-              {visitPurposes.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label>Purpose</label>
+              <select
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value)}
+                style={{
+                  border: "1px solid black",
+                  borderRadius: "6px",
+                  padding: "0.3rem 0rem",
+                  background: "white",
+                  marginLeft: "0.65rem",
+                }}
+              >
+                <option value="">All</option>
+                {visitPurposes.map((p) => (
+                  <option key={p} value={p}>
+                    {capitalize(p)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Table */}
@@ -161,7 +190,10 @@ export default function HostHistory() {
               <tbody>
                 {paginated.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: "center", color: "#999" }}>
+                    <td
+                      colSpan="6"
+                      style={{ textAlign: "center", color: "#999" }}
+                    >
                       No records found.
                     </td>
                   </tr>
@@ -170,7 +202,7 @@ export default function HostHistory() {
                     <tr key={v._id}>
                       <td>{`${v.firstname ?? ""} ${v.lastname ?? ""}`}</td>
                       <td>{v.national_id}</td>
-                      <td>{v.purpose}</td>
+                      <td>{capitalize(v.purpose)}</td>
                       <td>{formatTime(v.time_in)}</td>
                       <td>{v.time_out ? formatTime(v.time_out) : "-"}</td>
                       <td>{formatDate(v.visit_date)}</td>
@@ -183,28 +215,26 @@ export default function HostHistory() {
             {/* Pagination */}
             <div className="host-history-pagination">
               <span>
-                Showing{" "}
-                {filtered.length === 0 ? 0 : (page - 1) * perPage + 1} -{" "}
-                {Math.min(page * perPage, filtered.length)} of {filtered.length}
+                Showing {hostsData.current} of {hostsData.totalPages}
               </span>
-              <div className="host-history-pagination-controls">
-                <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-                  {"<"}
-                </button>
-                {Array.from({ length: pageCount }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setPage(i + 1)}
-                    className={page === i + 1 ? "active" : ""}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+
+              <div className="pagination-btn-container">
                 <button
-                  disabled={page === pageCount}
-                  onClick={() => setPage(page + 1)}
+                  onClick={() => setPage(page - 1)}
+                  className="pagination-button"
+                  disabled={!hostsData.hasPrev}
                 >
-                  {">"}
+                  <FaChevronLeft />
+                </button>
+                <button className="current-page-btn">
+                  {hostsData.current}
+                </button>
+                <button
+                  onClick={() => setPage(page + 1)}
+                  className="pagination-button"
+                  disabled={!hostsData.hasNext}
+                >
+                  <FaChevronRight />
                 </button>
               </div>
             </div>

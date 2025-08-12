@@ -1,7 +1,6 @@
 import "./HostLayout.css";
 import logo from "../assets/logo.png";
 import axiosInstance from "../api/axiosInstance";
-import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AiOutlineDashboard } from "react-icons/ai";
@@ -22,13 +21,12 @@ const getUnreadNotifications = async (url) => {
   return res.data;
 };
 
-
 export default function HostLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
 
-  // Get the preloaded notifications
+  // Get the unread notifications
   const { data: unreadNotifications, isLoading } = useSWR(
     user ? "/notifications/?type=unread" : null,
     getUnreadNotifications,
@@ -37,8 +35,6 @@ export default function HostLayout() {
       revalidateOnReconnect: true,
     }
   );
-
-  
 
   const menu = [
     {
@@ -114,6 +110,9 @@ export default function HostLayout() {
     },
   ];
 
+  // define user role
+  const userRole = user.role || "user";
+
   // sign out function
   const signOut = async () => {
     await logout();
@@ -134,13 +133,20 @@ export default function HostLayout() {
             className="host-logo-img"
           />
         </div>
-        <nav>
+        <nav
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            gap: "1rem",
+          }}
+        >
           {menu.map((item) => (
             <div
               key={typeof item.label === "string" ? item.label : item.path}
               className={`host-sidebar-link${
                 location.pathname === item.path ? " active" : ""
-              }}
+              }`}
               onClick={() => navigate(item.path)}
             >
               {item.icon && (
@@ -162,7 +168,6 @@ export default function HostLayout() {
       {/* Main panel */}
       <main className="host-main-panel">
         <header className="host-header">
-          <div></div>
           <div className="host-header-title">
             {menu.find((item) => location.pathname === item.path)?.label ??
               menu.find((item) => location.pathname.startsWith(item.path))
@@ -175,7 +180,7 @@ export default function HostLayout() {
               onClick={() => navigate("/host/notifications")}
             >
               <MdNotificationsActive size={22} color="#235c56" />
-              {unreadNotifications.result.count > 0 && (
+              {unreadNotifications?.result?.count > 0 && (
                 <span
                   style={{
                     position: "absolute",

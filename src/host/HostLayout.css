@@ -25,11 +25,10 @@
 
 /* Logo container full width */
 .host-logo {
-  display: flex;
+ display: flex;
   align-items: center;
   justify-content: center;
-  margin: 32px 0 28px 0;
-  width: 100%;
+  margin: 0px 0 28px 0;
 }
 
 .host-logo-img {
@@ -162,4 +161,10 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-block: 1rem;
+}
+
+.pagination-btn-container{
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
 }

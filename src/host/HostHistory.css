@@ -5,7 +5,7 @@
   padding: 36px 36px 20px 36px;
   min-height: 600px;
   box-shadow: 0 2px 12px #00000007;
-  max-width: 930px;
+  border-radius: 6px;
 }
 
 .host-history-title {
@@ -38,7 +38,7 @@
 .host-history-filter-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 18px;
   margin-bottom: 24px;
   flex-wrap: wrap;
@@ -58,7 +58,7 @@
 }
 
 .host-history-table-container {
-  overflow-x: auto; /* Enables horizontal scroll on small screens */
+  overflow-x: auto; 
 }
 
 .host-history-table {
@@ -74,12 +74,12 @@
 .host-history-table td {
   padding: 12px 14px;
   border-bottom: 1px solid #e2e8f0;
-  text-align: center;
   font-size: 1rem;
   white-space: nowrap; /* Prevents text wrapping in cells */
 }
 
 .host-history-table th {
+  text-align: left;
   background: #285E61;
   color: #fff;
   font-weight: 600;
@@ -108,31 +108,6 @@
   align-items: center;
   gap: 5px;
 }
-
-.host-history-pagination-controls button {
-  background: none;
-  border: 1px solid #cfd8dc;
-  color: #235c56;
-  border-radius: 5px;
-  padding: 4px 10px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.host-history-pagination-controls button.active,
-.host-history-pagination-controls button:hover {
-  background: #2f855a;
-  color: #fff;
-  border-color: #2f855a;
-}
-
-.host-history-pagination-controls button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Responsive Styles */
 
 /* Medium screens (tablets ≤ 768px) */
 @media (max-width: 768px) {
