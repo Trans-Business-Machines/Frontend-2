@@ -94,9 +94,18 @@ export default function Login() {
 
       // Login with email or password
       if (authMode === "phone") {
-        user = await login({ phone, password });
+        const userDetails = {
+          phone: phone.trim(),
+          password: phone.trim(),
+        };
+        user = await login(userDetails);
       } else {
-        user = await login({ email, password });
+        const userDetails = {
+          email: email.trim(),
+          password: password.trim(),
+        };
+
+        user = await login(userDetails);
       }
 
       //  Redirect based on role

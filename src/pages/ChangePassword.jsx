@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
 import { IoIosWarning } from "react-icons/io";
 import { FaXmark, FaCheck } from "react-icons/fa6";
+import { isValidPassword } from "../utils";
 import useSWRMutation from "swr/mutation";
 import axiosInstance from "../api/axiosInstance";
 import Snackbar from "../components/Snackbar";
@@ -39,26 +40,34 @@ export default function ChangePassword() {
   const validate = () => {
     if (newPassword !== confirmPassword) {
       setLoading(false);
-      return false;
+      return { valid: false, message: "Passwords do not match" };
     }
-    return true;
+
+    const result = isValidPassword(newPassword);
+
+    if (!result.isValid) {
+      return { valid: false, message: result.message };
+    }
+
+    return { valid: true, message: "Valid password" };
   };
 
   const handleSubmit = async (id) => {
     setLoading(true);
 
-    if (!validate()) {
+    const result = validate();
+
+    if (!result.valid) {
       return toast.custom(
-        <Snackbar
-          icon={IoIosWarning}
-          message="Passwords don't match"
-          type="warning"
-        />
+        <Snackbar icon={IoIosWarning} message={result.message} type="warning" />
       );
     }
 
     try {
-      const body = { currentPassword: oldPassword, newPassword };
+      const body = {
+        currentPassword: oldPassword.trim(),
+        newPassword: newPassword.trim(),
+      };
       const result = await changePassword({ id, body });
 
       if (result.success) {
