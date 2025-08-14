@@ -80,28 +80,21 @@
 }
 
 .host-dashboard-visits-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  justify-items: flex-start;
-  align-items: center;
+  display: flex;
+  gap: 1rem;
   width: 100%;
 }
 
 .visit-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 1.8rem 3rem;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.65rem 2.5rem;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
+  max-width: 16rem;
 }
 
 .visit-type {
-  font-size: 13px;
+  font-size: 12px;
   color: #888;
   margin-bottom: 8px;
   text-align: center;
@@ -110,7 +103,7 @@
 .visit-name {
   font-size: 19px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-block: 8px;
   text-align: center;
 }
 
@@ -119,9 +112,10 @@
   font-weight: 600;
   padding: 5px 18px;
   border-radius: 14px;
-  display: inline-block;
-  margin-bottom: 8px;
-  margin-top: 4px;
+  display: block;
+  margin-inline: auto;
+  margin-bottom: 16px;
+  margin-top: 12px;
   text-align: center;
 }
 
@@ -214,12 +208,6 @@
     /* Constrain width for single column */
   }
 
-  .visit-card {
-    max-width: 100%;
-    /* Allow card to fill the single column */
-    padding: 20px 18px 12px 18px;
-  }
-
   .visit-name {
     font-size: 17px;
   }
@@ -268,11 +256,7 @@
     font-size: 0.9rem;
   }
 
-  .visit-card {
-    min-width: unset;
-    /* Remove min-width constraint */
-    padding: 16px 14px 10px 14px;
-  }
+
 
   .host-dashboard-pagination-btn {
     width: 24px;

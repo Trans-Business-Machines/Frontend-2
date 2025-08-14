@@ -1,4 +1,5 @@
 import "./HostDashboard.css";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
@@ -14,15 +15,20 @@ const getHostData = async (url) => {
 };
 
 export default function HostDashboard() {
+  const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data, isLoading } = useSWR(
-    user.userId ? `/visits/host/${user.userId}?today=${true}` : null,
+    user.userId ? `/visits/host/${user.userId}?today=true&page=${page}` : null,
     getHostData
   );
 
-  
+  // Function to move through pages
+  function moveTo(page) {
+    setPage(page);
+  }
+
   return (
     <section className="host-scrollable-content">
       <div className="host-dashboard-wrapper">
@@ -101,17 +107,25 @@ export default function HostDashboard() {
                   </div>
 
                   <div className="visit-time">
-                    {format(new Date(v.time_in), "h:mm a")}
+                    Time in: {format(new Date(v.time_in), "h:mm a")}
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="host-dashboard-pagination">
-              <button className="pagination-button" disabled={!data.hasPrev}>
+              <button
+                className="pagination-button"
+                disabled={!data.hasPrev}
+                onClick={() => moveTo(page - 1)}
+              >
                 <FaChevronLeft />
               </button>
-              <button className="pagination-button" disabled={!data.hasNext}>
+              <button
+                className="pagination-button"
+                disabled={!data.hasNext}
+                onClick={() => moveTo(page + 1)}
+              >
                 <FaChevronRight />
               </button>
             </div>

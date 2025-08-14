@@ -44,7 +44,7 @@ export default function HostAvailability() {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   // Get available schedules
-  const { data, mutate } = useSWR(
+  const { data, mutate, isLoading } = useSWR(
     `/users/schedule/${user.userId}`,
     getAvailability
   );
@@ -134,10 +134,25 @@ export default function HostAvailability() {
     };
 
     if (!isEditing) {
-      await createSchedule({ schedule });
+      try {
+        await createSchedule({ schedule });
+
+        toast.custom(
+          <Snackbar
+            type="success"
+            message="Availability set successfully."
+            icon={FaCheck}
+          />
+        );
+      } catch (err) {
+        const message = err.response.data?.message || "Availability not set!";
+        return toast.custom(
+          <Snackbar type="error" message={message} icon={FaXmark} />
+        );
+      }
     } else {
       if (!selectedSchedule?._id) {
-        toast.custom(
+        return toast.custom(
           <Snackbar
             type="error"
             message="No schedule selected for update."
@@ -145,24 +160,32 @@ export default function HostAvailability() {
           />
         );
       } else {
-        await updateSchedule({
-          scheduleId: selectedSchedule._id,
-          schedule,
-        });
+        try {
+          await updateSchedule({
+            scheduleId: selectedSchedule._id,
+            schedule,
+          });
+
+          toast.custom(
+            <Snackbar
+              type="success"
+              message="Update successfully."
+              icon={FaCheck}
+            />
+          );
+        } catch (err) {
+          const message = err.response.data?.message || "Update failed !";
+          return toast.custom(
+            <Snackbar type="error" message={message} icon={FaXmark} />
+          );
+        }
       }
     }
 
-    // show success message on successful edit ot post
-    toast.custom(
-      <Snackbar
-        type="success"
-        message={isEditing ? "Availability updated." : "Availability set."}
-        icon={FaCheck}
-      />
-    );
-    await mutate(); // refresh list
+    // refresh list
+    await mutate();
 
-    // reset
+    // reset states
     setStart("");
     setEnd("");
     setShowForm(false);
@@ -275,19 +298,19 @@ export default function HostAvailability() {
               </button>
             </div>
 
-            {!data?.schedules || data.schedules.length === 0 ? (
+            {!data?.schedules || data?.schedules.length === 0 ? (
               <div
                 style={{
-                  background: "white",
                   padding: "1.5rem",
                   width: "100%",
                   borderRadius: "8px",
-                  fontSize: "1.15rem",
+                  fontSize: "1.5rem",
                   color: "#285E61",
                   fontWeight: "500",
+                  marginTop: ".25rem",
                 }}
               >
-                <p style={{ textAlign: "center" }}>No availability set...</p>
+                <p style={{ textAlign: "center" }}>No availability set ...</p>
               </div>
             ) : (
               <section>
@@ -298,7 +321,7 @@ export default function HostAvailability() {
                     maxWidth: "55%",
                   }}
                 >
-                  Manage your availability
+                  View and manage your availability
                 </h3>
 
                 <div

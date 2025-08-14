@@ -30,11 +30,12 @@ export default function HostNotifications() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
-
   const { data: allnotifications } = useSWR(
     `/notifications/?type=${type}&page=${page}`,
     getAllNotifications
   );
+
+  console.log("All notifications", allnotifications);
 
   const { data: unreadnotifications } = useSWR(
     `/notifications/?type=${type}`,
@@ -70,7 +71,7 @@ export default function HostNotifications() {
       }
     });
     return notifications;
-  }, [unreadnotifications, search]);
+  }, [unreadnotifications, allnotifications, search]);
 
   function nextPage() {
     setPage((page) => page + 1);
@@ -96,13 +97,19 @@ export default function HostNotifications() {
           <div className="host-notifications-filter-btns">
             <button
               className={type === "all" ? "active" : ""}
-              onClick={() => setType("all")}
+              onClick={() => {
+                setSearch("");
+                setType("all");
+              }}
             >
               All
             </button>
             <button
               className={type === "unread" ? "active" : ""}
-              onClick={() => setType("unread")}
+              onClick={() => {
+                setSearch("");
+                setType("unread");
+              }}
             >
               Unread
             </button>
@@ -111,19 +118,44 @@ export default function HostNotifications() {
 
         <div style={{ width: "80%" }}>
           {type === "all" ? (
-            <AllNotifications
-              notifications={filtered || []}
-              hasNext={allnotifications?.result?.hasNext}
-              hasPrev={allnotifications?.result?.hasPrev}
-              next={nextPage}
-              prev={prevPage}
-            />
+            <AllNotifications notifications={filtered || []} />
           ) : (
             <UnreadNotifications
               notifications={filtered || []}
               update={update}
             />
           )}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "1rem",
+          }}
+        >
+          <button
+            className="pagination-button"
+            onClick={prevPage}
+            disabled={
+              type === "all"
+                ? !allnotifications?.result?.hasPrev
+                : !unreadnotifications?.result?.hasPrev
+            }
+          >
+            Previous
+          </button>
+          <button
+            className="pagination-button"
+            onClick={nextPage}
+            disabled={
+              type === "all"
+                ? !allnotifications?.result?.hasNext
+                : !unreadnotifications?.result?.hasNext
+            }
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>

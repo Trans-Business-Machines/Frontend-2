@@ -1,101 +1,56 @@
 import "./HostHistory.css";
-import { useState } from "react";
-import useSWR from "swr";
-import axiosInstance from "../api/axiosInstance";
+import { useState, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { capitalize } from "../utils/index";
+import { format } from "date-fns";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import useSWR from "swr";
+import axiosInstance from "../api/axiosInstance";
 
-// Helper to format time
-function formatTime(isoString) {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12;
-  const strMinutes = minutes < 10 ? "0" + minutes : minutes;
-  return `${hours}:${strMinutes} ${ampm}`;
-}
-
-// Helper to format date
-function formatDate(isoString) {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
-}
-
-// SWR fetcher
-const fetcher = async (url) => {
+// SWR fetcher function
+const getHostVisitLogs = async (url) => {
   const res = await axiosInstance.get(url);
   return res.data;
 };
 
-// Hardcoded purposes
-const visitPurposes = [
-  "business meeting",
-  "job interview",
-  "client consultation",
-  "vendor delivery",
-  "maintenance",
-  "it support",
-  "training workshop",
-  "office tour",
-  "inspection audit",
-  "executive visit",
-  "networking event",
-  "hr appointment",
-  "legal compliance meeting",
-  "follow up",
-];
-
 export default function HostHistory() {
   const [search, setSearch] = useState("");
-  const [dateSort, setDateSort] = useState("Descending");
-  const [purpose, setPurpose] = useState("");
   const [page, setPage] = useState(1);
-  const perPage = 10;
-
   const { user } = useAuth();
 
+  // Fetch the information from the backend API
   const { data: hostsData, isLoading: loading } = useSWR(
-    `/visits/host/${user.userId}?today=false`,
-    fetcher
+    `/visits/host/${user.userId}?today=false&page=${page}`,
+    getHostVisitLogs
   );
 
-  console.log(hostsData);
+  // filtered logs
+  const filtered = useMemo(() => {
+    const logs = hostsData?.hostLogs || [];
 
-  //  Extract the actual host logs array safely
-  const hosts = Array.isArray(hostsData)
-    ? hostsData
-    : hostsData?.hostLogs || [];
+    if (!search) return logs;
 
-  // Filter + Search
-  const filtered = hosts.filter((v) => {
-    const fullName = `${v.firstname ?? ""} ${v.lastname ?? ""}`.toLowerCase();
-    const nationalId = v.national_id ?? "";
-    const visitDate = formatDate(v.visit_date);
-    const matchesSearch =
-      fullName.includes(search.toLowerCase()) ||
-      nationalId.includes(search) ||
-      visitDate.includes(search);
+    const term = search.toLowerCase().trim();
 
-    const matchesPurpose = purpose ? v.purpose === purpose : true;
-    return matchesSearch && matchesPurpose;
-  });
+    const filteredLogs = logs.filter((log) => {
+      const matchText =
+        log.firstname.toLowerCase().includes(term) ||
+        log.lastname.toLowerCase().includes(term) ||
+        log.national_id.includes(term) ||
+        log.purpose.includes(term);
 
-  // Sort by date
-  const sorted = filtered.sort((a, b) => {
-    const dateA = new Date(a.visit_date);
-    const dateB = new Date(b.visit_date);
-    return dateSort === "Ascending" ? dateA - dateB : dateB - dateA;
-  });
+      const visitDate = format(new Date(log.visit_date), "dd-MM-yyyy");
+      const matchesDate = visitDate.includes(term);
 
-  // Paginate
-  const paginated = sorted.slice((page - 1) * perPage, page * perPage);
+      return matchText || matchesDate;
+    });
+
+    return filteredLogs;
+  }, [hostsData, search]);
+
+  const moveTo = (page) => {
+    setPage(page);
+  };
 
   return (
     <div className="host-history-page">
@@ -132,47 +87,6 @@ export default function HostHistory() {
               marginBlock: "1.5rem",
             }}
           />
-          <div className="host-history-filter-row">
-            <div>
-              <label>Date</label>
-              <select
-                value={dateSort}
-                onChange={(e) => setDateSort(e.target.value)}
-                style={{
-                  border: "1px solid black",
-                  borderRadius: "6px",
-                  padding: "0.3rem 0",
-                  background: "white",
-                  marginLeft: "0.65rem",
-                }}
-              >
-                <option>Ascending</option>
-                <option>Descending</option>
-              </select>
-            </div>
-
-            <div>
-              <label>Purpose</label>
-              <select
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
-                style={{
-                  border: "1px solid black",
-                  borderRadius: "6px",
-                  padding: "0.3rem 0rem",
-                  background: "white",
-                  marginLeft: "0.65rem",
-                }}
-              >
-                <option value="">All</option>
-                {visitPurposes.map((p) => (
-                  <option key={p} value={p}>
-                    {capitalize(p)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
 
           {/* Table */}
           <div className="host-history-table-container">
@@ -188,7 +102,7 @@ export default function HostHistory() {
                 </tr>
               </thead>
               <tbody>
-                {paginated.length === 0 ? (
+                {filtered?.length === 0 ? (
                   <tr>
                     <td
                       colSpan="6"
@@ -198,14 +112,18 @@ export default function HostHistory() {
                     </td>
                   </tr>
                 ) : (
-                  paginated.map((v) => (
+                  filtered?.map((v) => (
                     <tr key={v._id}>
                       <td>{`${v.firstname ?? ""} ${v.lastname ?? ""}`}</td>
                       <td>{v.national_id}</td>
                       <td>{capitalize(v.purpose)}</td>
-                      <td>{formatTime(v.time_in)}</td>
-                      <td>{v.time_out ? formatTime(v.time_out) : "-"}</td>
-                      <td>{formatDate(v.visit_date)}</td>
+                      <td>{format(new Date(v.time_in), "hh: mm a")}</td>
+                      <td>
+                        {v.time_out
+                          ? format(new Date(v.time_out), "hh:mm a")
+                          : "-"}
+                      </td>
+                      <td>{format(new Date(v.visit_date), "dd-MM-yyyy")}</td>
                     </tr>
                   ))
                 )}
@@ -220,7 +138,7 @@ export default function HostHistory() {
 
               <div className="pagination-btn-container">
                 <button
-                  onClick={() => setPage(page - 1)}
+                  onClick={() => moveTo(page - 1)}
                   className="pagination-button"
                   disabled={!hostsData.hasPrev}
                 >
@@ -230,7 +148,7 @@ export default function HostHistory() {
                   {hostsData.current}
                 </button>
                 <button
-                  onClick={() => setPage(page + 1)}
+                  onClick={() => moveTo(page + 1)}
                   className="pagination-button"
                   disabled={!hostsData.hasNext}
                 >

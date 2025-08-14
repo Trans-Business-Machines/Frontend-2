@@ -38,7 +38,7 @@
 .host-history-filter-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 18px;
   margin-bottom: 24px;
   flex-wrap: wrap;
