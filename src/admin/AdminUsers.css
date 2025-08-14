@@ -5,9 +5,10 @@
 
 .admin-users-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: .65rem;
   align-items: center;
-  margin-bottom: 22px;
+  margin-bottom: 1rem;
 }
 
 .admin-users-title {
@@ -16,12 +17,17 @@
   color: #235c56;
 }
 
+.admin-users-header p {
+  font-weight: 500;
+  color: #344e41d5;
+}
+
 .admin-add-user-btn {
-  background: #ECC94B;
+  background: #02972f;
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 22px;
+  border-radius: 8px;
+  padding: 14px 22px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -29,21 +35,95 @@
 }
 
 .admin-add-user-btn:hover {
-  background: #68c09b;
+  background: #03c93e;
 }
 
-.admin-users-search {
-  margin-bottom: 18px;
+/* -------------------- Manage Users Page Styles Start -------------------- */
+.users-header {
+  display: flex;
+  margin-bottom: .7rem;
+  justify-content: space-between;
 }
 
-.admin-users-search input {
-  width: 300px;
-  padding: 11px 16px;
-  border-radius: 20px;
-  border: 1px solid #d0d6d9;
+.users-header h2 {
+  align-self: flex-end;
+}
+
+.users-search-bar {
+  margin-bottom: .8rem;
+}
+
+.users-search-bar input {
+  border: none;
+  outline: 2px solid transparent;
   font-size: 1rem;
-  outline: none;
+  padding: 1rem 1.4rem 1rem 1rem;
+  width: 50%;
+  border-radius: .65rem;
+  border: 1px solid #285E61;
 }
+
+.users-pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* -------------------- Manage Users Page Styles End -------------------- */
+
+.text-search {
+  align-self: center;
+  border: none;
+  outline: 2px solid transparent;
+  font-size: 1rem;
+  padding: 1rem 1.4rem 1rem 1rem;
+  width: 50%;
+  border-radius: .65rem;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);
+}
+
+.text-search:focus {
+  outline-color: #235c56;
+}
+
+
+.status-date-container {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.date-search label,
+.status-search label {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #285E61;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-right: 4px;
+}
+
+.date-search input,
+.status-search select {
+  background-color: white;
+  outline: 2px solid transparent;
+  border: none;
+  padding: .6rem .4rem;
+  border-radius: .65rem;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);
+}
+
+.date-search input {
+  padding: .6rem 1.125rem;
+}
+
+.status-search select:focus,
+.date-search input:focus {
+  outline-color: #235c56;
+  ;
+}
+
 
 .admin-users-table {
   width: 100%;
@@ -103,23 +183,22 @@
 
 .admin-users-pagination {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 5px;
   margin-top: 14px;
 }
 
-.admin-users-pagination button {
-  background: #e9ecef;
-  border: none;
-  color: #235c56;
-  border-radius: 4px;
-  padding: 4px 12px;
-  cursor: pointer;
+.parent-pageination-btns {
+  display: flex;
+  gap: 1rem;
 }
 
+
 .admin-users-pagination .active {
-  background: #40b17b;
+  background: #02972f;
   color: #fff;
+  cursor: default;
 }
 
 /* Modal styles */
@@ -204,7 +283,8 @@
 
 .admin-modal-backdrop {
   position: fixed;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.3);
@@ -254,14 +334,21 @@
 }
 
 .export-btn {
-  background-color: #4caf50;
+  background-color: #02972f;
   color: white;
-  padding: 10px 16px;
+  padding: 1rem 3rem;
   border: none;
   border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .export-btn:hover {
-  background-color: #45a049;
+  background-color: #03c93e;
+  ;
+}
+
+.export-btn:active {
+  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.3);
 }

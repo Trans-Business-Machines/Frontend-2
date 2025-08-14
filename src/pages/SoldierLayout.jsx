@@ -11,6 +11,7 @@ import { CgProfile } from "react-icons/cg";
 import { FaCheck } from "react-icons/fa";
 import toast from "react-hot-toast";
 import Snackbar from "../components/Snackbar";
+import { capitalize } from "../utils";
 
 export default function SoldierLayout() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ export default function SoldierLayout() {
           <AiOutlineDashboard />
         </span>
       ),
-      path: "/",
+      path: "/soldier",
     },
     {
       label: "Check In",
@@ -35,7 +36,7 @@ export default function SoldierLayout() {
           <LuMapPinCheckInside />
         </span>
       ),
-      path: "/check-in",
+      path: "/soldier/check-in",
     },
     {
       label: "Check Out",
@@ -44,7 +45,7 @@ export default function SoldierLayout() {
           <MdOutlineShoppingCartCheckout />
         </span>
       ),
-      path: "/check-out",
+      path: "/soldier/check-out",
     },
     {
       label: "Visitors Log",
@@ -53,13 +54,20 @@ export default function SoldierLayout() {
           <LuFolderSearch />
         </span>
       ),
-      path: "/visitors-log",
+      path: "/soldier/visitors-log",
     },
   ];
 
-  // Get user's actual name, fallback to "Soldier User"
-  const soldierName =
-    user?.name || user?.fullName || user?.displayName || "Soldier";
+  const userRole = user?.role || "user";
+
+  // sign out function
+  const signOut = async () => {
+    await logout();
+    toast.custom(
+      <Snackbar type="success" message="Logged out" icon={FaCheck} />
+    );
+    navigate("/");
+  };
 
   return (
     <div className="soldier-root-layout">
@@ -82,16 +90,7 @@ export default function SoldierLayout() {
           ))}
         </nav>
 
-        <button
-          className="soldier-logout-btn"
-          onClick={async () => {
-            await logout();
-            toast.custom(
-              <Snackbar type="success" message="Logged out" icon={FaCheck} />
-            );
-            navigate("/login");
-          }}
-        >
+        <button className="soldier-logout-btn" onClick={signOut}>
           <span
             role="img"
             aria-label="logout"
@@ -112,7 +111,7 @@ export default function SoldierLayout() {
           <div
             className="soldier-header-profile"
             style={{ cursor: "pointer" }}
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/soldier/profile")}
             title="View Profile"
           >
             <span
@@ -122,10 +121,11 @@ export default function SoldierLayout() {
             >
               <CgProfile />
             </span>
-            {soldierName}
+            {capitalize(userRole)}
           </div>
         </header>
-        <div className="soldier-content-panel"><Outlet />
+        <div className="soldier-content-panel">
+          <Outlet />
         </div>
       </main>
     </div>

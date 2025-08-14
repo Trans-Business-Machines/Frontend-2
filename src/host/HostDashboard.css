@@ -14,14 +14,12 @@
   align-items: center;
   background: linear-gradient(90deg, #386773 0%, #32ae6c 100%);
   border-radius: 16px;
-  padding: 32px 24px;
+  padding: 3rem 24px;
   color: #fff;
   margin-bottom: 32px;
   min-height: 130px;
-  /* Ensures the card is tall enough */
   width: 100%;
   max-width: 1100px;
-  /* Matches admin card's max width */
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
@@ -53,9 +51,9 @@
 
 .host-dashboard-section-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  margin: 38px 0 16px 0;
+  margin: 0px 0 16px 0;
   width: 100%;
   gap: 16px;
 }
@@ -73,39 +71,30 @@
   color: #28859b;
   font-weight: 500;
   cursor: pointer;
-  text-decoration: underline;
   font-size: 1rem;
   margin-left: 8px;
 }
 
+.host-dashboard-view-more:hover {
+  text-decoration: underline;
+}
+
 .host-dashboard-visits-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 26px 32px;
-  margin: 0 0 18px 0;
-  justify-items: center;
-  align-items: center;
+  display: flex;
+  gap: 1rem;
   width: 100%;
-  max-width: 900px;
 }
 
 .visit-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 24px 22px 16px 22px;
-  min-width: 240px;
-  max-width: 340px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.65rem 2.5rem;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
+  max-width: 16rem;
 }
 
 .visit-type {
-  font-size: 13px;
+  font-size: 12px;
   color: #888;
   margin-bottom: 8px;
   text-align: center;
@@ -114,7 +103,7 @@
 .visit-name {
   font-size: 19px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-block: 8px;
   text-align: center;
 }
 
@@ -123,9 +112,10 @@
   font-weight: 600;
   padding: 5px 18px;
   border-radius: 14px;
-  display: inline-block;
-  margin-bottom: 8px;
-  margin-top: 4px;
+  display: block;
+  margin-inline: auto;
+  margin-bottom: 16px;
+  margin-top: 12px;
   text-align: center;
 }
 
@@ -147,29 +137,12 @@
 
 .host-dashboard-pagination {
   text-align: center;
-  margin-top: 0;
+  margin-top: 16px;
   margin-bottom: 18px;
   width: 100%;
-}
-
-.host-dashboard-pagination-btn {
-  background: #e5f6f7;
-  border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  margin: 0 7px;
-  cursor: pointer;
-  font-size: 18px;
-  color: #28859b;
-  transition: background 0.2s;
-  vertical-align: middle;
-}
-
-.host-dashboard-pagination-btn:disabled {
-  background: #f0f0f0;
-  color: #bbb;
-  cursor: default;
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
 }
 
 .host-scrollable-content {
@@ -182,16 +155,22 @@
 /* For screens smaller than 768px (e.g., tablets and mobile) */
 @media (max-width: 768px) {
   .host-dashboard-wrapper {
-    padding: 0 20px; /* Reduce horizontal padding */
-    min-height: auto; /* Let content dictate height */
+    padding: 0 20px;
+    /* Reduce horizontal padding */
+    min-height: auto;
+    /* Let content dictate height */
   }
 
   .admin-dashboard-welcome-card {
-    flex-direction: column; /* Stack content vertically */
-    align-items: flex-start; /* Align text to the left */
+    flex-direction: column;
+    /* Stack content vertically */
+    align-items: flex-start;
+    /* Align text to the left */
     padding: 24px 20px;
-    min-height: auto; /* Let content dictate height */
-    max-width: 100%; /* Allow it to fill available width */
+    min-height: auto;
+    /* Let content dictate height */
+    max-width: 100%;
+    /* Allow it to fill available width */
     margin-bottom: 20px;
   }
 
@@ -204,13 +183,15 @@
   }
 
   .admin-dashboard-date-pill {
-    margin-top: 15px; /* Add space when stacked below text */
+    margin-top: 15px;
+    /* Add space when stacked below text */
     font-size: 0.9rem;
     padding: 8px 18px;
   }
 
   .host-dashboard-section-header {
-    flex-direction: column; /* Stack title and view more link */
+    flex-direction: column;
+    /* Stack title and view more link */
     gap: 10px;
     margin: 20px 0 10px 0;
   }
@@ -220,14 +201,11 @@
   }
 
   .host-dashboard-visits-grid {
-    grid-template-columns: 1fr; /* Single column layout */
+    grid-template-columns: 1fr;
+    /* Single column layout */
     gap: 20px;
-    max-width: 400px; /* Constrain width for single column */
-  }
-
-  .visit-card {
-    max-width: 100%; /* Allow card to fill the single column */
-    padding: 20px 18px 12px 18px;
+    max-width: 400px;
+    /* Constrain width for single column */
   }
 
   .visit-name {
@@ -247,8 +225,10 @@
 /* For very small screens (e.g., phones, smaller than 480px) */
 @media (max-width: 480px) {
   .host-dashboard-wrapper {
-    padding: 0 15px; /* Further reduce horizontal padding */
-    min-height: auto; /* Let content dictate height */
+    padding: 0 15px;
+    /* Further reduce horizontal padding */
+    min-height: auto;
+    /* Let content dictate height */
   }
 
   .admin-dashboard-welcome-card {
@@ -276,10 +256,7 @@
     font-size: 0.9rem;
   }
 
-  .visit-card {
-    min-width: unset; /* Remove min-width constraint */
-    padding: 16px 14px 10px 14px;
-  }
+
 
   .host-dashboard-pagination-btn {
     width: 24px;

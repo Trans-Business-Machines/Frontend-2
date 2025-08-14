@@ -1,67 +1,85 @@
-import React, { useState, useEffect } from "react";
-import axiosInstance from "../api/axiosInstance";
 import "./HostNotifications.css";
-import { useAuth } from "../context/AuthContext";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
+import axiosInstance from "../api/axiosInstance";
+import AllNotifications from "../components/AllNotifications";
+import UnreadNotifications from "../components/UnreadNotifications";
+
+const getAllNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+const getUnreadNotifications = async (url) => {
+  const res = await axiosInstance.get(url);
+  return res.data;
+};
+
+const updateNotification = async (url, { arg }) => {
+  const { notificationId, userId } = arg;
+
+  url = url.replace(":id", notificationId);
+  const body = { userId };
+  const res = await axiosInstance.patch(url, body);
+  return res.data;
+};
 
 export default function HostNotifications() {
-  const { user } = useAuth(); // to get the host ID
-  const [notifications, setNotifications] = useState([]);
-  const [filter, setFilter] = useState("all");
+  const [type, setType] = useState("all");
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
 
-  // Fetch notifications from backend
-  const fetchNotifications = async () => {
-    try {
-      const res = await axiosInstance.get(`/notifications?type=all`);
-      const backendNotifications = res.data?.result?.notifications || [];
-      setNotifications(
-        backendNotifications.map((n) => ({
-          ...n,
-          isUnread: !n.isRead, // backend uses isRead, frontend expects isUnread
-          meta: `${n.title} | ${new Date(n.createdAt).toLocaleString()}`,
-        }))
-      );
-    } catch (error) {
-      console.error("Failed to fetch notifications", error);
-    } finally {
-      setLoading(false);
+  const { data: allnotifications } = useSWR(
+    `/notifications/?type=${type}&page=${page}`,
+    getAllNotifications
+  );
+
+  console.log("All notifications", allnotifications);
+
+  const { data: unreadnotifications } = useSWR(
+    `/notifications/?type=${type}`,
+    getUnreadNotifications
+  );
+
+  const { trigger: update } = useSWRMutation(
+    "/notifications/:id",
+    updateNotification
+  );
+
+  const filtered = useMemo(() => {
+    let notifications = null;
+
+    if (type === "all") {
+      notifications = allnotifications?.result?.notifications;
+    } else if (type === "unread") {
+      notifications = unreadnotifications?.result?.notifications;
     }
-  };
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+    let term = search.toLowerCase();
 
-  //  Mark one notification as read (permanent)
-  const markAsRead = async (id) => {
-    try {
-      await axiosInstance.patch(`/notifications/${id}`, {
-        userId: user?.userId, //  required by backend to verify ownership
-      });
-
-      // Update local state immediately
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isUnread: false } : n))
-      );
-    } catch (err) {
-      console.error("Failed to mark notification as read", err);
+    if (!term) {
+      return notifications;
     }
-  };
 
-  // Filter + search
-  const filtered = notifications.filter((n) => {
-    const matchesSearch =
-      n.message.toLowerCase().includes(search.toLowerCase()) ||
-      n.meta.toLowerCase().includes(search.toLowerCase()) ||
-      (n.createdAt || "").includes(search);
-    const matchesFilter =
-      filter === "all" || (filter === "unread" && n.isUnread);
-    return matchesSearch && matchesFilter;
-  });
+    notifications = notifications.filter((n) => {
+      if (
+        n.message.toLowerCase().includes(term) ||
+        n.message.toLowerCase().includes(term)
+      ) {
+        return n;
+      }
+    });
+    return notifications;
+  }, [unreadnotifications, allnotifications, search]);
 
-  const unreadCount = notifications.filter((n) => n.isUnread).length;
+  function nextPage() {
+    setPage((page) => page + 1);
+  }
 
+  function prevPage() {
+    setPage((page) => Math.max(page - 1, 1));
+  }
   return (
     <div className="host-scrollable-content">
       <div className="host-notifications-wrapper">
@@ -72,69 +90,71 @@ export default function HostNotifications() {
           <input
             type="text"
             className="host-notifications-date-filter"
-            placeholder="Search by message or date (e.g. 2025-06-03)"
+            placeholder="Search by purpose or name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="host-notifications-filter-btns">
             <button
-              className={filter === "all" ? "active" : ""}
-              onClick={() => setFilter("all")}
+              className={type === "all" ? "active" : ""}
+              onClick={() => {
+                setSearch("");
+                setType("all");
+              }}
             >
               All
             </button>
             <button
-              className={filter === "unread" ? "active" : ""}
-              onClick={() => setFilter("unread")}
+              className={type === "unread" ? "active" : ""}
+              onClick={() => {
+                setSearch("");
+                setType("unread");
+              }}
             >
               Unread
-              {unreadCount > 0 && (
-                <span className="host-notifications-badge">{unreadCount}</span>
-              )}
             </button>
           </div>
         </div>
 
-        {/* Notification List */}
-        <div className="host-notification-list">
-          {loading && <div>Loading notifications...</div>}
-
-          {!loading && filtered.length === 0 && (
-            <div className="host-notifications-empty">
-              No notifications found.
-            </div>
+        <div style={{ width: "80%" }}>
+          {type === "all" ? (
+            <AllNotifications notifications={filtered || []} />
+          ) : (
+            <UnreadNotifications
+              notifications={filtered || []}
+              update={update}
+            />
           )}
-
-          {!loading &&
-            filtered.map((n) => (
-              <div
-                className={
-                  "host-notification-card" +
-                  (n.isUnread ? " unread" : " read")
-                }
-                key={n._id}
-                onClick={() => n.isUnread && markAsRead(n._id)}
-                tabIndex={0}
-                title={n.isUnread ? "Mark as read" : "Already read"}
-              >
-                <div className="host-notification-msg">
-                  {n.message}
-                  {n.isUnread && (
-                    <span
-                      className="host-notification-unread-dot"
-                      title="Unread"
-                    ></span>
-                  )}
-                </div>
-                <div className="host-notification-meta">{n.meta}</div>
-              </div>
-            ))}
         </div>
 
-        {/* Load More Placeholder */}
-        <div className="host-notification-load-btn-row">
-          <button className="host-notification-load-btn" disabled>
-            Load More
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "1rem",
+          }}
+        >
+          <button
+            className="pagination-button"
+            onClick={prevPage}
+            disabled={
+              type === "all"
+                ? !allnotifications?.result?.hasPrev
+                : !unreadnotifications?.result?.hasPrev
+            }
+          >
+            Previous
+          </button>
+          <button
+            className="pagination-button"
+            onClick={nextPage}
+            disabled={
+              type === "all"
+                ? !allnotifications?.result?.hasNext
+                : !unreadnotifications?.result?.hasNext
+            }
+          >
+            Next
           </button>
         </div>
       </div>

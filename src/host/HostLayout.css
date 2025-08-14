@@ -25,11 +25,10 @@
 
 /* Logo container full width */
 .host-logo {
-  display: flex;
+ display: flex;
   align-items: center;
   justify-content: center;
-  margin: 32px 0 28px 0;
-  width: 100%;
+  margin: 0px 0 28px 0;
 }
 
 .host-logo-img {
@@ -139,73 +138,33 @@
   margin-left: 5px;
 }
 
-/* Sidebar overlay for mobile */
-.host-sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
-  z-index: 900;
-  display: none;
-}
-
-/* Sidebar toggle button hidden on desktop */
-.host-sidebar-toggle {
-  display: none;
-  background: none;
+.mark-as-read-btn {
+  padding: 12px 18px;
+  background-color: hsl(160, 98%, 32%);
+  color: #fff;
   border: none;
-  font-size: 1.6rem;
-  color: #235c56;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 1rem;
 }
 
-/* --- RESPONSIVE --- */
-
-/* Tablets & below */
-@media (max-width: 1024px) {
-  .host-main-panel {
-    margin-left: 0; /* no shift on mobile */
-  }
-
-  /* Sidebar hidden offscreen by default */
-  .host-sidebar {
-    right: 200px;
-  }
-
-  /* Show sidebar when .open added */
-  .host-sidebar.open {
-    left: 0;
-  }
-
-  /* Show overlay only on mobile when sidebar is open */
-  .host-sidebar-overlay {
-    display: block;
-  }
-
-  /* Show toggle button on mobile */
-  .host-sidebar-toggle {
-    display: inline-block;
-  }
+.mark-as-read-btn:hover {
+  background-color: hsl(160, 98%, 22%);
 }
 
-/* Small phones */
-@media (max-width: 480px) {
-  .host-header {
-    padding: 0 15px;
-    height: 55px;
-  }
+.mark-as-read-btn:active {
+  transform: scale(0.95);
+}
 
-  .host-header-title {
-    font-size: 1rem;
-  }
+.all-notifications-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-block: 1rem;
+}
 
-  .host-header-profile {
-    font-size: 0.85rem;
-  }
-
-  .host-content-panel {
-    padding: 15px;
-  }
+.pagination-btn-container{
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
 }

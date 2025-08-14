@@ -8,7 +8,7 @@
 .admin-sidebar {
   background: #285E61;
   color: #fff;
-  width: 230px;
+  width: 220px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -21,13 +21,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 32px 0 28px 0;
+  margin: 0px 0 28px 0;
 }
 
 .admin-logo-img {
   width: 220px;
   height: auto;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 /* Navigation Links */
@@ -84,12 +84,12 @@
 
 /* Header */
 .admin-header {
-  height: 64px;
-  background: #fff;
+  background: #fdfdfd;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px 0 16px;
+  padding-inline: 1.5rem;
+  padding-block: 1rem;
   box-shadow: 0 2px 8px rgba(34, 34, 34, 0.03);
   font-size: 1.14rem;
 }

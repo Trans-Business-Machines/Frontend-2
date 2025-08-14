@@ -90,21 +90,41 @@ export default function Checkout() {
         <h2>Check Out Visitor</h2>
         <p>Search a visitor to check them out of the premises.</p>
       </div>
-      <form
-        className="checkout-form"
-        autoComplete="off"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <input
-          type="text"
-          className="checkout-search-input"
-          placeholder="Search by Name or ID..."
-          value={search}
-          onChange={handleChange}
-        />
-      </form>
+
+      {filtered.length > 0 && (
+        <form
+          className="checkout-form"
+          autoComplete="off"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <input
+            type="text"
+            className="checkout-search-input"
+            placeholder="Search by Name or ID..."
+            value={search}
+            onChange={handleChange}
+          />
+        </form>
+      )}
+
       <div className="checkout-records-section">
-        {
+        {filtered.length === 0 ? (
+          <div
+            style={{
+              backgroundColor: "#ffffffff",
+              border: "1px dashed #ccc",
+              padding: "2rem",
+              borderRadius: "8px",
+              textAlign: "center",
+              marginTop: "2rem",
+              color: "#555",
+              fontSize: "1.1rem",
+              fontStyle: "italic",
+            }}
+          >
+            <p>No visitors have checked in today</p>
+          </div>
+        ) : (
           <table className="checkout-table">
             <thead>
               <tr>
@@ -116,53 +136,36 @@ export default function Checkout() {
               </tr>
             </thead>
             <tbody>
-              {filtered?.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    style={{
-                      fontWeight: "bold",
-                      fontSize: "1.15rem",
-                      color: "#285e61",
-                      paddingBlock: ".75rem",
-                      paddingLeft: "1rem",
-                    }}
-                  >
-                    No visitors have checked in yet.
+              {filtered?.map((v, i) => (
+                <tr key={i}>
+                  <td>
+                    {v.firstname} {v.lastname}
+                  </td>
+                  <td>{v.national_id}</td>
+                  <td>
+                    {v.host.firstname} {v.host.lastname}
+                  </td>
+                  <td>{format(new Date(v.time_in), "hh:mm a")}</td>
+                  <td>
+                    <button
+                      className="checkout-btn-small"
+                      disabled={
+                        v.status === "checked-out" || checkingOutID === v._id
+                      }
+                      onClick={() => handleCheckOut(v._id)}
+                    >
+                      {checkingOutID === v._id
+                        ? "checking out..."
+                        : v.status === "checked-out"
+                        ? "Checked Out"
+                        : "Check Out"}
+                    </button>
                   </td>
                 </tr>
-              ) : (
-                filtered?.map((v, i) => (
-                  <tr key={i}>
-                    <td>
-                      {v.firstname} {v.lastname}
-                    </td>
-                    <td>{v.national_id}</td>
-                    <td>
-                      {v.host.firstname} {v.host.lastname}
-                    </td>
-                    <td>{format(new Date(v.time_in), "hh:mm a")}</td>
-                    <td>
-                      <button
-                        className="checkout-btn-small"
-                        disabled={
-                          v.status === "checked-out" || checkingOutID === v._id
-                        }
-                        onClick={() => handleCheckOut(v._id)}
-                      >
-                        {checkingOutID === v._id
-                          ? "checking out..."
-                          : v.status === "checked-out"
-                          ? "Checked Out"
-                          : "Check Out"}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
-        }
+        )}
       </div>
     </div>
   );

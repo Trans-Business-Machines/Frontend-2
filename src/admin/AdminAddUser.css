@@ -1,5 +1,5 @@
 .admin-add-user {
-  padding: 20px;
+  padding: 0 20px;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -7,8 +7,7 @@
 .admin-add-user-title {
   font-size: 28px;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 10px;
+  color: #285e61;
 }
 
 .admin-add-user-desc {
@@ -113,10 +112,10 @@
 }
 
 .submit-btn {
-  background: #28a745;
+  background: #00A550;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: .75rem 2rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
@@ -125,11 +124,16 @@
 }
 
 .submit-btn:hover {
-  background: #218838;
+  background: #0BDA51;
+}
+
+.submit-btn:disabled {
+  cursor: not-allowed;
+  background-color: #6a6b6bab;
 }
 
 .cancel-btn {
-  background: #6c757d;
+  background: #CE2029;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -141,7 +145,12 @@
 }
 
 .cancel-btn:hover {
-  background: #5a6268;
+  background: #FF0800;
+}
+
+.submit-btn:active, 
+.cancel-btn:active{
+  box-shadow: inset 4px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive design */

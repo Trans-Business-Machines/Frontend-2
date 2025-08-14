@@ -1,5 +1,3 @@
-"use client";
-
 import "./Login.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,43 +5,16 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
 import { FaXmark, FaCheck } from "react-icons/fa6";
 import Snackbar from "../components/Snackbar";
-import axiosInstance from "../api/axiosInstance"; // Ensure this is imported
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function isLikelyEmail(value) {
-  return value.includes("@");
-}
-
-function isValidPhone(phone) {
-  return /^(\+?\d{7,})$/.test(phone) && !isLikelyEmail(phone);
-}
-
-// New helper for password validation
-function isValidPassword(password) {
-  return password.length >= 6; // Simple validation, can be enhanced
-}
-
-// New helper for OTP validation
-function isValidOTP(otp) {
-  return /^\d{6}$/.test(otp); // Assuming 6-digit OTP
-}
-
-function isValidName(name) {
-  return /^[a-zA-Z\s]+$/.test(name); // Allows letters and spaces
-}
-
-function isValidGmail(email) {
-  return /^[^\s@]+@gmail\.com$/.test(email);
-}
-
-function isValidTenDigitPhone(phone) {
-  return /^\d{10}$/.test(phone); // Exactly 10 digits
-}
+import axiosInstance from "../api/axiosInstance";
+import {
+  isValidEmail,
+  isValidName,
+  isValidPassword,
+  isValidTenDigitPhone,
+} from "../utils/index";
 
 export default function Login() {
+  // Login form states
   const [authMode, setAuthMode] = useState("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -51,12 +22,14 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Get the login and navigate functions
   const { login } = useAuth();
   const navigate = useNavigate();
 
   // Forgot Password States
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [forgotPasswordStep, setForgotPasswordStep] = useState("email"); // 'email', 'otp', 'newPassword'
+  const [forgotPasswordStep, setForgotPasswordStep] = useState("email");
   const [forgotEmail, setForgotEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -75,6 +48,7 @@ export default function Login() {
     role: "",
     phone: "",
   });
+
   const [contactAdminErrors, setContactAdminErrors] = useState({
     firstname: "",
     lastname: "",
@@ -82,47 +56,43 @@ export default function Login() {
     phone: "",
     role: "",
   });
+
   const [contactAdminLoading, setContactAdminLoading] = useState(false);
-  const [contactAdminError, setContactAdminError] = useState(""); // General error for API failures
+  const [contactAdminError, setContactAdminError] = useState("");
   const [contactAdminSuccess, setContactAdminSuccess] = useState("");
 
   const handleAuthMode = (mode) => {
     setAuthMode(mode);
     setErrorMsg("");
-    setPassword("");
     if (mode === "phone") setEmail("");
     else setPhone("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
     setErrorMsg("");
+
     if (authMode === "phone") {
-      if (!phone.trim() || email.trim()) {
-        setErrorMsg("Please enter your phone number only.");
-        setLoading(false);
-        return;
-      }
-      if (!isValidPhone(phone)) {
+      if (!isValidTenDigitPhone(phone)) {
         setErrorMsg("Please enter a valid phone number (digits only).");
         setLoading(false);
         return;
       }
     } else {
-      if (!email.trim() || phone.trim()) {
-        setErrorMsg("Please enter your email only.");
-        setLoading(false);
-        return;
-      }
       if (!isValidEmail(email)) {
         setErrorMsg("Please enter a valid email address.");
         setLoading(false);
         return;
       }
     }
+
     try {
-      let user;
+      // Declare user variable
+      let user = null;
+
+      // Login with email or password
       if (authMode === "phone") {
         user = await login({ phone, password });
       } else {
@@ -131,20 +101,20 @@ export default function Login() {
 
       //  Redirect based on role
       if (user?.role === "soldier") {
+        navigate("/soldier");
         toast.custom(
           <Snackbar type="success" message="Login successful!" icon={FaCheck} />
         );
-        navigate("/");
       } else if (user?.role === "host" || user?.role === "receptionist") {
+        navigate("/host");
         toast.custom(
           <Snackbar type="success" message="Login successful!" icon={FaCheck} />
         );
-        navigate("/host/dashboard");
       } else if (user?.role === "admin" || user.role === "super admin") {
+        navigate("/admin");
         toast.custom(
           <Snackbar type="success" message="Login successful!" icon={FaCheck} />
         );
-        navigate("/admin/dashboard");
       }
     } catch (err) {
       const message =
@@ -217,33 +187,39 @@ export default function Login() {
     setForgotPasswordLoading(true);
     setForgotPasswordError("");
     setForgotPasswordSuccess("");
-    if (!isValidPassword(newPassword)) {
-      setForgotPasswordError("Password must be at least 6 characters long.");
-      setForgotPasswordLoading(false);
-      return;
-    }
+
+    // Check if the new and confirm passwords match
     if (newPassword !== confirmPassword) {
       setForgotPasswordError("Passwords do not match.");
       setForgotPasswordLoading(false);
       return;
     }
+
+    const { message, isValid } = isValidPassword(newPassword);
+
+    if (!isValid) {
+      setForgotPasswordError(message);
+      setForgotPasswordLoading(false);
+      return;
+    }
+
     try {
-      const response = await axiosInstance.post("/auth/reset-password", {
+      const { data } = await axiosInstance.post("/auth/reset-password", {
         password: confirmPassword,
         resetToken,
       });
-      setForgotPasswordSuccess(
-        response.data.message || "Password updated successfully!"
-      );
+
+      const message = data.message;
+      setForgotPasswordSuccess(message);
+
       toast.custom(
-        <Snackbar
-          type="success"
-          message="Password updated successfully!"
-          icon={FaCheck}
-        />
+        <Snackbar type="success" message={message} icon={FaCheck} />
       );
+
+      // Hide the modal
       setShowForgotPasswordModal(false);
-      // Optionally clear states or redirect
+
+      // Clear states
       setForgotEmail("");
       setOtp("");
       setNewPassword("");
@@ -254,6 +230,8 @@ export default function Login() {
         err.response?.data?.message ||
         "Failed to update password. Please try again.";
       setForgotPasswordError(message);
+
+      toast.custom(<Snackbar type="error" message={message} icon={FaXmark} />);
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -262,7 +240,7 @@ export default function Login() {
   const handleContactAdminSubmit = async (e) => {
     e.preventDefault();
     setContactAdminLoading(true);
-    setContactAdminError(""); // Clear general error
+    setContactAdminError("");
     setContactAdminSuccess("");
 
     const errors = {};
@@ -292,7 +270,7 @@ export default function Login() {
     if (contactAdminForm.email.trim() === "") {
       errors.email = "This field is required.";
       isValid = false;
-    } else if (!isValidGmail(contactAdminForm.email)) {
+    } else if (!isValidEmail(contactAdminForm.email)) {
       errors.email =
         "Please enter a valid email address (e.g., user@gmail.com).";
       isValid = false;
@@ -385,12 +363,13 @@ export default function Login() {
           onSubmit={handleSubmit}
           autoComplete="off"
         >
-          <h2 className="login-welcome">Welcome Back</h2>
+          <h2 className="login-welcome">Welcome To VMS</h2>
           <div className="login-card-subtitle" style={{ marginBottom: 20 }}>
             Please sign in to your account
           </div>
           {/* Show error message if login fails */}
           {errorMsg && <div className="login-error-message">{errorMsg}</div>}
+
           <div className="login-tab-toggle">
             <button
               type="button"
@@ -407,6 +386,7 @@ export default function Login() {
               Phone
             </button>
           </div>
+
           {authMode === "email" ? (
             <div className="login-field">
               <label htmlFor="email">Email Address</label>
@@ -461,6 +441,7 @@ export default function Login() {
               </div>
             </div>
           )}
+
           <div className="login-field">
             <label htmlFor="password">Password</label>
             <div className="login-input-icon-wrap">
@@ -474,7 +455,7 @@ export default function Login() {
               />
               <span
                 className="login-input-icon login-password-icon"
-                onClick={() => setShowPassword((v) => !v)}
+                onClick={() => setShowPassword((show) => !show)}
                 style={{ cursor: "pointer" }}
                 tabIndex={0}
                 aria-label={showPassword ? "Hide password" : "Show password"}
@@ -999,11 +980,10 @@ export default function Login() {
                           ...prev,
                           email: "This field is required.",
                         }));
-                      } else if (!isValidGmail(value)) {
+                      } else if (!isValidEmail(value)) {
                         setContactAdminErrors((prev) => ({
                           ...prev,
-                          email:
-                            "Please enter a valid email address (e.g., user@gmail.com).",
+                          email: "Please enter a valid email address",
                         }));
                       } else {
                         setContactAdminErrors((prev) => ({
@@ -1087,25 +1067,30 @@ export default function Login() {
               </div>
               <div className="login-field">
                 <label htmlFor="contact-role">Role</label>
-                <input
+                <select
+                  name="contact-role"
                   id="contact-role"
-                  type="text"
                   value={contactAdminForm.role}
                   onChange={(e) => {
                     const value = e.target.value;
-                    setContactAdminForm({ ...contactAdminForm, role: value });
                     if (value.trim() === "") {
                       setContactAdminErrors((prev) => ({
                         ...prev,
                         role: "This field is required.",
                       }));
                     } else {
-                      setContactAdminErrors((prev) => ({ ...prev, role: "" }));
+                      setContactAdminForm({ ...contactAdminForm, role: value });
                     }
                   }}
-                  placeholder="e.g., Soldier, Host, Receptionist"
-                  required
-                />
+                >
+                  <option value="" disabled>
+                    Select a role
+                  </option>
+                  <option value="receptionist">Receptionist</option>
+                  <option value="host">Host</option>
+                  <option value="soldier">Soldier</option>
+                </select>
+
                 {contactAdminErrors.role && (
                   <div className="input-error-message">
                     {contactAdminErrors.role}
