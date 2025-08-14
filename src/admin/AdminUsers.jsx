@@ -133,27 +133,25 @@ export default function AdminUsers() {
   }
 
   const handleAddUser = () => {
-    navigate("/admin/users/new", {
-      state: { returnTo: "/admin/users", refreshUsers: true },
-    });
+    navigate("/admin/users/new");
   };
 
   return (
-    <div className="admin-users">
-      <div className="admin-users-header">
-        <div className="admin-users-title">Manage System Users</div>
+    <section className="admin-users">
+      <header className="users-header">
+        <h2 className="admin-users-title">Manage System Users</h2>
         <button className="admin-add-user-btn" onClick={handleAddUser}>
           + Add New User
         </button>
-      </div>
+      </header>
 
-      <div className="admin-users-search">
+      <div className="users-search-bar">
         <input
-          placeholder="Search by User ID, Name, Email, or Phone"
+          placeholder="Search by Name, Email, or Phone"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
-            setPage(1);
+            setCurrentPage(1);
           }}
           style={{
             width: "55%",
@@ -169,7 +167,6 @@ export default function AdminUsers() {
         <table className="admin-users-table">
           <thead>
             <tr>
-              <th>User ID</th>
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
@@ -189,7 +186,6 @@ export default function AdminUsers() {
             )}
             {filtedUsers?.map((user, idx) => (
               <tr key={user._id}>
-                <td>{user._id}</td>
                 <td>
                   {editIdx === idx ? (
                     <div style={{ display: "flex", gap: "5px" }}>
@@ -355,7 +351,7 @@ export default function AdminUsers() {
         </table>
       )}
 
-      <div className="admin-users-pagination">
+      <div className="users-pagination">
         <button
           onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
           className="pagination-button"
@@ -363,7 +359,7 @@ export default function AdminUsers() {
         >
           <FaChevronLeft />
         </button>
-        <button className="active">{currentPage}</button>
+        <button className="current-page-btn">{currentPage}</button>
         <button
           className="pagination-button"
           onClick={() => setCurrentPage(currentPage + 1)}
@@ -399,6 +395,6 @@ export default function AdminUsers() {
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

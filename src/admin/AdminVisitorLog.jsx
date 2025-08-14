@@ -1,3 +1,4 @@
+import "./AdminVisitorLog.css";
 import { useState } from "react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
@@ -19,10 +20,7 @@ export default function AdminVisitorLog() {
   const [filterDate, setFilterDate] = useState("");
   const [page, setPage] = useState(1);
 
-  const { data, error, isLoading } = useSWR(
-    `/visits?page=${page}`,
-    fetchVisitors
-  );
+  const { data, isLoading } = useSWR(`/visits?page=${page}`, fetchVisitors);
 
   // Default values
   let visitors = [];
@@ -138,53 +136,49 @@ export default function AdminVisitorLog() {
     );
   }
 
-  //  Error state
-  if (error) {
-    return (
-      <div className="admin-users">
-        <div className="admin-users-header">
-          <div className="admin-users-title">Visitor Log</div>
-        </div>
-        <div style={{ textAlign: "center", padding: "20px", color: "red" }}>
-          Error loading visitors: {error.message}
-        </div>
-      </div>
-    );
-  }
-
   //  Render main UI
   return (
-    <div className="admin-users">
-      <div className="admin-users-header">
-        <div className="admin-users-title">Visitor Log</div>
-      </div>
+    <section className="admin-users">
+      <header className="admin-users-header">
+        <h2 className="admin-users-title">Visitor Records</h2>
+        <p>View visitor history and generate reports</p>
+      </header>
 
       {/* Search & Filters */}
-      <div
-        className="admin-users-search"
-        style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 10 }}
-      >
+      <div className="admin-users-search">
         <input
+          type="text"
           placeholder="Search by name, phone, ID, host, or purpose"
           value={search}
           onChange={handleSearchChange}
           style={{ flex: 1, minWidth: 300 }}
+          className="text-search"
         />
-        <select
-          value={filterStatus}
-          onChange={handleFilterStatus}
-          style={{ minWidth: 120, padding: "11px 16px", borderRadius: 20 }}
-        >
-          <option value="">All Statuses</option>
-          <option value="checked-in">Checked In</option>
-          <option value="checked-out">Checked Out</option>
-        </select>
-        <input
-          type="date"
-          value={filterDate}
-          onChange={handleFilterDate}
-          style={{ minWidth: 140, padding: "11px 16px", borderRadius: 20 }}
-        />
+
+        <article className="status-date-container">
+          <div className="status-search">
+            <label htmlFor="status-filter">Status: </label>
+            <select
+              name="status-filter"
+              value={filterStatus}
+              onChange={handleFilterStatus}
+            >
+              <option value="">All</option>
+              <option value="checked-in">Checked In</option>
+              <option value="checked-out">Checked Out</option>
+            </select>
+          </div>
+
+          <div className="date-search">
+            <label htmlFor="date-search">Date: </label>
+            <input
+              name="date-search"
+              type="date"
+              value={filterDate}
+              onChange={handleFilterDate}
+            />
+          </div>
+        </article>
       </div>
 
       {/* Table */}
@@ -240,23 +234,29 @@ export default function AdminVisitorLog() {
 
       {/* Pagination */}
       <div className="admin-users-pagination">
-        <button
-          className="pagination-button"
-          onClick={() => goToPage(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <FaChevronLeft />
-        </button>
-        <span style={{ margin: "0 10px" }}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          className="pagination-button"
-          onClick={() => goToPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          <FaChevronRight />
-        </button>
+        <div>
+          <p>
+            Showing page {currentPage} of {totalPages}
+          </p>
+        </div>
+        <div className="parent-pageination-btns">
+          <button
+            className="pagination-button"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <FaChevronLeft />
+          </button>
+
+          <button className="current-page-btn">{currentPage}</button>
+          <button
+            className="pagination-button"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <FaChevronRight />
+          </button>
+        </div>
       </div>
 
       {/* Export button */}
@@ -265,6 +265,6 @@ export default function AdminVisitorLog() {
           Export Data
         </button>
       </div>
-    </div>
+    </section>
   );
 }

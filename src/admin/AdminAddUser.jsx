@@ -53,7 +53,10 @@ export default function AdminAddUser() {
   });
 
   // Function to add the user
-  const { trigger } = useSWRMutation("/auth/register", registerUser);
+  const { trigger: createUser, isMutating } = useSWRMutation(
+    "/auth/register",
+    registerUser
+  );
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -76,11 +79,11 @@ export default function AdminAddUser() {
     switch (name) {
       case "firstname":
         if (!isValidName(valueToValidate))
-          fieldError = "First name should only have alphabets";
+          fieldError = "Firstname should only have alphabets";
         break;
       case "lastname":
         if (!isValidName(valueToValidate))
-          fieldError = "Last name name should only have alphabets";
+          fieldError = "Lastname name should only have alphabets";
         break;
       case "email":
         if (!isValidEmail(valueToValidate))
@@ -134,31 +137,34 @@ export default function AdminAddUser() {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    const targetUser = {
+      firstname: form.firstname.trim(),
+      lastname: form.lastname.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      role: form.role.trim(),
+      password: form.password.trim(),
+    };
+
     try {
-      const result = await trigger({
-        body: {
-          firstname: form.firstname.trim(),
-          lastname: form.lastname.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          role: form.role.trim(),
-          password: form.password.trim(),
-        },
-      });
-      if (result.success) {
-        clearform();
-        toast.custom(
-          <Snackbar icon={FaCheck} message={result.message} type="success" />
-        );
-      }
-      navigate("/admin/users");
-    } catch (error) {
+      // Wait for user creation
+      const result = await createUser({ body: targetUser });
+
+      // clear the form
+      clearform();
+
+      // show toast message
+      const message = result.message || "User created successfully";
       toast.custom(
-        <Snackbar
-          icon={FaXmark}
-          message={error.response?.data?.message || "Failed to create user"}
-          type="error"
-        />
+        <Snackbar type="success" message={message} icon={FaCheck} />
+      );
+
+      // naviagate back to users page
+      navigate("/admin/users");
+    } catch (err) {
+      const errMessage = err.response.data?.message || "User not created!";
+      toast.custom(
+        <Snackbar type="error" message={errMessage} icon={FaXmark} />
       );
     }
   }
@@ -272,8 +278,8 @@ export default function AdminAddUser() {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="submit-btn">
-            Submit
+          <button type="submit" className="submit-btn" disabled={isMutating}>
+            {isMutating ? "creating..." : "Create user"}
           </button>
           <button
             type="button"
