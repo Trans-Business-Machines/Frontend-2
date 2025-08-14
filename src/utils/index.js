@@ -1,3 +1,5 @@
+import { setMilliseconds } from "date-fns";
+
 export const swrConfig = (navigate) => ({
   keepPreviousData: true,
   revalidateOnFocus: true,
@@ -59,7 +61,10 @@ export function isValidPassword(password = "", names = []) {
   // check if names are included in the password
   if (password && names.length !== 0) {
     const [firstname, lastname] = names
-    if (password.includes(firstname) || password.includes(lastname)) {
+    if (
+      password.toLowerCase().includes(firstname.toLowerCase()) ||
+      password.toLowerCase().includes(lastname.toLowerCase())
+    ) {
       isValid = false
       message = "Password should not contain your names."
       return { isValid, message }
@@ -70,12 +75,19 @@ export function isValidPassword(password = "", names = []) {
   // check password length
   if (password.length < 8) {
     isValid = false
-    message = "Password should be greater than 10 characters"
+    message = "Password should be greater than 8 characters"
     return { isValid, message }
   }
 
   return { isValid, message }
 }
 
+export function prepareUTCDateString(dateString) {
+  // Ensure milliseconds are zero
+  const noMilliSecondDateString = setMilliseconds(dateString, 0)
+
+  // convert to ISO and return the date string
+  return noMilliSecondDateString.toISOString()
+}
 
 
