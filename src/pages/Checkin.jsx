@@ -4,10 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
 import { FaCheck, FaXmark } from "react-icons/fa6";
 import { capitalize } from "../utils";
+import { formatInTimeZone } from "date-fns-tz";
 import {
   isValidName,
   isValidNationalId,
   isValidTenDigitPhone,
+  prepareUTCDateString,
 } from "../utils/index";
 import Snackbar from "../components/Snackbar";
 import axiosInstance from "../api/axiosInstance";
@@ -60,6 +62,9 @@ export default function Checkin() {
     }
     getHostsAndPurposes();
   }, []);
+
+  // Timezone
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const clearForm = () => {
     setForm({
@@ -133,6 +138,7 @@ export default function Checkin() {
       lastname: form.lastname.trim(),
       national_id: form.national_id.trim(),
       phone: form.phone.trim(),
+      time_in: prepareUTCDateString(new Date()),
     };
 
     const isValid = validateFormData(trimmedForm);
@@ -167,10 +173,18 @@ export default function Checkin() {
         setErrors({});
       }
     } catch (error) {
-      const errorMessage = "Check-in failed";
-      toast.custom(
-        <Snackbar icon={FaXmark} message={errorMessage} type="error" />
-      );
+      let message = "";
+      if (error.response.data?.details?.availableAt) {
+        message = `Host is currently unavailable, check by ${formatInTimeZone(
+          error.response.data.details.availableAt,
+          timeZone,
+          "do MMM yyyy, h:mm a"
+        )}`;
+      } else {
+        message = error.response.data.message || "Check in failed !";
+      }
+
+      toast.custom(<Snackbar icon={FaXmark} message={message} type="error" />);
     } finally {
       setCheckingIn(false);
     }
