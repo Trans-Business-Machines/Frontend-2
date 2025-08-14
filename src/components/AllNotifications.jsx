@@ -1,6 +1,6 @@
 import Notification from "./Notification";
 
-function AllNotifications({ notifications, hasNext, hasPrev, next, prev }) {
+function AllNotifications({ notifications }) {
   return (
     <section>
       {notifications.length === 0 ? (
@@ -36,28 +36,6 @@ function AllNotifications({ notifications, hasNext, hasPrev, next, prev }) {
                 notification={notification}
               />
             ))}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "1rem",
-            }}
-          >
-            <button
-              onClick={prev}
-              disabled={!hasPrev}
-              className="pagination-button"
-            >
-              Previous
-            </button>
-            <button
-              onClick={next}
-              disabled={!hasNext}
-              className="pagination-button"
-            >
-              Next
-            </button>
           </div>
         </section>
       )}
