@@ -18,9 +18,9 @@
 }
 
 .snackbar.error {
-    border-color: #EB2D2D;
-    background-color: #eb2d2d33;
-    color: #f80000;
+    border-color: #eb2d2db0;
+    background-color: #eb2d2db0;
+    color: #fff;
     font-weight: 500;
 }
 
