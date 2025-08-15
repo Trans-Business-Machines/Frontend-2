@@ -11,6 +11,7 @@ import {
   isValidName,
   isValidPassword,
   isValidTenDigitPhone,
+  isValidOTP,
 } from "../utils/index";
 
 export default function Login() {

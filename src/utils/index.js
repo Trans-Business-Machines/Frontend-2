@@ -34,7 +34,6 @@ export default function navigate(to) {
   return window.history.pushState({}, "", to);
 }
 
-
 export function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -48,12 +47,15 @@ export function isValidNationalId(id) {
   return regex.test(id)
 }
 
-// Allows letters and spaces
 export function isValidName(name) {
   return /^[a-zA-Z\s]+$/.test(name);
 }
 
-// New helper for password validation
+export function isValidOTP(otp) {
+  const regex = /^[0-9]{6}$/
+  return regex.test(otp)
+}
+
 export function isValidPassword(password = "", names = []) {
   let isValid = true;
   let message = "";
