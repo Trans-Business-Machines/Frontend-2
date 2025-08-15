@@ -21,12 +21,9 @@ export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const { trigger: changePassword } = useSWRMutation(
+  const { trigger: changePassword, isMutating } = useSWRMutation(
     "/users/:id",
     updatePassword
   );
@@ -39,7 +36,6 @@ export default function ChangePassword() {
 
   const validate = () => {
     if (newPassword !== confirmPassword) {
-      setLoading(false);
       return { valid: false, message: "Passwords do not match" };
     }
 
@@ -53,8 +49,6 @@ export default function ChangePassword() {
   };
 
   const handleSubmit = async (id) => {
-    setLoading(true);
-
     const result = validate();
 
     if (!result.valid) {
@@ -68,6 +62,7 @@ export default function ChangePassword() {
         currentPassword: oldPassword.trim(),
         newPassword: newPassword.trim(),
       };
+
       const result = await changePassword({ id, body });
 
       if (result.success) {
@@ -83,8 +78,6 @@ export default function ChangePassword() {
     } catch (err) {
       const message = err.response.data?.message || "Password change failed";
       toast.custom(<Snackbar icon={FaXmark} message={message} type="error" />);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -132,14 +125,12 @@ export default function ChangePassword() {
               autoComplete="new-password"
             />
           </div>
-          {error && <div className="change-password-error">{error}</div>}
-          {success && <div className="change-password-success">{success}</div>}
           <button
             type="submit"
             className="change-password-submit-btn"
-            disabled={loading}
+            disabled={isMutating}
           >
-            {loading ? "Changing..." : "Change Password"}
+            {isMutating ? "Changing..." : "Change Password"}
           </button>
         </form>
       </div>
