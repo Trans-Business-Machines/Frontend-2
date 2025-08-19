@@ -298,7 +298,7 @@ export default function HostAvailability() {
               </button>
             </div>
 
-            {!data?.schedules || data?.schedules.length === 0 ? (
+            {data?.schedules.length === 0 ? (
               <div
                 style={{
                   padding: "1.5rem",
@@ -307,10 +307,28 @@ export default function HostAvailability() {
                   fontSize: "1.5rem",
                   color: "#285E61",
                   fontWeight: "500",
-                  marginTop: ".25rem",
+                  background: "white",
+                  marginTop: ".85rem",
                 }}
               >
                 <p style={{ textAlign: "center" }}>No availability set ...</p>
+              </div>
+            ) : isLoading ? (
+              <div
+                style={{
+                  padding: "1.5rem",
+                  width: "100%",
+                  borderRadius: "8px",
+                  fontSize: "1.5rem",
+                  color: "#285E61",
+                  fontWeight: "500",
+                  marginTop: ".85rem",
+                  background: "white",
+                }}
+              >
+                <p style={{ textAlign: "center" }}>
+                  Loading availability slots...
+                </p>
               </div>
             ) : (
               <section>
