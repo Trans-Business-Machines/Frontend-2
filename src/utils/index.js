@@ -1,4 +1,4 @@
-import { setMilliseconds } from "date-fns";
+import { setMilliseconds, setSeconds } from "date-fns";
 
 export const swrConfig = (navigate) => ({
   keepPreviousData: true,
@@ -86,10 +86,11 @@ export function isValidPassword(password = "", names = []) {
 
 export function prepareUTCDateString(dateString) {
   // Ensure milliseconds are zero
-  const noMilliSecondDateString = setMilliseconds(dateString, 0)
+  const noMsDateString = setMilliseconds(dateString, 0)
+
+  // Ensure seconds are zero
+  const zeroSecondDateSring = setSeconds(noMsDateString, 0)
 
   // convert to ISO and return the date string
-  return noMilliSecondDateString.toISOString()
+  return zeroSecondDateSring.toISOString()
 }
-
-
