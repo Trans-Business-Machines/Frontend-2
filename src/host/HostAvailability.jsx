@@ -56,7 +56,7 @@ export default function HostAvailability() {
   );
 
   // Delete a schedule
-  const { trigger: deleteSchedule } = useSWRMutation(
+  const { trigger: deleteSchedule, isMutating: deletingSchedule } = useSWRMutation(
     `/users/schedule/${user.userId}`,
     deleteAvailability
   );
@@ -298,7 +298,7 @@ export default function HostAvailability() {
               </button>
             </div>
 
-            {data?.schedules.length === 0 ? (
+            {data?.schedules?.length === 0 ? (
               <div
                 style={{
                   padding: "1.5rem",
@@ -313,7 +313,7 @@ export default function HostAvailability() {
               >
                 <p style={{ textAlign: "center" }}>No availability set ...</p>
               </div>
-            ) : isLoading ? (
+            ) : isLoading || deletingSchedule ? (
               <div
                 style={{
                   padding: "1.5rem",
@@ -350,7 +350,7 @@ export default function HostAvailability() {
                     width: "100%",
                   }}
                 >
-                  {data.schedules.map((schedule) => (
+                  {data?.schedules?.map((schedule) => (
                     <MySchedule
                       key={schedule._id}
                       schedule={schedule}
